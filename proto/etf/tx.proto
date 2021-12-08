@@ -1,0 +1,51 @@
+syntax = "proto3";
+package defundhub.defund.etf;
+
+import "etf/fund.proto";
+// this line is used by starport scaffolding # proto/tx/import
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/defundhub/defund/x/etf/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
+  rpc UpdateFund(MsgUpdateFund) returns (MsgUpdateFundResponse);
+// this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgCreateFund {
+  string creator = 1;
+  string id = 2;
+
+  string address = 3;
+  string symbol = 4;
+  string name = 5;
+  string description = 6;
+  cosmos.base.v1beta1.Coin shares = 7 [
+    (gogoproto.moretags) = "yaml:\"total_shares\"",
+    (gogoproto.nullable) = false
+  ]; 
+}
+message MsgCreateFundResponse {}
+
+message MsgUpdateFund {
+  string creator = 1;
+  string id = 2;
+
+  string address = 3;
+  string symbol = 4;
+  string name = 5;
+  string description = 6;
+  cosmos.base.v1beta1.Coin shares = 7 [
+    (gogoproto.moretags) = "yaml:\"total_shares\"",
+    (gogoproto.nullable) = false
+  ]; 
+}
+message MsgUpdateFundResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message

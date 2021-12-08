@@ -1,0 +1,23 @@
+syntax = "proto3";
+package defundhub.defund.etf;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/defundhub/defund/x/etf/types";
+
+message Fund {
+  string id = 1; 
+  string address = 2; 
+  string symbol = 3; 
+  string name = 4; 
+  string description = 5; 
+  cosmos.base.v1beta1.Coin shares = 6 [
+    (gogoproto.moretags) = "yaml:\"total_shares\"",
+    (gogoproto.nullable) = false
+  ]; 
+  string creator = 7;
+}
+
