@@ -1,5 +1,5 @@
 # Defund
-**defund** is a blockchain that allows investors to invest in diversified, autonomous exchange traded funds.
+**Defund** is a blockchain that allows investors to invest in diversified, autonomous exchange traded funds.
 
 ## Get started in dev
 
@@ -7,7 +7,7 @@
 starport chain serve
 ```
 
-`serve` command installs dependencies, builds, initializes, and starts your blockchain in development.
+`serve` command installs dependencies, builds, initializes, and starts Defund in development. Use the --reset-once flag to reset the state.
 
 ### Frontend
 
@@ -21,5 +21,7 @@ npm run dev
 
 ### Planned Roadmap
 `Stage 1` Specify crypto assets and weights on creation and autorebalance
+
 `Stage 2` Add the ability to add instructions that power the trading of funds
+
 `Stage 3` Add smart contracts allowing for programmatic trading of underlying assets of funds.
