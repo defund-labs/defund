@@ -22006,6 +22006,8 @@ definitions:
         type: string
   defundhub.defund.etf.MsgCreateFundResponse:
     type: object
+  defundhub.defund.etf.MsgInvestResponse:
+    type: object
   defundhub.defund.etf.MsgUpdateFundResponse:
     type: object
   defundhub.defund.etf.QueryAllFundResponse:

@@ -81,7 +81,7 @@ func (k msgServer) UpdateFund(goCtx context.Context, msg *types.MsgUpdateFund) (
 		msg.Id,
 	)
 	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "id of fund not found")
 	}
 
 	// Checks if the the msg creator is the same as the current owner
@@ -92,11 +92,11 @@ func (k msgServer) UpdateFund(goCtx context.Context, msg *types.MsgUpdateFund) (
 	var fund = types.Fund{
 		Creator:     msg.Creator,
 		Id:          msg.Id,
-		Address:     msg.Address,
-		Symbol:      msg.Symbol,
+		Address:     valFound.Address,
+		Symbol:      valFound.Symbol,
 		Name:        msg.Name,
 		Description: msg.Description,
-		Shares:      msg.Shares,
+		Shares:      valFound.Shares,
 	}
 
 	k.SetFund(ctx, fund)

@@ -22,16 +22,9 @@ func TestFundMsgServerCreate(t *testing.T) {
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
 	for i := 0; i < 5; i++ {
-		expected := &types.MsgCreateFund{Creator: creator,
-			Id: strconv.Itoa(i),
-		}
+		expected := &types.MsgCreateFund{Creator: creator}
 		_, err := srv.CreateFund(wctx, expected)
 		require.NoError(t, err)
-		rst, found := k.GetFund(ctx,
-			expected.Id,
-		)
-		require.True(t, found)
-		require.Equal(t, expected.Creator, rst.Creator)
 	}
 }
 
@@ -68,9 +61,7 @@ func TestFundMsgServerUpdate(t *testing.T) {
 			k, ctx := keepertest.EtfKeeper(t)
 			srv := keeper.NewMsgServerImpl(*k)
 			wctx := sdk.WrapSDKContext(ctx)
-			expected := &types.MsgCreateFund{Creator: creator,
-				Id: strconv.Itoa(0),
-			}
+			expected := &types.MsgCreateFund{Creator: creator}
 			_, err := srv.CreateFund(wctx, expected)
 			require.NoError(t, err)
 
@@ -79,11 +70,6 @@ func TestFundMsgServerUpdate(t *testing.T) {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
-				rst, found := k.GetFund(ctx,
-					expected.Id,
-				)
-				require.True(t, found)
-				require.Equal(t, expected.Creator, rst.Creator)
 			}
 		})
 	}

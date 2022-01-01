@@ -12,8 +12,8 @@ import (
 
 func CmdListFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-fund",
-		Short: "list all fund",
+		Use:   "funds",
+		Short: "List all funds",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -45,8 +45,8 @@ func CmdListFund() *cobra.Command {
 
 func CmdShowFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-fund [index]",
-		Short: "shows a fund",
+		Use:   "fund [id]",
+		Short: "Get and show fund of Id specified",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

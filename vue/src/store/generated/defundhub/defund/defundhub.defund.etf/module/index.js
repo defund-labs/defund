@@ -2,11 +2,13 @@
 import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
-import { MsgCreateFund } from "./types/etf/tx";
 import { MsgUpdateFund } from "./types/etf/tx";
+import { MsgInvest } from "./types/etf/tx";
+import { MsgCreateFund } from "./types/etf/tx";
 const types = [
-    ["/defundhub.defund.etf.MsgCreateFund", MsgCreateFund],
     ["/defundhub.defund.etf.MsgUpdateFund", MsgUpdateFund],
+    ["/defundhub.defund.etf.MsgInvest", MsgInvest],
+    ["/defundhub.defund.etf.MsgCreateFund", MsgCreateFund],
 ];
 export const MissingWalletError = new Error("wallet is required");
 const registry = new Registry(types);
@@ -21,8 +23,9 @@ const txClient = async (wallet, { addr: addr } = { addr: "http://localhost:26657
     const { address } = (await wallet.getAccounts())[0];
     return {
         signAndBroadcast: (msgs, { fee, memo } = { fee: defaultFee, memo: "" }) => client.signAndBroadcast(address, msgs, fee, memo),
-        msgCreateFund: (data) => ({ typeUrl: "/defundhub.defund.etf.MsgCreateFund", value: data }),
         msgUpdateFund: (data) => ({ typeUrl: "/defundhub.defund.etf.MsgUpdateFund", value: data }),
+        msgInvest: (data) => ({ typeUrl: "/defundhub.defund.etf.MsgInvest", value: data }),
+        msgCreateFund: (data) => ({ typeUrl: "/defundhub.defund.etf.MsgCreateFund", value: data }),
     };
 };
 const queryClient = async ({ addr: addr } = { addr: "http://localhost:1317" }) => {

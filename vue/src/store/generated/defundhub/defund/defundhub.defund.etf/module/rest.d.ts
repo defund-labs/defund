@@ -14,6 +14,7 @@ export interface EtfFund {
     creator?: string;
 }
 export declare type EtfMsgCreateFundResponse = object;
+export declare type EtfMsgInvestResponse = object;
 export declare type EtfMsgUpdateFundResponse = object;
 export interface EtfQueryAllFundResponse {
     fund?: EtfFund[];

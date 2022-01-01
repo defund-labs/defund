@@ -54,11 +54,15 @@ func (msg *MsgCreateFund) ValidateBasic() error {
 var _ sdk.Msg = &MsgUpdateFund{}
 
 func NewMsgUpdateFund(
+	creator string,
+	id string,
 	name string,
 	description string,
 
 ) *MsgUpdateFund {
 	return &MsgUpdateFund{
+		Creator:     creator,
+		Id:          id,
 		Name:        name,
 		Description: description,
 	}

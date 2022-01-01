@@ -46,14 +46,15 @@ func CmdCreateFund() *cobra.Command {
 
 func CmdUpdateFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-fund [symbol] [name] [description]",
+		Use:   "update-fund [id] [name] [description]",
 		Short: "Update a fund",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// Get value arguments
-			argName := args[0]
-			argDescription := args[1]
+			argId := args[0]
+			argName := args[1]
+			argDescription := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -61,6 +62,8 @@ func CmdUpdateFund() *cobra.Command {
 			}
 
 			msg := types.NewMsgUpdateFund(
+				clientCtx.GetFromAddress().String(),
+				argId,
 				argName,
 				argDescription,
 			)

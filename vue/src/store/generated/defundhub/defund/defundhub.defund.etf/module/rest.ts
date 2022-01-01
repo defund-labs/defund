@@ -28,6 +28,8 @@ export interface EtfFund {
 
 export type EtfMsgCreateFundResponse = object;
 
+export type EtfMsgInvestResponse = object;
+
 export type EtfMsgUpdateFundResponse = object;
 
 export interface EtfQueryAllFundResponse {

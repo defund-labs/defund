@@ -1,27 +1,27 @@
 import { Reader, Writer } from "protobufjs/minimal";
-import { Coin } from "../cosmos/base/v1beta1/coin";
 export declare const protobufPackage = "defundhub.defund.etf";
 export interface MsgCreateFund {
     creator: string;
-    id: string;
-    address: string;
     symbol: string;
     name: string;
     description: string;
-    shares: Coin | undefined;
 }
 export interface MsgCreateFundResponse {
 }
 export interface MsgUpdateFund {
     creator: string;
     id: string;
-    address: string;
-    symbol: string;
     name: string;
     description: string;
-    shares: Coin | undefined;
 }
 export interface MsgUpdateFundResponse {
+}
+export interface MsgInvest {
+    creator: string;
+    fund: string;
+    amount: string;
+}
+export interface MsgInvestResponse {
 }
 export declare const MsgCreateFund: {
     encode(message: MsgCreateFund, writer?: Writer): Writer;
@@ -51,17 +51,33 @@ export declare const MsgUpdateFundResponse: {
     toJSON(_: MsgUpdateFundResponse): unknown;
     fromPartial(_: DeepPartial<MsgUpdateFundResponse>): MsgUpdateFundResponse;
 };
+export declare const MsgInvest: {
+    encode(message: MsgInvest, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): MsgInvest;
+    fromJSON(object: any): MsgInvest;
+    toJSON(message: MsgInvest): unknown;
+    fromPartial(object: DeepPartial<MsgInvest>): MsgInvest;
+};
+export declare const MsgInvestResponse: {
+    encode(_: MsgInvestResponse, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): MsgInvestResponse;
+    fromJSON(_: any): MsgInvestResponse;
+    toJSON(_: MsgInvestResponse): unknown;
+    fromPartial(_: DeepPartial<MsgInvestResponse>): MsgInvestResponse;
+};
 /** Msg defines the Msg service. */
 export interface Msg {
     CreateFund(request: MsgCreateFund): Promise<MsgCreateFundResponse>;
-    /** this line is used by starport scaffolding # proto/tx/rpc */
     UpdateFund(request: MsgUpdateFund): Promise<MsgUpdateFundResponse>;
+    /** this line is used by starport scaffolding # proto/tx/rpc */
+    Invest(request: MsgInvest): Promise<MsgInvestResponse>;
 }
 export declare class MsgClientImpl implements Msg {
     private readonly rpc;
     constructor(rpc: Rpc);
     CreateFund(request: MsgCreateFund): Promise<MsgCreateFundResponse>;
     UpdateFund(request: MsgUpdateFund): Promise<MsgUpdateFundResponse>;
+    Invest(request: MsgInvest): Promise<MsgInvestResponse>;
 }
 interface Rpc {
     request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;

@@ -4,13 +4,15 @@ import { StdFee } from "@cosmjs/launchpad";
 import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
-import { MsgCreateFund } from "./types/etf/tx";
 import { MsgUpdateFund } from "./types/etf/tx";
+import { MsgInvest } from "./types/etf/tx";
+import { MsgCreateFund } from "./types/etf/tx";
 
 
 const types = [
-  ["/defundhub.defund.etf.MsgCreateFund", MsgCreateFund],
   ["/defundhub.defund.etf.MsgUpdateFund", MsgUpdateFund],
+  ["/defundhub.defund.etf.MsgInvest", MsgInvest],
+  ["/defundhub.defund.etf.MsgCreateFund", MsgCreateFund],
   
 ];
 export const MissingWalletError = new Error("wallet is required");
@@ -39,8 +41,9 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
 
   return {
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
-    msgCreateFund: (data: MsgCreateFund): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgCreateFund", value: data }),
     msgUpdateFund: (data: MsgUpdateFund): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgUpdateFund", value: data }),
+    msgInvest: (data: MsgInvest): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgInvest", value: data }),
+    msgCreateFund: (data: MsgCreateFund): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgCreateFund", value: data }),
     
   };
 };

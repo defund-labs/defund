@@ -15,21 +15,16 @@ option go_package = "github.com/defundhub/defund/x/etf/types";
 service Msg {
   rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
   rpc UpdateFund(MsgUpdateFund) returns (MsgUpdateFundResponse);
+  rpc Invest(MsgInvest) returns (MsgInvestResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 message MsgCreateFund {
   string creator = 1;
-  string id = 2;
 
-  string address = 3;
-  string symbol = 4;
-  string name = 5;
-  string description = 6;
-  cosmos.base.v1beta1.Coin shares = 7 [
-    (gogoproto.moretags) = "yaml:\"total_shares\"",
-    (gogoproto.nullable) = false
-  ]; 
+  string symbol = 2;
+  string name = 3;
+  string description = 4;
 }
 message MsgCreateFundResponse {}
 
@@ -37,15 +32,18 @@ message MsgUpdateFund {
   string creator = 1;
   string id = 2;
 
-  string address = 3;
-  string symbol = 4;
-  string name = 5;
-  string description = 6;
-  cosmos.base.v1beta1.Coin shares = 7 [
-    (gogoproto.moretags) = "yaml:\"total_shares\"",
-    (gogoproto.nullable) = false
-  ]; 
+  string name = 3;
+  string description = 4;
 }
 message MsgUpdateFundResponse {}
+
+message MsgInvest {
+  string creator = 1;
+  string fund = 2;
+  string amount = 3;
+}
+
+message MsgInvestResponse {
+}
 
 // this line is used by starport scaffolding # proto/tx/message
