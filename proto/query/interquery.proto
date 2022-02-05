@@ -1,0 +1,16 @@
+syntax = "proto3";
+package defundhub.defund.query;
+
+option go_package = "github.com/defundhub/defund/x/query/types";
+
+
+
+message Interquery {
+  string index = 1; 
+  string height = 2; 
+  string path = 3; 
+  string chainId = 4; 
+  string typeName = 5; 
+  string creator = 6;
+}
+

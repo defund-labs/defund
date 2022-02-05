@@ -1,0 +1,14 @@
+syntax = "proto3";
+package defundhub.defund.query;
+
+import "query/interquery.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/defundhub/defund/x/query/types";
+
+// GenesisState defines the query module's genesis state.
+message GenesisState {
+    repeated Interquery interqueryList = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

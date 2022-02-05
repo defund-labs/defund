@@ -1,0 +1,45 @@
+syntax = "proto3";
+package defundhub.defund.query;
+
+import "query/interquery.proto";
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/defundhub/defund/x/query/types";
+
+// Msg defines the Msg service.
+service Msg {
+      rpc CreateInterquery(MsgCreateInterquery) returns (MsgCreateInterqueryResponse);
+  rpc UpdateInterquery(MsgUpdateInterquery) returns (MsgUpdateInterqueryResponse);
+  rpc DeleteInterquery(MsgDeleteInterquery) returns (MsgDeleteInterqueryResponse);
+// this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgCreateInterquery {
+  string creator = 1;
+  string index = 2;
+
+  string height = 3;
+  string path = 4;
+  string chainId = 5;
+  string typeName = 6;
+}
+message MsgCreateInterqueryResponse {}
+
+message MsgUpdateInterquery {
+  string creator = 1;
+  string index = 2;
+
+  string height = 3;
+  string path = 4;
+  string chainId = 5;
+  string typeName = 6;
+}
+message MsgUpdateInterqueryResponse {}
+
+message MsgDeleteInterquery {
+  string creator = 1;
+  string index = 2;
+}
+message MsgDeleteInterqueryResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message
