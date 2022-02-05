@@ -165,5 +165,20 @@ export class Api extends HttpClient {
             format: "json",
             ...params,
         });
+        /**
+         * No description
+         *
+         * @tags Query
+         * @name QueryFundPrice
+         * @summary Queries a list of fundPrice items.
+         * @request GET:/defundhub/defund/etf/fundPrice
+         */
+        this.queryFundPrice = (query, params = {}) => this.request({
+            path: `/defundhub/defund/etf/fundPrice`,
+            method: "GET",
+            query: query,
+            format: "json",
+            ...params,
+        });
     }
 }

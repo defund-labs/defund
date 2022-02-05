@@ -16,6 +16,7 @@ service Msg {
   rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
   rpc UpdateFund(MsgUpdateFund) returns (MsgUpdateFundResponse);
   rpc Invest(MsgInvest) returns (MsgInvestResponse);
+  rpc Uninvest(MsgUninvest) returns (MsgUninvestResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -44,6 +45,15 @@ message MsgInvest {
 }
 
 message MsgInvestResponse {
+}
+
+message MsgUninvest {
+  string creator = 1;
+  string fund = 2;
+  string amount = 3;
+}
+
+message MsgUninvestResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message

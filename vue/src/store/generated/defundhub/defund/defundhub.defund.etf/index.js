@@ -38,6 +38,7 @@ const getDefaultState = () => {
     return {
         Fund: {},
         FundAll: {},
+        FundPrice: {},
         _Structure: {
             Fund: getStructure(Fund.fromPartial({})),
         },
@@ -75,6 +76,12 @@ export default {
                 params.query = null;
             }
             return state.FundAll[JSON.stringify(params)] ?? {};
+        },
+        getFundPrice: (state) => (params = { params: {} }) => {
+            if (!params.query) {
+                params.query = null;
+            }
+            return state.FundPrice[JSON.stringify(params)] ?? {};
         },
         getTypeStructure: (state) => (type) => {
             return state._Structure[type].fields;
@@ -135,6 +142,23 @@ export default {
                 throw new SpVuexError('QueryClient:QueryFundAll', 'API Node Unavailable. Could not perform query: ' + e.message);
             }
         },
+        async QueryFundPrice({ commit, rootGetters, getters }, { options: { subscribe, all } = { subscribe: false, all: false }, params: { ...key }, query = null }) {
+            try {
+                const queryClient = await initQueryClient(rootGetters);
+                let value = (await queryClient.queryFundPrice(query)).data;
+                while (all && value.pagination && value.pagination.nextKey != null) {
+                    let next_values = (await queryClient.queryFundPrice({ ...query, 'pagination.key': value.pagination.nextKey })).data;
+                    value = mergeResults(value, next_values);
+                }
+                commit('QUERY', { query: 'FundPrice', key: { params: { ...key }, query }, value });
+                if (subscribe)
+                    commit('SUBSCRIBE', { action: 'QueryFundPrice', payload: { options: { all }, params: { ...key }, query } });
+                return getters['getFundPrice']({ params: { ...key }, query }) ?? {};
+            }
+            catch (e) {
+                throw new SpVuexError('QueryClient:QueryFundPrice', 'API Node Unavailable. Could not perform query: ' + e.message);
+            }
+        },
         async sendMsgUpdateFund({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
@@ -166,6 +190,23 @@ export default {
                 }
                 else {
                     throw new SpVuexError('TxClient:MsgInvest:Send', 'Could not broadcast Tx: ' + e.message);
+                }
+            }
+        },
+        async sendMsgUninvest({ rootGetters }, { value, fee = [], memo = '' }) {
+            try {
+                const txClient = await initTxClient(rootGetters);
+                const msg = await txClient.msgUninvest(value);
+                const result = await txClient.signAndBroadcast([msg], { fee: { amount: fee,
+                        gas: "200000" }, memo });
+                return result;
+            }
+            catch (e) {
+                if (e == MissingWalletError) {
+                    throw new SpVuexError('TxClient:MsgUninvest:Init', 'Could not initialize signing client. Wallet is required.');
+                }
+                else {
+                    throw new SpVuexError('TxClient:MsgUninvest:Send', 'Could not broadcast Tx: ' + e.message);
                 }
             }
         },
@@ -213,6 +254,21 @@ export default {
                 }
                 else {
                     throw new SpVuexError('TxClient:MsgInvest:Create', 'Could not create message: ' + e.message);
+                }
+            }
+        },
+        async MsgUninvest({ rootGetters }, { value }) {
+            try {
+                const txClient = await initTxClient(rootGetters);
+                const msg = await txClient.msgUninvest(value);
+                return msg;
+            }
+            catch (e) {
+                if (e == MissingWalletError) {
+                    throw new SpVuexError('TxClient:MsgUninvest:Init', 'Could not initialize signing client. Wallet is required.');
+                }
+                else {
+                    throw new SpVuexError('TxClient:MsgUninvest:Create', 'Could not create message: ' + e.message);
                 }
             }
         },

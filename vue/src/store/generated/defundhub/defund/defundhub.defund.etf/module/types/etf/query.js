@@ -239,6 +239,89 @@ export const QueryAllFundResponse = {
         return message;
     },
 };
+const baseQueryFundPriceRequest = { ticker: "" };
+export const QueryFundPriceRequest = {
+    encode(message, writer = Writer.create()) {
+        if (message.ticker !== "") {
+            writer.uint32(10).string(message.ticker);
+        }
+        return writer;
+    },
+    decode(input, length) {
+        const reader = input instanceof Uint8Array ? new Reader(input) : input;
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = { ...baseQueryFundPriceRequest };
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.ticker = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    },
+    fromJSON(object) {
+        const message = { ...baseQueryFundPriceRequest };
+        if (object.ticker !== undefined && object.ticker !== null) {
+            message.ticker = String(object.ticker);
+        }
+        else {
+            message.ticker = "";
+        }
+        return message;
+    },
+    toJSON(message) {
+        const obj = {};
+        message.ticker !== undefined && (obj.ticker = message.ticker);
+        return obj;
+    },
+    fromPartial(object) {
+        const message = { ...baseQueryFundPriceRequest };
+        if (object.ticker !== undefined && object.ticker !== null) {
+            message.ticker = object.ticker;
+        }
+        else {
+            message.ticker = "";
+        }
+        return message;
+    },
+};
+const baseQueryFundPriceResponse = {};
+export const QueryFundPriceResponse = {
+    encode(_, writer = Writer.create()) {
+        return writer;
+    },
+    decode(input, length) {
+        const reader = input instanceof Uint8Array ? new Reader(input) : input;
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = { ...baseQueryFundPriceResponse };
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    },
+    fromJSON(_) {
+        const message = { ...baseQueryFundPriceResponse };
+        return message;
+    },
+    toJSON(_) {
+        const obj = {};
+        return obj;
+    },
+    fromPartial(_) {
+        const message = { ...baseQueryFundPriceResponse };
+        return message;
+    },
+};
 export class QueryClientImpl {
     constructor(rpc) {
         this.rpc = rpc;
@@ -252,5 +335,10 @@ export class QueryClientImpl {
         const data = QueryAllFundRequest.encode(request).finish();
         const promise = this.rpc.request("defundhub.defund.etf.Query", "FundAll", data);
         return promise.then((data) => QueryAllFundResponse.decode(new Reader(data)));
+    }
+    FundPrice(request) {
+        const data = QueryFundPriceRequest.encode(request).finish();
+        const promise = this.rpc.request("defundhub.defund.etf.Query", "FundPrice", data);
+        return promise.then((data) => QueryFundPriceResponse.decode(new Reader(data)));
     }
 }

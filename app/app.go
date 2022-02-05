@@ -97,6 +97,9 @@ import (
 	etfmodule "github.com/defundhub/defund/x/etf"
 	etfmodulekeeper "github.com/defundhub/defund/x/etf/keeper"
 	etfmoduletypes "github.com/defundhub/defund/x/etf/types"
+	querymodule "github.com/defundhub/defund/x/query"
+	querymodulekeeper "github.com/defundhub/defund/x/query/keeper"
+	querymoduletypes "github.com/defundhub/defund/x/query/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -149,6 +152,7 @@ var (
 		vesting.AppModuleBasic{},
 		liquidity.AppModuleBasic{},
 		etfmodule.AppModuleBasic{},
+		querymodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -221,6 +225,8 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	EtfKeeper etfmodulekeeper.Keeper
+
+	QueryKeeper querymodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// the module manager
@@ -255,6 +261,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, liquiditytypes.StoreKey,
 		etfmoduletypes.StoreKey,
+		querymoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -369,6 +376,13 @@ func New(
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper)
 
+	app.QueryKeeper = *querymodulekeeper.NewKeeper(
+		appCodec,
+		keys[querymoduletypes.StoreKey],
+		keys[querymoduletypes.MemStoreKey],
+	)
+	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -409,6 +423,7 @@ func New(
 		transferModule,
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		etfModule,
+		queryModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -445,6 +460,7 @@ func New(
 		ibctransfertypes.ModuleName,
 		liquiditytypes.ModuleName,
 		etfmoduletypes.ModuleName,
+		querymoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -634,6 +650,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(etfmoduletypes.ModuleName)
+	paramsKeeper.Subspace(querymoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

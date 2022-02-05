@@ -23,6 +23,13 @@ export interface MsgInvest {
 }
 export interface MsgInvestResponse {
 }
+export interface MsgUninvest {
+    creator: string;
+    fund: string;
+    amount: string;
+}
+export interface MsgUninvestResponse {
+}
 export declare const MsgCreateFund: {
     encode(message: MsgCreateFund, writer?: Writer): Writer;
     decode(input: Reader | Uint8Array, length?: number): MsgCreateFund;
@@ -65,12 +72,27 @@ export declare const MsgInvestResponse: {
     toJSON(_: MsgInvestResponse): unknown;
     fromPartial(_: DeepPartial<MsgInvestResponse>): MsgInvestResponse;
 };
+export declare const MsgUninvest: {
+    encode(message: MsgUninvest, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): MsgUninvest;
+    fromJSON(object: any): MsgUninvest;
+    toJSON(message: MsgUninvest): unknown;
+    fromPartial(object: DeepPartial<MsgUninvest>): MsgUninvest;
+};
+export declare const MsgUninvestResponse: {
+    encode(_: MsgUninvestResponse, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): MsgUninvestResponse;
+    fromJSON(_: any): MsgUninvestResponse;
+    toJSON(_: MsgUninvestResponse): unknown;
+    fromPartial(_: DeepPartial<MsgUninvestResponse>): MsgUninvestResponse;
+};
 /** Msg defines the Msg service. */
 export interface Msg {
     CreateFund(request: MsgCreateFund): Promise<MsgCreateFundResponse>;
     UpdateFund(request: MsgUpdateFund): Promise<MsgUpdateFundResponse>;
-    /** this line is used by starport scaffolding # proto/tx/rpc */
     Invest(request: MsgInvest): Promise<MsgInvestResponse>;
+    /** this line is used by starport scaffolding # proto/tx/rpc */
+    Uninvest(request: MsgUninvest): Promise<MsgUninvestResponse>;
 }
 export declare class MsgClientImpl implements Msg {
     private readonly rpc;
@@ -78,6 +100,7 @@ export declare class MsgClientImpl implements Msg {
     CreateFund(request: MsgCreateFund): Promise<MsgCreateFundResponse>;
     UpdateFund(request: MsgUpdateFund): Promise<MsgUpdateFundResponse>;
     Invest(request: MsgInvest): Promise<MsgInvestResponse>;
+    Uninvest(request: MsgUninvest): Promise<MsgUninvestResponse>;
 }
 interface Rpc {
     request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;

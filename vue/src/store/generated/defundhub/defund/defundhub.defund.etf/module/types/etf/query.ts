@@ -25,6 +25,12 @@ export interface QueryAllFundResponse {
   pagination: PageResponse | undefined;
 }
 
+export interface QueryFundPriceRequest {
+  ticker: string;
+}
+
+export interface QueryFundPriceResponse {}
+
 const baseQueryGetFundRequest: object = { index: "" };
 
 export const QueryGetFundRequest = {
@@ -291,12 +297,112 @@ export const QueryAllFundResponse = {
   },
 };
 
+const baseQueryFundPriceRequest: object = { ticker: "" };
+
+export const QueryFundPriceRequest = {
+  encode(
+    message: QueryFundPriceRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.ticker !== "") {
+      writer.uint32(10).string(message.ticker);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryFundPriceRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.ticker = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryFundPriceRequest {
+    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
+    if (object.ticker !== undefined && object.ticker !== null) {
+      message.ticker = String(object.ticker);
+    } else {
+      message.ticker = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryFundPriceRequest): unknown {
+    const obj: any = {};
+    message.ticker !== undefined && (obj.ticker = message.ticker);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryFundPriceRequest>
+  ): QueryFundPriceRequest {
+    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
+    if (object.ticker !== undefined && object.ticker !== null) {
+      message.ticker = object.ticker;
+    } else {
+      message.ticker = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryFundPriceResponse: object = {};
+
+export const QueryFundPriceResponse = {
+  encode(_: QueryFundPriceResponse, writer: Writer = Writer.create()): Writer {
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryFundPriceResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): QueryFundPriceResponse {
+    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
+    return message;
+  },
+
+  toJSON(_: QueryFundPriceResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(_: DeepPartial<QueryFundPriceResponse>): QueryFundPriceResponse {
+    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Queries a fund by index. */
   Fund(request: QueryGetFundRequest): Promise<QueryGetFundResponse>;
   /** Queries a list of fund items. */
   FundAll(request: QueryAllFundRequest): Promise<QueryAllFundResponse>;
+  /** Queries a list of fundPrice items. */
+  FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -325,6 +431,18 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllFundResponse.decode(new Reader(data))
+    );
+  }
+
+  FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse> {
+    const data = QueryFundPriceRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "defundhub.defund.etf.Query",
+      "FundPrice",
+      data
+    );
+    return promise.then((data) =>
+      QueryFundPriceResponse.decode(new Reader(data))
     );
   }
 }

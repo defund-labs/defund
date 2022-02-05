@@ -30,6 +30,8 @@ export type EtfMsgCreateFundResponse = object;
 
 export type EtfMsgInvestResponse = object;
 
+export type EtfMsgUninvestResponse = object;
+
 export type EtfMsgUpdateFundResponse = object;
 
 export interface EtfQueryAllFundResponse {
@@ -46,6 +48,8 @@ export interface EtfQueryAllFundResponse {
    */
   pagination?: V1Beta1PageResponse;
 }
+
+export type EtfQueryFundPriceResponse = object;
 
 export interface EtfQueryGetFundResponse {
   fund?: EtfFund;
@@ -366,6 +370,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     this.request<EtfQueryGetFundResponse, RpcStatus>({
       path: `/defundhub/defund/etf/fund/${index}`,
       method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryFundPrice
+   * @summary Queries a list of fundPrice items.
+   * @request GET:/defundhub/defund/etf/fundPrice
+   */
+  queryFundPrice = (query?: { ticker?: string }, params: RequestParams = {}) =>
+    this.request<EtfQueryFundPriceResponse, RpcStatus>({
+      path: `/defundhub/defund/etf/fundPrice`,
+      method: "GET",
+      query: query,
       format: "json",
       ...params,
     });

@@ -16,7 +16,7 @@ var _ = strconv.Itoa(0)
 func CmdInvest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "invest [fund] [amount]",
-		Short: "Broadcast message invest",
+		Short: "Invest the specified amount into the dETF ticker.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]

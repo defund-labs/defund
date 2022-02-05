@@ -15,6 +15,11 @@ export interface QueryAllFundResponse {
     fund: Fund[];
     pagination: PageResponse | undefined;
 }
+export interface QueryFundPriceRequest {
+    ticker: string;
+}
+export interface QueryFundPriceResponse {
+}
 export declare const QueryGetFundRequest: {
     encode(message: QueryGetFundRequest, writer?: Writer): Writer;
     decode(input: Reader | Uint8Array, length?: number): QueryGetFundRequest;
@@ -43,18 +48,35 @@ export declare const QueryAllFundResponse: {
     toJSON(message: QueryAllFundResponse): unknown;
     fromPartial(object: DeepPartial<QueryAllFundResponse>): QueryAllFundResponse;
 };
+export declare const QueryFundPriceRequest: {
+    encode(message: QueryFundPriceRequest, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): QueryFundPriceRequest;
+    fromJSON(object: any): QueryFundPriceRequest;
+    toJSON(message: QueryFundPriceRequest): unknown;
+    fromPartial(object: DeepPartial<QueryFundPriceRequest>): QueryFundPriceRequest;
+};
+export declare const QueryFundPriceResponse: {
+    encode(_: QueryFundPriceResponse, writer?: Writer): Writer;
+    decode(input: Reader | Uint8Array, length?: number): QueryFundPriceResponse;
+    fromJSON(_: any): QueryFundPriceResponse;
+    toJSON(_: QueryFundPriceResponse): unknown;
+    fromPartial(_: DeepPartial<QueryFundPriceResponse>): QueryFundPriceResponse;
+};
 /** Query defines the gRPC querier service. */
 export interface Query {
     /** Queries a fund by index. */
     Fund(request: QueryGetFundRequest): Promise<QueryGetFundResponse>;
     /** Queries a list of fund items. */
     FundAll(request: QueryAllFundRequest): Promise<QueryAllFundResponse>;
+    /** Queries a list of fundPrice items. */
+    FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse>;
 }
 export declare class QueryClientImpl implements Query {
     private readonly rpc;
     constructor(rpc: Rpc);
     Fund(request: QueryGetFundRequest): Promise<QueryGetFundResponse>;
     FundAll(request: QueryAllFundRequest): Promise<QueryAllFundResponse>;
+    FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse>;
 }
 interface Rpc {
     request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;

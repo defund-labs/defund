@@ -6,12 +6,14 @@ import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "
 import { Api } from "./rest";
 import { MsgUpdateFund } from "./types/etf/tx";
 import { MsgInvest } from "./types/etf/tx";
+import { MsgUninvest } from "./types/etf/tx";
 import { MsgCreateFund } from "./types/etf/tx";
 
 
 const types = [
   ["/defundhub.defund.etf.MsgUpdateFund", MsgUpdateFund],
   ["/defundhub.defund.etf.MsgInvest", MsgInvest],
+  ["/defundhub.defund.etf.MsgUninvest", MsgUninvest],
   ["/defundhub.defund.etf.MsgCreateFund", MsgCreateFund],
   
 ];
@@ -43,6 +45,7 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
     msgUpdateFund: (data: MsgUpdateFund): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgUpdateFund", value: data }),
     msgInvest: (data: MsgInvest): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgInvest", value: data }),
+    msgUninvest: (data: MsgUninvest): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgUninvest", value: data }),
     msgCreateFund: (data: MsgCreateFund): EncodeObject => ({ typeUrl: "/defundhub.defund.etf.MsgCreateFund", value: data }),
     
   };
