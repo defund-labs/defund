@@ -11,7 +11,7 @@ cd defund
 make install
 ```
 
-`make install` installs additional components including, the hermes relayer by Informal, the Omosis binary, and the Cosmos Hub binary (gaia).
+`make install` installs additional components including, the hermes relayer by Informal, the Osmosis binary, and the Cosmos Hub binary (gaia).
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ npm run dev
 
 ## Creating A Fund
 
-The following command is an example on creating a new dETF on Defund:
+The following command is an example on creating a new dETF on Defund via the Defund binary:
 
 ```
 
@@ -45,7 +45,7 @@ The following command is an example on creating a new dETF on Defund:
 
 ## Invest In A Fund
 
-The following command is an example on investing in a dETF on Defund:
+The following command is an example on investing in a dETF on Defund via the Defund binary:
 
 ```
 
@@ -53,7 +53,7 @@ The following command is an example on investing in a dETF on Defund:
 
 ## Uninvest In A Fund
 
-The following command is an example of redeeming an investment in a dETF on Defund:
+The following command is an example of redeeming an investment in a dETF on Defund via the Defund binary:
 
 ```
 
