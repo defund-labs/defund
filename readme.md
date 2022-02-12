@@ -1,6 +1,10 @@
 # Defund
 **Defund** is a blockchain that allows the investment in and creation of diversified, autonomous exchange traded funds.
 
+## Set Up Validator/Node On Akash
+
+Details on setting up a Defund node and/or validator are coming soon.
+
 ## Install
 
 ```
