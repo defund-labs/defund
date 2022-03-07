@@ -17,7 +17,7 @@ var _ = strconv.IntSize
 func createNInterquery(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Interquery {
 	items := make([]types.Interquery, n)
 	for i := range items {
-		items[i].Index = strconv.Itoa(i)
+		items[i].Storeid = strconv.Itoa(i)
 
 		keeper.SetInterquery(ctx, items[i])
 	}
@@ -29,7 +29,7 @@ func TestInterqueryGet(t *testing.T) {
 	items := createNInterquery(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetInterquery(ctx,
-			item.Index,
+			item.Storeid,
 		)
 		require.True(t, found)
 		require.Equal(t, item, rst)
@@ -40,10 +40,10 @@ func TestInterqueryRemove(t *testing.T) {
 	items := createNInterquery(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveInterquery(ctx,
-			item.Index,
+			item.Storeid,
 		)
 		_, found := keeper.GetInterquery(ctx,
-			item.Index,
+			item.Storeid,
 		)
 		require.False(t, found)
 	}

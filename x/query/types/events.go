@@ -4,9 +4,7 @@ package types
 const (
 	EventTypeQuery = "query"
 
-	AttributeKeyQueryPath          = "path"
-	AttributeKeyQueryHeight        = "height"
-	AttributeKeyQueryQueriedChain  = "queried_chain"
-	AttributeKeyQueryQueryingChain = "querying_chain"
-	AttributeKeyQueryError         = "error"
+	AttributeKeyQueryClientId = "clientid"
+	AttributeKeyQueryPath     = "path"
+	AttributeKeyQueryStoreid  = "storeid"
 )

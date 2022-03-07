@@ -3,14 +3,34 @@ package defundhub.defund.query;
 
 option go_package = "github.com/defundhub/defund/x/query/types";
 
-
+import "tendermint/crypto/proof.proto";
 
 message Interquery {
-  string index = 1; 
-  string height = 2; 
+  string creator = 1;
+
+  string storeid = 2; 
   string path = 3; 
-  string chainId = 4; 
-  string typeName = 5; 
-  string creator = 6;
+  uint64 timeoutHeight = 4; 
+  string clientId = 5;
+}
+
+message InterqueryResult {
+  string creator = 1;
+  
+  string storeid = 2; 
+  bytes  data = 3; 
+  uint64 height = 4; 
+  string clientId = 5; 
+  bool   success = 6;
+  tendermint.crypto.ProofOps proof = 7;
+}
+
+message InterqueryTimeoutResult {
+  string creator = 1;
+
+  string storeid = 2; 
+  uint64 timeoutHeight = 3; 
+  string clientId = 4; 
+  tendermint.crypto.ProofOps proof = 5;
 }
 

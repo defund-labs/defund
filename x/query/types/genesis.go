@@ -22,7 +22,7 @@ func (gs GenesisState) Validate() error {
 	interqueryIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.InterqueryList {
-		index := string(InterqueryKey(elem.Index))
+		index := string(InterqueryKey(elem.Storeid))
 		if _, ok := interqueryIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for interquery")
 		}

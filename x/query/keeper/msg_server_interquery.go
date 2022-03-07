@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -11,22 +12,24 @@ import (
 func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateInterquery) (*types.MsgCreateInterqueryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// Create the store Id by using the Key-Id combination
+	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
+
 	// Check if the value already exists
 	_, isFound := k.GetInterquery(
 		ctx,
-		msg.Index,
+		storeId,
 	)
 	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "index already set")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", storeId))
 	}
 
 	var interquery = types.Interquery{
-		Creator:  msg.Creator,
-		Index:    msg.Index,
-		Height:   msg.Height,
-		Path:     msg.Path,
-		ChainId:  msg.ChainId,
-		TypeName: msg.TypeName,
+		Creator:       msg.Creator,
+		Storeid:       storeId,
+		Path:          msg.Path,
+		TimeoutHeight: msg.TimeoutHeight,
+		ClientId:      msg.ClientId,
 	}
 
 	k.SetInterquery(
@@ -36,58 +39,60 @@ func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateI
 	return &types.MsgCreateInterqueryResponse{}, nil
 }
 
-func (k msgServer) UpdateInterquery(goCtx context.Context, msg *types.MsgUpdateInterquery) (*types.MsgUpdateInterqueryResponse, error) {
+func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgCreateInterqueryResult) (*types.MsgCreateInterqueryResultResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Check if the value exists
-	valFound, isFound := k.GetInterquery(
+	// Create the store Id by using the Key-Id combination
+	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
+
+	// Check if the value already exists
+	_, isFound := k.GetInterqueryResult(
 		ctx,
-		msg.Index,
+		storeId,
 	)
-	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+	if isFound {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", storeId))
 	}
 
-	// Checks if the the msg creator is the same as the current owner
-	if msg.Creator != valFound.Creator {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
-	}
-
-	var interquery = types.Interquery{
+	var interqueryresult = types.InterqueryResult{
 		Creator:  msg.Creator,
-		Index:    msg.Index,
+		Storeid:  storeId,
+		Data:     msg.Data,
 		Height:   msg.Height,
-		Path:     msg.Path,
-		ChainId:  msg.ChainId,
-		TypeName: msg.TypeName,
+		ClientId: msg.ClientId,
+		Success:  msg.Success,
+		Proof:    msg.Proof,
 	}
 
-	k.SetInterquery(ctx, interquery)
+	k.SetInterqueryResult(ctx, interqueryresult)
 
-	return &types.MsgUpdateInterqueryResponse{}, nil
+	return &types.MsgCreateInterqueryResultResponse{}, nil
 }
 
-func (k msgServer) DeleteInterquery(goCtx context.Context, msg *types.MsgDeleteInterquery) (*types.MsgDeleteInterqueryResponse, error) {
+func (k msgServer) CreateInterqueryTimeout(goCtx context.Context, msg *types.MsgCreateInterqueryTimeout) (*types.MsgCreateInterqueryTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Check if the value exists
-	valFound, isFound := k.GetInterquery(
+	// Create the store Id by using the Key-Id combination
+	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
+
+	// Check if the value already exists
+	_, isFound := k.GetInterqueryTimeoutResult(
 		ctx,
-		msg.Index,
+		storeId,
 	)
-	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+	if isFound {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", storeId))
 	}
 
-	// Checks if the the msg creator is the same as the current owner
-	if msg.Creator != valFound.Creator {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
+	var interquerytimeoutresult = types.InterqueryTimeoutResult{
+		Creator:       msg.Creator,
+		Storeid:       storeId,
+		TimeoutHeight: msg.TimeoutHeight,
+		ClientId:      msg.ClientId,
+		Proof:         msg.Proof,
 	}
 
-	k.RemoveInterquery(
-		ctx,
-		msg.Index,
-	)
+	k.SetInterqueryTimeoutResult(ctx, interquerytimeoutresult)
 
-	return &types.MsgDeleteInterqueryResponse{}, nil
+	return &types.MsgCreateInterqueryTimeoutResponse{}, nil
 }

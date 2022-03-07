@@ -20,11 +20,11 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgCreateInterquery:
 			res, err := msgServer.CreateInterquery(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgUpdateInterquery:
-			res, err := msgServer.UpdateInterquery(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreateInterqueryResult:
+			res, err := msgServer.CreateInterqueryResult(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgDeleteInterquery:
-			res, err := msgServer.DeleteInterquery(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreateInterqueryTimeout:
+			res, err := msgServer.CreateInterqueryTimeout(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 			// this line is used by starport scaffolding # 1
 		default:

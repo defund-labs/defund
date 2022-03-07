@@ -30,21 +30,21 @@ func TestInterqueryQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetInterqueryRequest{
-				Index: msgs[0].Index,
+				Storeid: msgs[0].Storeid,
 			},
 			response: &types.QueryGetInterqueryResponse{Interquery: msgs[0]},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetInterqueryRequest{
-				Index: msgs[1].Index,
+				Storeid: msgs[1].Storeid,
 			},
 			response: &types.QueryGetInterqueryResponse{Interquery: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetInterqueryRequest{
-				Index: strconv.Itoa(100000),
+				Storeid: strconv.Itoa(100000),
 			},
 			err: status.Error(codes.InvalidArgument, "not found"),
 		},

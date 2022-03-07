@@ -13,7 +13,7 @@ option go_package = "github.com/defundhub/defund/x/query/types";
 service Query {
     // Queries a interquery by index.
 	rpc Interquery(QueryGetInterqueryRequest) returns (QueryGetInterqueryResponse) {
-		option (google.api.http).get = "/defundhub/defund/query/interquery/{index}";
+		option (google.api.http).get = "/defundhub/defund/query/interquery/{storeid}";
 	}
 
 	// Queries a list of interquery items.
@@ -25,7 +25,7 @@ service Query {
 }
 
 message QueryGetInterqueryRequest {
-	  string index = 1;
+	  string storeid = 1;
 
 }
 

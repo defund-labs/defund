@@ -3,26 +3,27 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
 var _ sdk.Msg = &MsgCreateInterquery{}
 
 func NewMsgCreateInterquery(
 	creator string,
-	index string,
-	height string,
+	id string,
+	key string,
 	path string,
-	chainId string,
-	typeName string,
+	timeoutHeight uint64,
+	clientId string,
 
 ) *MsgCreateInterquery {
 	return &MsgCreateInterquery{
-		Creator:  creator,
-		Index:    index,
-		Height:   height,
-		Path:     path,
-		ChainId:  chainId,
-		TypeName: typeName,
+		Creator:       creator,
+		Id:            id,
+		Key:           key,
+		Path:          path,
+		TimeoutHeight: timeoutHeight,
+		ClientId:      clientId,
 	}
 }
 
@@ -55,36 +56,40 @@ func (msg *MsgCreateInterquery) ValidateBasic() error {
 	return nil
 }
 
-var _ sdk.Msg = &MsgUpdateInterquery{}
+var _ sdk.Msg = &MsgCreateInterqueryResult{}
 
-func NewMsgUpdateInterquery(
+func NewMsgCreateInterqueryResult(
 	creator string,
-	index string,
-	height string,
-	path string,
-	chainId string,
-	typeName string,
+	id string,
+	key string,
+	data []byte,
+	height uint64,
+	clientid string,
+	success bool,
+	proof *crypto.ProofOps,
 
-) *MsgUpdateInterquery {
-	return &MsgUpdateInterquery{
+) *MsgCreateInterqueryResult {
+	return &MsgCreateInterqueryResult{
 		Creator:  creator,
-		Index:    index,
+		Id:       id,
+		Key:      key,
+		Data:     data,
 		Height:   height,
-		Path:     path,
-		ChainId:  chainId,
-		TypeName: typeName,
+		ClientId: clientid,
+		Success:  success,
+		Proof:    proof,
 	}
 }
 
-func (msg *MsgUpdateInterquery) Route() string {
+func (msg *MsgCreateInterqueryResult) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgUpdateInterquery) Type() string {
-	return "UpdateInterquery"
+func (msg *MsgCreateInterqueryResult) Type() string {
+	return "CreateInterqueryResult"
 }
 
-func (msg *MsgUpdateInterquery) GetSigners() []sdk.AccAddress {
+func (msg *MsgCreateInterqueryResult) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -92,12 +97,12 @@ func (msg *MsgUpdateInterquery) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgUpdateInterquery) GetSignBytes() []byte {
+func (msg *MsgCreateInterqueryResult) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgUpdateInterquery) ValidateBasic() error {
+func (msg *MsgCreateInterqueryResult) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
@@ -105,27 +110,35 @@ func (msg *MsgUpdateInterquery) ValidateBasic() error {
 	return nil
 }
 
-var _ sdk.Msg = &MsgDeleteInterquery{}
+var _ sdk.Msg = &MsgCreateInterqueryTimeout{}
 
-func NewMsgDeleteInterquery(
+func NewMsgCreateInterqueryTimeout(
 	creator string,
-	index string,
+	id string,
+	key string,
+	timeoutheight uint64,
+	clientid string,
+	proof *crypto.ProofOps,
 
-) *MsgDeleteInterquery {
-	return &MsgDeleteInterquery{
-		Creator: creator,
-		Index:   index,
+) *MsgCreateInterqueryTimeout {
+	return &MsgCreateInterqueryTimeout{
+		Creator:       creator,
+		Id:            id,
+		Key:           key,
+		TimeoutHeight: timeoutheight,
+		ClientId:      clientid,
+		Proof:         proof,
 	}
 }
-func (msg *MsgDeleteInterquery) Route() string {
+func (msg *MsgCreateInterqueryTimeout) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgDeleteInterquery) Type() string {
-	return "DeleteInterquery"
+func (msg *MsgCreateInterqueryTimeout) Type() string {
+	return "CreateInterqueryTimeout"
 }
 
-func (msg *MsgDeleteInterquery) GetSigners() []sdk.AccAddress {
+func (msg *MsgCreateInterqueryTimeout) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -133,12 +146,12 @@ func (msg *MsgDeleteInterquery) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgDeleteInterquery) GetSignBytes() []byte {
+func (msg *MsgCreateInterqueryTimeout) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgDeleteInterquery) ValidateBasic() error {
+func (msg *MsgCreateInterqueryTimeout) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)

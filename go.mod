@@ -9,17 +9,17 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.8.0 // indirect
 	github.com/regen-network/cosmos-proto v0.3.1
-	github.com/spf13/cast v1.3.1
-	github.com/spf13/cobra v1.2.1
+	github.com/spf13/cast v1.4.1
+	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/liquidity v1.4.2
 	github.com/tendermint/spm v0.1.8
 	github.com/tendermint/tendermint v0.34.14
-	github.com/tendermint/tm-db v0.6.4
-	google.golang.org/genproto v0.0.0-20220118154757-00ab72f36ad5
-	google.golang.org/grpc v1.43.0
+	github.com/tendermint/tm-db v0.6.6
+	google.golang.org/genproto v0.0.0-20220302033224-9aa15565e42a
+	google.golang.org/grpc v1.44.0
 )
 
 replace (
