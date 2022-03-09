@@ -23,43 +23,43 @@ func TestInterqueryMsgServerCreate(t *testing.T) {
 	creator := "A"
 	for i := 0; i < 5; i++ {
 		expected := &types.MsgCreateInterquery{Creator: creator,
-			Index: strconv.Itoa(i),
+			Id: strconv.Itoa(i),
 		}
 		_, err := srv.CreateInterquery(wctx, expected)
 		require.NoError(t, err)
 		rst, found := k.GetInterquery(ctx,
-			expected.Index,
+			expected.Id,
 		)
 		require.True(t, found)
 		require.Equal(t, expected.Creator, rst.Creator)
 	}
 }
 
-func TestInterqueryMsgServerUpdate(t *testing.T) {
+func TestInterqueryMsgServerResult(t *testing.T) {
 	creator := "A"
 
 	for _, tc := range []struct {
 		desc    string
-		request *types.MsgUpdateInterquery
+		request *types.MsgCreateInterqueryResult
 		err     error
 	}{
 		{
 			desc: "Completed",
-			request: &types.MsgUpdateInterquery{Creator: creator,
-				Index: strconv.Itoa(0),
+			request: &types.MsgCreateInterqueryResult{Creator: creator,
+				Id: strconv.Itoa(0),
 			},
 		},
 		{
 			desc: "Unauthorized",
-			request: &types.MsgUpdateInterquery{Creator: "B",
-				Index: strconv.Itoa(0),
+			request: &types.MsgCreateInterqueryResult{Creator: "B",
+				Id: strconv.Itoa(0),
 			},
 			err: sdkerrors.ErrUnauthorized,
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.MsgUpdateInterquery{Creator: creator,
-				Index: strconv.Itoa(100000),
+			request: &types.MsgCreateInterqueryResult{Creator: creator,
+				Id: strconv.Itoa(100000),
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -69,18 +69,18 @@ func TestInterqueryMsgServerUpdate(t *testing.T) {
 			srv := keeper.NewMsgServerImpl(*k)
 			wctx := sdk.WrapSDKContext(ctx)
 			expected := &types.MsgCreateInterquery{Creator: creator,
-				Index: strconv.Itoa(0),
+				Id: strconv.Itoa(0),
 			}
 			_, err := srv.CreateInterquery(wctx, expected)
 			require.NoError(t, err)
 
-			_, err = srv.UpdateInterquery(wctx, tc.request)
+			_, err = srv.CreateInterqueryResult(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
 				rst, found := k.GetInterquery(ctx,
-					expected.Index,
+					expected.Id,
 				)
 				require.True(t, found)
 				require.Equal(t, expected.Creator, rst.Creator)
@@ -89,31 +89,31 @@ func TestInterqueryMsgServerUpdate(t *testing.T) {
 	}
 }
 
-func TestInterqueryMsgServerDelete(t *testing.T) {
+func TestInterqueryMsgServerTimeout(t *testing.T) {
 	creator := "A"
 
 	for _, tc := range []struct {
 		desc    string
-		request *types.MsgDeleteInterquery
+		request *types.MsgCreateInterqueryTimeout
 		err     error
 	}{
 		{
 			desc: "Completed",
-			request: &types.MsgDeleteInterquery{Creator: creator,
-				Index: strconv.Itoa(0),
+			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
+				Id: strconv.Itoa(0),
 			},
 		},
 		{
 			desc: "Unauthorized",
-			request: &types.MsgDeleteInterquery{Creator: "B",
-				Index: strconv.Itoa(0),
+			request: &types.MsgCreateInterqueryTimeout{Creator: "B",
+				Id: strconv.Itoa(0),
 			},
 			err: sdkerrors.ErrUnauthorized,
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.MsgDeleteInterquery{Creator: creator,
-				Index: strconv.Itoa(100000),
+			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
+				Id: strconv.Itoa(100000),
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -124,16 +124,16 @@ func TestInterqueryMsgServerDelete(t *testing.T) {
 			wctx := sdk.WrapSDKContext(ctx)
 
 			_, err := srv.CreateInterquery(wctx, &types.MsgCreateInterquery{Creator: creator,
-				Index: strconv.Itoa(0),
+				Id: strconv.Itoa(0),
 			})
 			require.NoError(t, err)
-			_, err = srv.DeleteInterquery(wctx, tc.request)
+			_, err = srv.CreateInterqueryTimeout(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
 				_, found := k.GetInterquery(ctx,
-					tc.request.Index,
+					tc.request.Id,
 				)
 				require.False(t, found)
 			}

@@ -39,21 +39,21 @@ func TestMsgCreateInterquery_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgUpdateInterquery_ValidateBasic(t *testing.T) {
+func TestMsgCreateInterqueryResult_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgUpdateInterquery
+		msg  MsgCreateInterqueryResult
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgUpdateInterquery{
+			msg: MsgCreateInterqueryResult{
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgUpdateInterquery{
+			msg: MsgCreateInterqueryResult{
 				Creator: sample.AccAddress(),
 			},
 		},
@@ -70,21 +70,21 @@ func TestMsgUpdateInterquery_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgDeleteInterquery_ValidateBasic(t *testing.T) {
+func TestMsgCreateInterqueryTimeout_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgDeleteInterquery
+		msg  MsgCreateInterqueryTimeout
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgDeleteInterquery{
+			msg: MsgCreateInterqueryTimeout{
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgDeleteInterquery{
+			msg: MsgCreateInterqueryTimeout{
 				Creator: sample.AccAddress(),
 			},
 		},

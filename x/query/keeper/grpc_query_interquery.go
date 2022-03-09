@@ -47,7 +47,7 @@ func (k Keeper) Interquery(c context.Context, req *types.QueryGetInterqueryReque
 
 	val, found := k.GetInterquery(
 		ctx,
-		req.Index,
+		req.Storeid,
 	)
 	if !found {
 		return nil, status.Error(codes.InvalidArgument, "not found")

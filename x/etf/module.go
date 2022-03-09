@@ -19,6 +19,7 @@ import (
 	"github.com/defundhub/defund/x/etf/client/cli"
 	"github.com/defundhub/defund/x/etf/keeper"
 	"github.com/defundhub/defund/x/etf/types"
+	querytypes "github.com/defundhub/defund/x/query/types"
 )
 
 var (
@@ -98,13 +99,19 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	keeper        keeper.Keeper
+	accountkeeper types.AccountKeeper
+	bankkeeper    types.BankKeeper
+	querykeeper   types.QueryKeeper
 }
 
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountkeeper types.AccountKeeper, bankkeeper types.BankKeeper, querykeeper types.QueryKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
+		accountkeeper:  accountkeeper,
+		bankkeeper:     bankkeeper,
+		querykeeper:    querykeeper,
 	}
 }
 
@@ -162,6 +169,15 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	queryModuleAddress := am.accountkeeper.GetModuleAccount(ctx, "query")
+	interquery := querytypes.Interquery{
+		Creator:       queryModuleAddress.String(),
+		Storeid:       fmt.Sprintf("CosmosPool-%s", fmt.Sprint(ctx.BlockHeight())),
+		Path:          "/osmosis.gamm.v1beta1.Query/Pools",
+		TimeoutHeight: uint64(ctx.BlockHeight() + 10),
+		ClientId:      "cosmos",
+	}
+	am.querykeeper.SetInterquery(ctx, interquery)
 	return []abci.ValidatorUpdate{}
 }

@@ -372,9 +372,8 @@ func New(
 
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.LiquidityKeeper,
 	)
-	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper)
+	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper)
 
 	app.QueryKeeper = *querymodulekeeper.NewKeeper(
 		appCodec,

@@ -13,10 +13,10 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		InterqueryList: []types.Interquery{
 			{
-				Index: "0",
+				Storeid: "Key-0",
 			},
 			{
-				Index: "1",
+				Storeid: "Key-1",
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state

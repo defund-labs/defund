@@ -10,5 +10,7 @@ option go_package = "github.com/defundhub/defund/x/query/types";
 // GenesisState defines the query module's genesis state.
 message GenesisState {
     repeated Interquery interqueryList = 1 [(gogoproto.nullable) = false];
+    repeated InterqueryResult interqueryResultList = 2 [(gogoproto.nullable) = false];
+    repeated InterqueryTimeoutResult interqueryTimeoutResultList = 3 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }
