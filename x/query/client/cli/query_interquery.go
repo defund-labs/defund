@@ -41,6 +41,39 @@ func CmdShowInterquery() *cobra.Command {
 	return cmd
 }
 
+func CmdShowInterqueryAll() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "interqueries",
+		Short: "List all interqueries",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryAllInterqueryRequest{
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.InterqueryAll(context.Background(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func CmdShowInterqueryResult() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "interquery-result [key] [id]",

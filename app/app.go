@@ -380,7 +380,7 @@ func New(
 		keys[querymoduletypes.StoreKey],
 		keys[querymoduletypes.MemStoreKey],
 	)
-	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper)
+	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -436,7 +436,7 @@ func New(
 		feegrant.ModuleName, liquiditytypes.ModuleName,
 	)
 
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, liquiditytypes.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, liquiditytypes.ModuleName, querymoduletypes.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
