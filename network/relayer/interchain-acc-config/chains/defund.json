@@ -2,7 +2,7 @@
   "key": "defund",
   "chain-id": "defund",
   "rpc-addr": "http://127.0.0.1:16657",
-  "account-prefix": "cosmos",
+  "account-prefix": "defund",
   "gas-prices": "0.0025stake",
   "default-denom": "stake",
   "gas-adjustment":1.5,

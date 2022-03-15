@@ -36,18 +36,6 @@ func (k Keeper) GetInterquery(
 	return val, true
 }
 
-// RemoveInterquery removes a interquery from the store
-func (k Keeper) RemoveInterquery(
-	ctx sdk.Context,
-	index string,
-
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryKeyPrefix))
-	store.Delete(types.InterqueryKey(
-		index,
-	))
-}
-
 // GetAllInterquery returns all interquery
 func (k Keeper) GetAllInterquery(ctx sdk.Context) (list []types.Interquery) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryKeyPrefix))

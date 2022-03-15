@@ -35,19 +35,6 @@ func TestInterqueryGet(t *testing.T) {
 		require.Equal(t, item, rst)
 	}
 }
-func TestInterqueryRemove(t *testing.T) {
-	keeper, ctx := keepertest.QueryKeeper(t)
-	items := createNInterquery(keeper, ctx, 10)
-	for _, item := range items {
-		keeper.RemoveInterquery(ctx,
-			item.Storeid,
-		)
-		_, found := keeper.GetInterquery(ctx,
-			item.Storeid,
-		)
-		require.False(t, found)
-	}
-}
 
 func TestInterqueryGetAll(t *testing.T) {
 	keeper, ctx := keepertest.QueryKeeper(t)
