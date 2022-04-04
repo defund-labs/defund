@@ -17786,7 +17786,7 @@ paths:
           format: int64
       tags:
         - Query
-  /defund-labs/defund/v1/etf/fund:
+  /defund-labs/defund/etf/fund:
     get:
       summary: Queries a list of fund items.
       operationId: DefundhubDefundEtfFundAll
@@ -17929,7 +17929,7 @@ paths:
           type: boolean
       tags:
         - Query
-  '/defund-labs/defund/v1/etf/fund/{index}':
+  '/defund-labs/defund/etf/fund/{index}':
     get:
       summary: Queries a fund by index.
       operationId: DefundhubDefundEtfFund
@@ -17994,7 +17994,7 @@ paths:
           type: string
       tags:
         - Query
-  /defund-labs/defund/v1/etf/fundPrice:
+  /defund-labs/defund/etf/fundPrice:
     get:
       summary: Queries a list of fundPrice items.
       operationId: DefundhubDefundEtfFundPrice
@@ -18028,7 +18028,7 @@ paths:
           type: string
       tags:
         - Query
-  /defund-labs/defund/v1/query/interquery:
+  /defund-labs/defund/query/interquery:
     get:
       summary: Queries a list of interquery items.
       operationId: DefundhubDefundQueryInterqueryAll
@@ -18155,7 +18155,7 @@ paths:
           type: boolean
       tags:
         - Query
-  '/defund-labs/defund/v1/query/interquery/{storeid}':
+  '/defund-labs/defund/query/interquery/{storeid}':
     get:
       summary: Queries a interquery by index.
       operationId: DefundhubDefundQueryInterquery

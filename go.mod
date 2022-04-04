@@ -1,4 +1,4 @@
-module github.com/defund-labs/defund/v1
+module github.com/defund-labs/defund
 
 go 1.16
 

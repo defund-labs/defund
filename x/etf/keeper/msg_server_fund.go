@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/defund-labs/defund/v1/x/etf/types"
+	"github.com/defund-labs/defund/x/etf/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )

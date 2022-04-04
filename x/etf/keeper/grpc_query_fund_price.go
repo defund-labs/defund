@@ -4,7 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/defund-labs/defund/v1/x/etf/types"
+	"github.com/defund-labs/defund/x/etf/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

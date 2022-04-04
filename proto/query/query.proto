@@ -7,38 +7,38 @@ import "query/interquery.proto";
 // this line is used by starport scaffolding # 1
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/defund-labs/defund/v1/x/query/types";
+option go_package = "github.com/defund-labs/defund/x/query/types";
 
 // Query defines the gRPC querier service.
 service Query {
     // Queries a interquery by index.
 	rpc Interquery(QueryGetInterqueryRequest) returns (QueryGetInterqueryResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interquery/{storeid}";
+		option (google.api.http).get = "/defund-labs/defund/query/interquery/{storeid}";
 	}
 
 	// Queries a list of interquery items.
 	rpc InterqueryAll(QueryAllInterqueryRequest) returns (QueryAllInterqueryResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interquery";
+		option (google.api.http).get = "/defund-labs/defund/query/interquery";
 	}
 	
     // Queries a interquery result by index.
 	rpc InterqueryResult(QueryGetInterqueryResultRequest) returns (QueryGetInterqueryResultResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interqueryresult/{storeid}";
+		option (google.api.http).get = "/defund-labs/defund/query/interqueryresult/{storeid}";
 	}
 
 	// Queries a list of interquery result items.
 	rpc InterqueryResultAll(QueryAllInterqueryResultRequest) returns (QueryAllInterqueryResultResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interqueryresult";
+		option (google.api.http).get = "/defund-labs/defund/query/interqueryresult";
 	}
 
     // Queries a interquery timeout result by index.
 	rpc InterqueryTimeoutResult(QueryGetInterqueryTimeoutResultRequest) returns (QueryGetInterqueryTimeoutResultResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interquerytimeoutresult/{storeid}";
+		option (google.api.http).get = "/defund-labs/defund/query/interquerytimeoutresult/{storeid}";
 	}
 
 	// Queries a list of interquery timeout result items.
 	rpc InterqueryTimeoutResultAll(QueryAllInterqueryTimeoutResultRequest) returns (QueryAllInterqueryTimeoutResultResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/query/interquerytimeoutresult";
+		option (google.api.http).get = "/defund-labs/defund/query/interquerytimeoutresult";
 	}
 
 // this line is used by starport scaffolding # 2

@@ -18,9 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/defund-labs/defund/v1/x/query/client/cli"
-	"github.com/defund-labs/defund/v1/x/query/keeper"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	"github.com/defund-labs/defund/x/query/client/cli"
+	"github.com/defund-labs/defund/x/query/keeper"
+	"github.com/defund-labs/defund/x/query/types"
 )
 
 var (
