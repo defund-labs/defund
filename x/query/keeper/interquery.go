@@ -3,7 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	"github.com/defund-labs/defund/x/query/types"
 )
 
 /////////////////////////////// Interquery Store Helpers ///////////////////////////////////////////

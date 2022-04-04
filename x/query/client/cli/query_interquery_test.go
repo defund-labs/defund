@@ -11,9 +11,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/defund-labs/defund/v1/testutil/network"
-	"github.com/defund-labs/defund/v1/x/query/client/cli"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	"github.com/defund-labs/defund/testutil/network"
+	"github.com/defund-labs/defund/x/query/client/cli"
+	"github.com/defund-labs/defund/x/query/types"
 )
 
 // Prevent strconv unused error

@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	"github.com/defund-labs/defund/x/query/types"
 )
 
 func CmdShowInterquery() *cobra.Command {

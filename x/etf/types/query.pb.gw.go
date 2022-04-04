@@ -339,11 +339,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Fund_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defundhub", "defund", "etf", "fund", "index"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Fund_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defund-labs", "defund", "etf", "fund", "index"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FundAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defundhub", "defund", "etf", "fund"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FundAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defund-labs", "defund", "etf", "fund"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FundPrice_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defundhub", "defund", "etf", "fundPrice"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FundPrice_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defund-labs", "defund", "etf", "fundPrice"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

@@ -7,23 +7,23 @@ import "etf/fund.proto";
 // this line is used by starport scaffolding # 1
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/defund-labs/defund/v1/x/etf/types";
+option go_package = "github.com/defund-labs/defund/x/etf/types";
 
 // Query defines the gRPC querier service.
 service Query {
     // Queries a fund by index.
 	rpc Fund(QueryGetFundRequest) returns (QueryGetFundResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/etf/fund/{index}";
+		option (google.api.http).get = "/defund-labs/defund/etf/fund/{index}";
 	}
 
 	// Queries a list of fund items.
 	rpc FundAll(QueryAllFundRequest) returns (QueryAllFundResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/etf/fund";
+		option (google.api.http).get = "/defund-labs/defund/etf/fund";
 	}
 
 // Queries a list of fundPrice items.
 	rpc FundPrice(QueryFundPriceRequest) returns (QueryFundPriceResponse) {
-		option (google.api.http).get = "/defund-labs/defund/v1/etf/fundPrice";
+		option (google.api.http).get = "/defund-labs/defund/etf/fundPrice";
 	}
 
 // this line is used by starport scaffolding # 2

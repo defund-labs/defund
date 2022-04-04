@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
-	"github.com/defund-labs/defund/v1/x/query/keeper"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	keepertest "github.com/defund-labs/defund/testutil/keeper"
+	"github.com/defund-labs/defund/x/query/keeper"
+	"github.com/defund-labs/defund/x/query/types"
 	"github.com/stretchr/testify/require"
 )
 

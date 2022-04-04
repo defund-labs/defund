@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/defund-labs/defund/v1/x/query/keeper"
-	"github.com/defund-labs/defund/v1/x/query/types"
+	"github.com/defund-labs/defund/x/query/keeper"
+	"github.com/defund-labs/defund/x/query/types"
 )
 
 // NewHandler ...

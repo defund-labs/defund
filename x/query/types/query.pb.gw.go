@@ -612,17 +612,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Interquery_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defundhub", "defund", "query", "interquery", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Interquery_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defund-labs", "defund", "query", "interquery", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InterqueryAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defundhub", "defund", "query", "interquery"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_InterqueryAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defund-labs", "defund", "query", "interquery"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InterqueryResult_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defundhub", "defund", "query", "interqueryresult", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_InterqueryResult_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defund-labs", "defund", "query", "interqueryresult", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InterqueryResultAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defundhub", "defund", "query", "interqueryresult"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_InterqueryResultAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defund-labs", "defund", "query", "interqueryresult"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InterqueryTimeoutResult_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defundhub", "defund", "query", "interquerytimeoutresult", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_InterqueryTimeoutResult_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"defund-labs", "defund", "query", "interquerytimeoutresult", "storeid"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InterqueryTimeoutResultAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defundhub", "defund", "query", "interquerytimeoutresult"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_InterqueryTimeoutResultAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"defund-labs", "defund", "query", "interquerytimeoutresult"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
