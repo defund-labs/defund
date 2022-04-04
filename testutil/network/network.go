@@ -18,7 +18,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmdb "github.com/tendermint/tm-db"
 
-	"github.com/defundhub/defund/app"
+	"github.com/defund-labs/defund/v1/app"
 )
 
 type (

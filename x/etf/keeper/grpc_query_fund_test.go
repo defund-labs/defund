@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/defundhub/defund/testutil/keeper"
-	"github.com/defundhub/defund/x/etf/types"
+	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 )
 
 // Prevent strconv unused error

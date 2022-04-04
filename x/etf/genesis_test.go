@@ -3,9 +3,9 @@ package etf_test
 import (
 	"testing"
 
-	keepertest "github.com/defundhub/defund/testutil/keeper"
-	"github.com/defundhub/defund/x/etf"
-	"github.com/defundhub/defund/x/etf/types"
+	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
+	"github.com/defund-labs/defund/v1/x/etf"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 	"github.com/stretchr/testify/require"
 )
 

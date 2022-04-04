@@ -8,9 +8,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/defundhub/defund/testutil/keeper"
-	"github.com/defundhub/defund/x/query/keeper"
-	"github.com/defundhub/defund/x/query/types"
+	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
+	"github.com/defund-labs/defund/v1/x/query/keeper"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 // Prevent strconv unused error

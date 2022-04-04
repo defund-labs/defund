@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateInterquery) (*types.MsgCreateInterqueryResponse, error) {

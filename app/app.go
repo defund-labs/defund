@@ -93,13 +93,13 @@ import (
 	"github.com/tendermint/spm/cosmoscmd"
 	"github.com/tendermint/spm/openapiconsole"
 
-	"github.com/defundhub/defund/docs"
-	etfmodule "github.com/defundhub/defund/x/etf"
-	etfmodulekeeper "github.com/defundhub/defund/x/etf/keeper"
-	etfmoduletypes "github.com/defundhub/defund/x/etf/types"
-	querymodule "github.com/defundhub/defund/x/query"
-	querymodulekeeper "github.com/defundhub/defund/x/query/keeper"
-	querymoduletypes "github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/docs"
+	etfmodule "github.com/defund-labs/defund/v1/x/etf"
+	etfmodulekeeper "github.com/defund-labs/defund/v1/x/etf/keeper"
+	etfmoduletypes "github.com/defund-labs/defund/v1/x/etf/types"
+	querymodule "github.com/defund-labs/defund/v1/x/query"
+	querymodulekeeper "github.com/defund-labs/defund/v1/x/query/keeper"
+	querymoduletypes "github.com/defund-labs/defund/v1/x/query/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 

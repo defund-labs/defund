@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/defundhub/defund/testutil/keeper"
-	"github.com/defundhub/defund/x/etf/keeper"
-	"github.com/defundhub/defund/x/etf/types"
+	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
+	"github.com/defund-labs/defund/v1/x/etf/keeper"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 	"github.com/stretchr/testify/require"
 )
 

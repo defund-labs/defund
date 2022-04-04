@@ -10,7 +10,7 @@ import (
 	// "github.com/cosmos/cosmos-sdk/client/flags"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

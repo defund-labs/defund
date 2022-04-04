@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 type (
