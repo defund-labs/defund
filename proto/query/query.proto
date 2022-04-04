@@ -20,9 +20,31 @@ service Query {
 	rpc InterqueryAll(QueryAllInterqueryRequest) returns (QueryAllInterqueryResponse) {
 		option (google.api.http).get = "/defundhub/defund/query/interquery";
 	}
+	
+    // Queries a interquery result by index.
+	rpc InterqueryResult(QueryGetInterqueryResultRequest) returns (QueryGetInterqueryResultResponse) {
+		option (google.api.http).get = "/defundhub/defund/query/interqueryresult/{storeid}";
+	}
+
+	// Queries a list of interquery result items.
+	rpc InterqueryResultAll(QueryAllInterqueryResultRequest) returns (QueryAllInterqueryResultResponse) {
+		option (google.api.http).get = "/defundhub/defund/query/interqueryresult";
+	}
+
+    // Queries a interquery timeout result by index.
+	rpc InterqueryTimeoutResult(QueryGetInterqueryTimeoutResultRequest) returns (QueryGetInterqueryTimeoutResultResponse) {
+		option (google.api.http).get = "/defundhub/defund/query/interquerytimeoutresult/{storeid}";
+	}
+
+	// Queries a list of interquery timeout result items.
+	rpc InterqueryTimeoutResultAll(QueryAllInterqueryTimeoutResultRequest) returns (QueryAllInterqueryTimeoutResultResponse) {
+		option (google.api.http).get = "/defundhub/defund/query/interquerytimeoutresult";
+	}
 
 // this line is used by starport scaffolding # 2
 }
+
+//Interquery request/response
 
 message QueryGetInterqueryRequest {
 	  string storeid = 1;
@@ -40,6 +62,46 @@ message QueryAllInterqueryRequest {
 message QueryAllInterqueryResponse {
 	repeated Interquery interquery = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// Interquery result requests/response
+
+message QueryGetInterqueryResultRequest {
+	string storeid = 1;
+
+}
+
+message QueryGetInterqueryResultResponse {
+	InterqueryResult interqueryresult = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllInterqueryResultRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllInterqueryResultResponse {
+  repeated InterqueryResult interqueryresult = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// Interquery timeout result requests/response
+
+message QueryGetInterqueryTimeoutResultRequest {
+	string storeid = 1;
+
+}
+
+message QueryGetInterqueryTimeoutResultResponse {
+	InterqueryTimeoutResult interquerytimeoutresult = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllInterqueryTimeoutResultRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllInterqueryTimeoutResultResponse {
+  repeated InterqueryTimeoutResult interquerytimeoutresult = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3
