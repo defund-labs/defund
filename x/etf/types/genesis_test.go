@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/defundhub/defund/x/etf/types"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 	"github.com/stretchr/testify/require"
 )
 

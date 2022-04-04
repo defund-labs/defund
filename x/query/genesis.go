@@ -2,8 +2,8 @@ package query
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/defundhub/defund/x/query/keeper"
-	"github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/x/query/keeper"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 // InitGenesis initializes the capability module's state from a provided genesis

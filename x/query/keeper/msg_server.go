@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/defundhub/defund/x/query/types"
+	"github.com/defund-labs/defund/v1/x/query/types"
 )
 
 type msgServer struct {

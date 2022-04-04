@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/defundhub/defund/x/etf/types"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 )
 
 var _ types.QueryServer = Keeper{}

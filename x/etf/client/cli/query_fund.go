@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/defundhub/defund/x/etf/types"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 )
 
 func CmdListFund() *cobra.Command {

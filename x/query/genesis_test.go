@@ -3,9 +3,9 @@ package query_test
 import (
 	"testing"
 
-	keepertest "github.com/defundhub/defund/testutil/keeper"
-	"github.com/defundhub/defund/x/query"
-	"github.com/defundhub/defund/x/query/types"
+	keepertest "github.com/defund-labs/defund/v1/testutil/keeper"
+	"github.com/defund-labs/defund/v1/x/query"
+	"github.com/defund-labs/defund/v1/x/query/types"
 	"github.com/stretchr/testify/require"
 )
 

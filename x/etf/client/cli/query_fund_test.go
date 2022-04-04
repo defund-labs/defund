@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/defundhub/defund/testutil/network"
-	"github.com/defundhub/defund/x/etf/client/cli"
-	"github.com/defundhub/defund/x/etf/types"
+	"github.com/defund-labs/defund/v1/testutil/network"
+	"github.com/defund-labs/defund/v1/x/etf/client/cli"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 )
 
 // Prevent strconv unused error

@@ -11,8 +11,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/defundhub/defund/testutil/network"
-	"github.com/defundhub/defund/x/etf/client/cli"
+	"github.com/defund-labs/defund/v1/testutil/network"
+	"github.com/defund-labs/defund/v1/x/etf/client/cli"
 )
 
 // Prevent strconv unused error

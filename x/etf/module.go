@@ -16,10 +16,10 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/defundhub/defund/x/etf/client/cli"
-	"github.com/defundhub/defund/x/etf/keeper"
-	"github.com/defundhub/defund/x/etf/types"
-	querykeeper "github.com/defundhub/defund/x/query/keeper"
+	"github.com/defund-labs/defund/v1/x/etf/client/cli"
+	"github.com/defund-labs/defund/v1/x/etf/keeper"
+	"github.com/defund-labs/defund/v1/x/etf/types"
+	querykeeper "github.com/defund-labs/defund/v1/x/query/keeper"
 )
 
 var (

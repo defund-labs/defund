@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/defundhub/defund/x/etf/types"
+	"github.com/defund-labs/defund/v1/x/etf/types"
 )
 
 // SetFund set a specific fund in the store from its index
