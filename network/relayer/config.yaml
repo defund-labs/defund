@@ -1,0 +1,60 @@
+global:
+    api-listen-addr: :5183
+    timeout: 10s
+    light-cache-size: 20
+chains:
+    - type: cosmos
+      value:
+        key: rly1
+        chain-id: defund
+        rpc-addr: https://0.0.0.0:16657
+        account-prefix: defund
+        keyring-backend: test
+        gas-adjustment: 1.2
+        gas-prices: 0.01stake
+        debug: false
+        timeout: 20s
+        output-format: json
+        sign-mode: direct
+    - type: cosmos
+      value:
+        key: rly3
+        chain-id: gaia
+        rpc-addr: https://0.0.0.0:36657
+        account-prefix: cosmos
+        keyring-backend: test
+        gas-adjustment: 1.2
+        gas-prices: 0.01stake
+        debug: false
+        timeout: 20s
+        output-format: json
+        sign-mode: direct
+paths:
+    defundhub:
+        src:
+            chain-id: defund
+            client-id: 07-tendermint-1
+            connection-id: connection-1
+        dst:
+            chain-id: gaia
+            client-id: 07-tendermint-0
+            connection-id: connection-0
+        src-channel-filter:
+            rule: ""
+            channel-list: []
+        interquery:
+            query: true
+    hubdefund:
+        src:
+            chain-id: gaia
+            client-id: 07-tendermint-0
+            connection-id: connection-0
+        dst:
+            chain-id: defund
+            client-id: 07-tendermint-1
+            connection-id: connection-1
+        src-channel-filter:
+            rule: ""
+            channel-list: []
+        interquery:
+            query: true
