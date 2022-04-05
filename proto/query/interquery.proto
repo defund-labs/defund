@@ -10,8 +10,9 @@ message Interquery {
 
   string storeid = 2; 
   string path = 3; 
-  uint64 timeoutHeight = 4; 
-  string clientId = 5;
+  bytes  key = 4; 
+  uint64 timeoutHeight = 5; 
+  string clientId = 6;
 }
 
 message InterqueryResult {
@@ -30,7 +31,6 @@ message InterqueryTimeoutResult {
 
   string storeid = 2; 
   uint64 timeoutHeight = 3; 
-  string clientId = 4; 
-  tendermint.crypto.ProofOps proof = 5;
+  string clientId = 4;
 }
 

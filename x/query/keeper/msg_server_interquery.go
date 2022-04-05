@@ -13,7 +13,7 @@ func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateI
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Create the store Id by using the Key-Id combination
-	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
+	storeId := fmt.Sprintf("%s-%s", msg.Name, msg.Id)
 
 	// Check if the value already exists
 	_, isFound := k.GetInterquery(
@@ -28,6 +28,7 @@ func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateI
 		Creator:       msg.Creator,
 		Storeid:       storeId,
 		Path:          msg.Path,
+		Key:           msg.Key,
 		TimeoutHeight: msg.TimeoutHeight,
 		ClientId:      msg.ClientId,
 	}
@@ -42,21 +43,18 @@ func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateI
 func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgCreateInterqueryResult) (*types.MsgCreateInterqueryResultResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Create the store Id by using the Key-Id combination
-	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
-
 	// Check if the value already exists
 	_, isFound := k.GetInterqueryResult(
 		ctx,
-		storeId,
+		msg.Storeid,
 	)
 	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", storeId))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", msg.Storeid))
 	}
 
 	var interqueryresult = types.InterqueryResult{
 		Creator:  msg.Creator,
-		Storeid:  storeId,
+		Storeid:  msg.Storeid,
 		Data:     msg.Data,
 		Height:   msg.Height,
 		ClientId: msg.ClientId,
@@ -72,24 +70,20 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 func (k msgServer) CreateInterqueryTimeout(goCtx context.Context, msg *types.MsgCreateInterqueryTimeout) (*types.MsgCreateInterqueryTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Create the store Id by using the Key-Id combination
-	storeId := fmt.Sprintf("%s-%s", msg.Key, msg.Id)
-
 	// Check if the value already exists
 	_, isFound := k.GetInterqueryTimeoutResult(
 		ctx,
-		storeId,
+		msg.Storeid,
 	)
 	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", storeId))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", msg.Storeid))
 	}
 
 	var interquerytimeoutresult = types.InterqueryTimeoutResult{
 		Creator:       msg.Creator,
-		Storeid:       storeId,
+		Storeid:       msg.Storeid,
 		TimeoutHeight: msg.TimeoutHeight,
 		ClientId:      msg.ClientId,
-		Proof:         msg.Proof,
 	}
 
 	k.SetInterqueryTimeoutResult(ctx, interquerytimeoutresult)
