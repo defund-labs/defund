@@ -46,20 +46,20 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 		{
 			desc: "Completed",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			},
 		},
 		{
 			desc: "Unauthorized",
 			request: &types.MsgCreateInterqueryResult{Creator: "B",
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			},
 			err: sdkerrors.ErrUnauthorized,
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
-				Id: strconv.Itoa(100000),
+				Storeid: strconv.Itoa(100000),
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -100,20 +100,20 @@ func TestInterqueryMsgServerTimeout(t *testing.T) {
 		{
 			desc: "Completed",
 			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			},
 		},
 		{
 			desc: "Unauthorized",
 			request: &types.MsgCreateInterqueryTimeout{Creator: "B",
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			},
 			err: sdkerrors.ErrUnauthorized,
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
-				Id: strconv.Itoa(100000),
+				Storeid: strconv.Itoa(100000),
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -133,7 +133,7 @@ func TestInterqueryMsgServerTimeout(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				_, found := k.GetInterquery(ctx,
-					tc.request.Id,
+					tc.request.Storeid,
 				)
 				require.False(t, found)
 			}
