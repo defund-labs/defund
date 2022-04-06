@@ -168,11 +168,10 @@ func NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
-// returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	path := "/osmosis.gamm.v1beta1.Query/Pools"
-	clientid := "cosmos"
+// Helper function to be implemented in end blocker to interchain query pools on gravity dex (Cosmos Hub)
+func (am AppModule) queryGravityDex(ctx sdk.Context, _ abci.RequestEndBlock) {
+	path := "custom/liquidity/liquidityPools/"
+	clientid := "07-tendermint-1"
 	am.keeper.Logger(ctx).Info(fmt.Sprintf("Interquery event for path %s on clientid of %s has been initiated", path, clientid))
 	var queryModuleAddress authtypes.ModuleAccountI
 	if am.accountkeeper.GetModuleAccount(ctx, "query") == nil {
@@ -189,7 +188,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	}
 	interquery := types.Interquery{
 		Creator:       queryModuleAddress.GetAddress().String(),
-		Storeid:       fmt.Sprintf("CosmosPool-%s", fmt.Sprint(ctx.BlockHeight())),
+		Storeid:       fmt.Sprintf("CosmosPools-%s", fmt.Sprint(ctx.BlockHeight())),
 		Path:          path,
 		TimeoutHeight: uint64(ctx.BlockHeight() + 10),
 		ClientId:      clientid,
@@ -197,5 +196,12 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	am.keeper.SetInterquery(ctx, interquery)
 	// Get all pending interquery events and emit them
 	am.keeper.EmitInterqueryEvents(ctx)
+}
+
+// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
+// returns no validator updates.
+func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
+	// Run gravity dex interquery helper function
+	am.queryGravityDex(ctx, eb)
 	return []abci.ValidatorUpdate{}
 }
