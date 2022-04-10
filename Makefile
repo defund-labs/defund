@@ -9,11 +9,9 @@ DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bu
 install: go.sum
 		@echo "--> Installing defundd"
 		@go install ./cmd/defundd
-		@echo "--> Installing osmosisd"
-		@bash ./network/osmosis/osmosis.sh
 		@echo "---> Installing gaiad"
 		@bash ./network/cosmos/cosmos.sh
-		@echo "---> Installing Hermes relayer"
+		@echo "---> Installing Golang relayer"
 		@bash ./network/relayer/install.sh
 
 install-debug: go.sum
@@ -126,22 +124,27 @@ init: kill-dev
 	./network/init.sh
 	./network/start.sh
 	@echo "Initializing relayer..." 
-	./network/hermes/restore-keys.sh
-	./network/hermes/create-conn.sh
+	./network/relayer/init.sh
+	./network/relayer/restore-keys.sh
 
 start: 
 	@echo "Starting up network"
 	./network/start.sh
 
+create-conn:
+	@echo "Creating connections and clients"
+	bash ./network/hermes/restore-keys.sh
+	bash ./network/hermes/create-conn.sh
+
 start-rly:
-	./network/hermes/start.sh
+	./network/relayer/start.sh
 
 kill-dev:
-	@echo "Killing defundd, osmosisd, gaiad and removing previous data"
-	-@rm -rf ./data
+	@echo "Killing defundd, gaiad and removing previous data"
+	-@rm -rf ./network/data
 	-@killall defundd 2>/dev/null
-	-@killall osmosisd 2>/dev/null
 	-@killall gaiad 2>/dev/null
+	-@killall rly 2>/dev/null
 
 get-genesis:
 	@echo $(HOME)

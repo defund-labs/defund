@@ -3,7 +3,7 @@
 
 # Specify the verbosity for the relayer logging output. Default: 'info'
 # Valid options are 'error', 'warn', 'info', 'debug', 'trace'.
-log_level = 'trace'
+log_level = 'info'
 
 
 # Specify the mode to be used by the relayer. [Required]
@@ -103,9 +103,9 @@ port = 3001
 
 [[chains]]
 id = 'defund'
-rpc_addr = 'http://0.0.0.0:16657'
-grpc_addr = 'http://0.0.0.0:7090'
-websocket_addr = 'ws://0.0.0.0:16657/websocket'
+rpc_addr = 'http://0.0.0.0:26657'
+grpc_addr = 'http://0.0.0.0:9090'
+websocket_addr = 'ws://0.0.0.0:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
 key_name = 'testkey'
@@ -123,43 +123,22 @@ trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
 
 [[chains]]
-id = 'osmosis'
-rpc_addr = 'http://0.0.0.0:26657'
-grpc_addr = 'http://0.0.0.0:8090'
-websocket_addr = 'ws://0.0.0.0:26657/websocket'
-rpc_timeout = '10s'
-account_prefix = 'osmo'
-key_name = 'testkey'
-store_prefix = 'ibc'
-default_gas = 100000
-max_gas = 3000000
-gas_price = { price = 0.001, denom = 'stake' }
-gas_adjustment = 0.1
-max_msg_num = 30
-max_tx_size = 2097152
-clock_drift = '5s'
-max_block_time = '10s'
-trusting_period = '14days'
-trust_threshold = { numerator = '1', denominator = '3' }
-address_type = { derivation = 'cosmos' }
-
-[[chains]]
-id = 'gaia'
-rpc_addr = 'http://0.0.0.0:36657'
-grpc_addr = 'http://0.0.0.0:9090'
-websocket_addr = 'ws://0.0.0.0:36657/websocket'
+id = 'theta-testnet-001'
+rpc_addr = 'https://rpc-theta.interchain.io'
+grpc_addr = 'https://grpc.state-sync-01.theta-testnet.polypore.xyz'
+websocket_addr = 'wss://rpc-theta.interchain.io/websocket'
 rpc_timeout = '10s'
 account_prefix = 'cosmos'
 key_name = 'testkey'
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
-gas_price = { price = 0.001, denom = 'stake' }
+gas_price = { price = 0.001, denom = 'uatom' }
 gas_adjustment = 0.1
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
 max_block_time = '10s'
-trusting_period = '14days'
+trusting_period = '1days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }

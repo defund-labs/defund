@@ -174,7 +174,7 @@ type Key struct {
 // Helper function to be implemented in end blocker to interchain query pools on gravity dex (Cosmos Hub)
 func (am AppModule) queryGravityDex(ctx sdk.Context, _ abci.RequestEndBlock) error {
 	path := "custom/liquidity/liquidityPools/"
-	clientid := "07-tendermint-1"
+	clientid := "07-tendermint-0"
 	keyRaw := Key{}
 	key, err := json.Marshal(keyRaw)
 	if err != nil {
