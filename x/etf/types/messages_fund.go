@@ -12,6 +12,10 @@ func NewMsgCreateFund(
 	symbol string,
 	name string,
 	description string,
+	broker string,
+	holdings string,
+	rebalance int64,
+	basedenom string,
 
 ) *MsgCreateFund {
 	return &MsgCreateFund{
@@ -19,6 +23,10 @@ func NewMsgCreateFund(
 		Symbol:      symbol,
 		Name:        name,
 		Description: description,
+		Broker:      broker,
+		Holdings:    holdings,
+		Rebalance:   rebalance,
+		BaseDenom:   basedenom,
 	}
 }
 
@@ -48,51 +56,11 @@ func (msg *MsgCreateFund) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	return nil
-}
 
-var _ sdk.Msg = &MsgUpdateFund{}
-
-func NewMsgUpdateFund(
-	creator string,
-	id string,
-	name string,
-	description string,
-
-) *MsgUpdateFund {
-	return &MsgUpdateFund{
-		Creator:     creator,
-		Id:          id,
-		Name:        name,
-		Description: description,
+	// Ensure that the an allowed broker is used
+	if msg.Broker != "gdex" {
+		return sdkerrors.Wrapf(ErrWrongBroker, "invalid broker (%s)", msg.Broker)
 	}
-}
 
-func (msg *MsgUpdateFund) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateFund) Type() string {
-	return "UpdateFund"
-}
-
-func (msg *MsgUpdateFund) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateFund) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg *MsgUpdateFund) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
 	return nil
 }

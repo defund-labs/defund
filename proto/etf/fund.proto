@@ -1,12 +1,18 @@
 syntax = "proto3";
 package defundhub.defund.etf;
 
-import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
+
+message Holding {
+  string denom = 1;
+  int64 percent = 2;
+  // Pool ID of the Pool for this holding on Broker
+  string poolId = 3;
+}
 
 message Fund {
   string id = 1; 
@@ -17,7 +23,15 @@ message Fund {
   cosmos.base.v1beta1.Coin shares = 6 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = false
-  ]; 
-  string creator = 7;
+  ];
+  string broker = 7;
+  repeated Holding holdings = 8 [
+    (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
+    (gogoproto.nullable) = false
+  ];
+  int64 rebalance = 9;
+  string baseDenom = 10;
+  string connectionId = 11;
+  string creator = 12;
 }
 

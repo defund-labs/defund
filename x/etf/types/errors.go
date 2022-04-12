@@ -8,5 +8,5 @@ import (
 
 // x/etf module sentinel errors
 var (
-	ErrSample = sdkerrors.Register(ModuleName, 1100, "sample error")
+	ErrWrongBroker = sdkerrors.Register(ModuleName, 1100, "Invalid broker")
 )

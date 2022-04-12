@@ -17,7 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/defund-labs/defund/x/query/client/cli"
 	"github.com/defund-labs/defund/x/query/keeper"
 	"github.com/defund-labs/defund/x/query/types"
@@ -168,54 +167,17 @@ func NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-type Key struct {
+type PoolsKey struct {
 }
 
-// Helper function to be implemented in end blocker to interchain query pools on gravity dex (Cosmos Hub)
-func (am AppModule) queryGravityDex(ctx sdk.Context, _ abci.RequestEndBlock) error {
-	path := "custom/liquidity/liquidityPools/"
-	clientid := "07-tendermint-0"
-	keyRaw := Key{}
-	key, err := json.Marshal(keyRaw)
-	if err != nil {
-		return err
-	}
-	am.keeper.Logger(ctx).Info(fmt.Sprintf("Interquery event for path %s on clientid of %s has been initiated", path, clientid))
-	var queryModuleAddress authtypes.ModuleAccountI
-	if am.accountkeeper.GetModuleAccount(ctx, "query") == nil {
-		queryAddress := NewQueryAddress(1)
-		queryModuleAddress = authtypes.NewModuleAccount(
-			authtypes.NewBaseAccountWithAddress(
-				queryAddress,
-			),
-			"query",
-		)
-		am.accountkeeper.SetModuleAccount(ctx, queryModuleAddress)
-	} else {
-		queryModuleAddress = am.accountkeeper.GetModuleAccount(ctx, "query")
-	}
-	interquery := types.Interquery{
-		Creator:       queryModuleAddress.GetAddress().String(),
-		Storeid:       fmt.Sprintf("CosmosPools-%s", fmt.Sprint(ctx.BlockHeight())),
-		Path:          path,
-		Key:           key,
-		TimeoutHeight: uint64(ctx.BlockHeight() + 10),
-		ClientId:      clientid,
-	}
-	am.keeper.SetInterquery(ctx, interquery)
-	// Get all pending interquery events and emit them
-	am.keeper.EmitInterqueryEvents(ctx)
-
-	return nil
+type BalanceKey struct {
+	Address string `json:"address"`
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// Run gravity dex interquery helper function
-	err := am.queryGravityDex(ctx, eb)
-	if err != nil {
-		ctx.Logger().Error(fmt.Sprintf("Error Creating Cosmos GDex Interquery: %s", err))
-	}
+	// Get all pending interquery events and emit them
+	am.keeper.EmitInterqueryEvents(ctx)
 	return []abci.ValidatorUpdate{}
 }

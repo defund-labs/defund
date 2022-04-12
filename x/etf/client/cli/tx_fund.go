@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strconv"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -11,17 +13,27 @@ import (
 
 func CmdCreateFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fund [symbol] [name] [description]",
+		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance]",
 		Short: "Create a new fund",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// Get value arguments
 			argSymbol := args[0]
 			argName := args[1]
 			argDescription := args[2]
+			argBaseDenom := args[3]
+			argBroker := args[4]
+			argHoldings := args[5]
+			argRebalance := args[6]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// Convert rebalance to int
+			rebalance, err := strconv.ParseInt(argRebalance, 10, 64)
 			if err != nil {
 				return err
 			}
@@ -31,41 +43,10 @@ func CmdCreateFund() *cobra.Command {
 				argSymbol,
 				argName,
 				argDescription,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdUpdateFund() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update-fund [id] [name] [description]",
-		Short: "Update a fund",
-		Args:  cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			// Get value arguments
-			argId := args[0]
-			argName := args[1]
-			argDescription := args[2]
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgUpdateFund(
-				clientCtx.GetFromAddress().String(),
-				argId,
-				argName,
-				argDescription,
+				argBroker,
+				argHoldings,
+				rebalance,
+				argBaseDenom,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

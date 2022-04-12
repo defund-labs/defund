@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -20,6 +21,25 @@ func NewFundAddress(fundId uint64) sdk.AccAddress {
 
 func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/pool/%s", symbol)
+}
+
+// Helper function that parses a string of holdings in the format "ATOM:50:1,OSMO:50:2" (DENOM:PERCENT:POOL,...) into a list of holdings
+func ParseStringHoldings(holdings string) ([]types.Holding, error) {
+	rawHoldings := strings.Split(holdings, ",")
+	holdingsList := []types.Holding{}
+	for _, holding := range rawHoldings {
+		sepHoldings := strings.Split(holding, ":")
+		perc, err := strconv.ParseInt(sepHoldings[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		holdingsList = append(holdingsList, types.Holding{
+			Denom:   sepHoldings[0],
+			Percent: perc,
+			PoolId:  sepHoldings[2],
+		})
+	}
+	return holdingsList, nil
 }
 
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
@@ -55,14 +75,30 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
+	// Create and save the broker fund ICA account on the broker chain
+	err := k.icaKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, acc.GetAddress().String())
+	if err != nil {
+		return nil, err
+	}
+
+	holdings, err := ParseStringHoldings(msg.Holdings)
+	if err != nil {
+		return nil, err
+	}
+
 	var fund = types.Fund{
 		Creator:     msg.Creator,
 		Id:          id,
-		Address:     fundAddress.String(),
+		Address:     acc.GetAddress().String(),
 		Symbol:      msg.Symbol,
 		Name:        msg.Name,
 		Description: msg.Description,
 		Shares:      sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
+		Broker:      msg.Broker,
+		Holdings:    holdings,
+		BaseDenom:   msg.BaseDenom,
+		Rebalance:   msg.Rebalance,
+		ConnectionId: msg.ConnectionId,
 	}
 
 	k.SetFund(
@@ -70,36 +106,4 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		fund,
 	)
 	return &types.MsgCreateFundResponse{}, nil
-}
-
-func (k msgServer) UpdateFund(goCtx context.Context, msg *types.MsgUpdateFund) (*types.MsgUpdateFundResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Check if the value exists
-	valFound, isFound := k.GetFund(
-		ctx,
-		msg.Id,
-	)
-	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "id of fund not found")
-	}
-
-	// Checks if the the msg creator is the same as the current owner
-	if msg.Creator != valFound.Creator {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
-	}
-
-	var fund = types.Fund{
-		Creator:     msg.Creator,
-		Id:          msg.Id,
-		Address:     valFound.Address,
-		Symbol:      valFound.Symbol,
-		Name:        msg.Name,
-		Description: msg.Description,
-		Shares:      valFound.Shares,
-	}
-
-	k.SetFund(ctx, fund)
-
-	return &types.MsgUpdateFundResponse{}, nil
 }
