@@ -1,9 +1,7 @@
-package etf
+package inter_tx
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -16,10 +14,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/defund-labs/defund/x/etf/client/cli"
-	"github.com/defund-labs/defund/x/etf/keeper"
-	"github.com/defund-labs/defund/x/etf/types"
-	querykeeper "github.com/defund-labs/defund/x/query/keeper"
+	"github.com/defund-labs/defund/x/broker/client/cli"
+	"github.com/defund-labs/defund/x/broker/keeper"
+	"github.com/defund-labs/defund/x/broker/types"
 )
 
 var (
@@ -27,16 +24,12 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// ----------------------------------------------------------------------------
-// AppModuleBasic
-// ----------------------------------------------------------------------------
-
 // AppModuleBasic implements the AppModuleBasic interface for the capability module.
 type AppModuleBasic struct {
-	cdc codec.BinaryCodec
+	cdc codec.Codec
 }
 
-func NewAppModuleBasic(cdc codec.BinaryCodec) AppModuleBasic {
+func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
 	return AppModuleBasic{cdc: cdc}
 }
 
@@ -60,16 +53,12 @@ func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 
 // DefaultGenesis returns the capability module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the capability module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var genState types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &genState); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
-	return genState.Validate()
+	return nil
 }
 
 // RegisterRESTRoutes registers the capability module's REST service handlers.
@@ -78,7 +67,6 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the capability module's root tx command.
@@ -88,32 +76,21 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the capability module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd(types.StoreKey)
+	return cli.GetQueryCmd()
 }
-
-// ----------------------------------------------------------------------------
-// AppModule
-// ----------------------------------------------------------------------------
 
 // AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        keeper.Keeper
-	accountkeeper types.AccountKeeper
-	bankkeeper    types.BankKeeper
-	querykeeper   querykeeper.Keeper
-	brokerkeeper  types.BrokerKeeper
+	keeper keeper.Keeper
 }
 
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountkeeper types.AccountKeeper, bankkeeper types.BankKeeper, querykeeper querykeeper.Keeper, brokerkeeper types.BrokerKeeper) AppModule {
+// NewAppModule creates and returns a new broker AppModule
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
-		accountkeeper:  accountkeeper,
-		bankkeeper:     bankkeeper,
-		querykeeper:    querykeeper,
-		brokerkeeper:   brokerkeeper,
 	}
 }
 
@@ -124,11 +101,13 @@ func (am AppModule) Name() string {
 
 // Route returns the capability module's message routing key.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.NewRoute(types.RouterKey, nil)
 }
 
 // QuerierRoute returns the capability module's query routing key.
-func (AppModule) QuerierRoute() string { return types.QuerierRoute }
+func (AppModule) QuerierRoute() string {
+	return types.QuerierRoute
+}
 
 // LegacyQuerierHandler returns the capability module's Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
@@ -138,6 +117,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
@@ -147,32 +127,22 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
-	var genState types.GenesisState
-	// Initialize global index to index in genesis state
-	cdc.MustUnmarshalJSON(gs, &genState)
-
-	InitGenesis(ctx, am.keeper, genState)
-
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	genState := ExportGenesis(ctx, am.keeper)
-	return cdc.MustMarshalJSON(genState)
+	return nil
 }
 
-// ConsensusVersion implements ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// Run the end blocker keeper at the end of each block
-	am.keeper.EndBlockerRun(ctx)
+func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

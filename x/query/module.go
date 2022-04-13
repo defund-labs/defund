@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/defund-labs/defund/x/query/client/cli"
 	"github.com/defund-labs/defund/x/query/keeper"
@@ -162,22 +161,10 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-func NewQueryAddress(id uint64) sdk.AccAddress {
-	key := append([]byte("query"), sdk.Uint64ToBigEndian(id)...)
-	return address.Module("query", key)
-}
-
-type PoolsKey struct {
-}
-
-type BalanceKey struct {
-	Address string `json:"address"`
-}
-
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// Get all pending interquery events and emit them
+	// Get all pending interqueries and emit them as events
 	am.keeper.EmitInterqueryEvents(ctx)
 	return []abci.ValidatorUpdate{}
 }

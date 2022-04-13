@@ -1,0 +1,12 @@
+syntax = "proto3";
+package defundhub.defund.broker;
+
+// this line is used by starport scaffolding # genesis/proto/import
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/defund-labs/defund/x/broker/types";
+
+// GenesisState defines the broker module's genesis state.
+message GenesisState {
+  // this line is used by starport scaffolding # genesis/proto/state
+}

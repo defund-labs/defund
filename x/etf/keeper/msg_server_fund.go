@@ -76,7 +76,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	k.accountKeeper.SetAccount(ctx, acc)
 
 	// Create and save the broker fund ICA account on the broker chain
-	err := k.icaKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, acc.GetAddress().String())
+	err := k.brokerKeeper.RegisterBrokerAccount(ctx, msg.ConnectionId, acc.GetAddress().String())
 	if err != nil {
 		return nil, err
 	}
@@ -87,17 +87,17 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	}
 
 	var fund = types.Fund{
-		Creator:     msg.Creator,
-		Id:          id,
-		Address:     acc.GetAddress().String(),
-		Symbol:      msg.Symbol,
-		Name:        msg.Name,
-		Description: msg.Description,
-		Shares:      sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
-		Broker:      msg.Broker,
-		Holdings:    holdings,
-		BaseDenom:   msg.BaseDenom,
-		Rebalance:   msg.Rebalance,
+		Creator:      msg.Creator,
+		Id:           id,
+		Address:      acc.GetAddress().String(),
+		Symbol:       msg.Symbol,
+		Name:         msg.Name,
+		Description:  msg.Description,
+		Shares:       sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
+		Broker:       msg.Broker,
+		Holdings:     holdings,
+		BaseDenom:    msg.BaseDenom,
+		Rebalance:    msg.Rebalance,
 		ConnectionId: msg.ConnectionId,
 	}
 

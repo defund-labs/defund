@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
 type (
@@ -23,7 +24,7 @@ type (
 
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
-		icaKeeper     types.ICAKeeper
+		brokerKeeper  types.BrokerKeeper
 		queryKeeper   querykeeper.Keeper
 	}
 )
@@ -96,12 +97,12 @@ func (k Keeper) QueryFundAccounts(ctx sdk.Context, address string, accountType s
 func (k Keeper) QueryAllAccounts(ctx sdk.Context) error {
 	funds := k.GetAllFund(ctx)
 	for _, fund := range funds {
-		portID, err := k.icaKeeper.NewControllerPortID(fund.Address)
+		portID, err := icatypes.NewControllerPortID(fund.Address)
 		if err != nil {
 			return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
 		}
 
-		addr, found := k.icaKeeper.GetInterchainAccountAddress(ctx, fund.ConnectionId, portID)
+		addr, found := k.brokerKeeper.GetBrokerAccount(ctx, fund.ConnectionId, portID)
 		if !found {
 			return status.Errorf(codes.NotFound, "no account found for portID %s", portID)
 		}
