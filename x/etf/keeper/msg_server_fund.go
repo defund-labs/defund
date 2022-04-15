@@ -34,7 +34,7 @@ func ParseStringHoldings(holdings string) ([]types.Holding, error) {
 			return nil, err
 		}
 		holdingsList = append(holdingsList, types.Holding{
-			Denom:   sepHoldings[0],
+			Token:   sepHoldings[0],
 			Percent: perc,
 			PoolId:  sepHoldings[2],
 		})
@@ -46,7 +46,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get next id for new fund
-	id := k.GetNextId(
+	id := k.GetNextID(
 		ctx,
 	)
 
@@ -90,7 +90,6 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Creator:      msg.Creator,
 		Id:           id,
 		Address:      acc.GetAddress().String(),
-		Symbol:       msg.Symbol,
 		Name:         msg.Name,
 		Description:  msg.Description,
 		Shares:       sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),

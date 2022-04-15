@@ -11,7 +11,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
 )
@@ -26,6 +28,7 @@ type (
 		bankKeeper    types.BankKeeper
 		brokerKeeper  types.BrokerKeeper
 		queryKeeper   querykeeper.Keeper
+		channelKeeper types.ChannelKeeper
 	}
 )
 
@@ -34,14 +37,18 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	channelKeeper types.ChannelKeeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
 		memKey:   memKey,
 
-		accountKeeper: accountKeeper, bankKeeper: bankKeeper,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
+		channelKeeper: channelKeeper,
 	}
 }
 
@@ -58,7 +65,26 @@ type BalanceKey struct {
 
 // Keeper function that send an IBC transfer to the account specified and creates a pending invest store.
 // Initializes the investment process.
-func (k Keeper) Invest(ctx sdk.Context, sendTo string, sendFrom string) error {
+func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+	portid, err := icatypes.NewControllerPortID(fund.Address)
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
+	}
+	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, portid, channel)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portid)
+	}
+	invest := types.Invest{
+		Id:       id,
+		Creator:  sender,
+		Fund:     &fund,
+		Amount:   &amount,
+		Channel:  channel,
+		Sequence: strconv.FormatUint(sequence, 10),
+		Status:   "pending",
+	}
+	k.SetInvest(ctx, invest)
+	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return nil
 }
 

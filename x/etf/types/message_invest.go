@@ -7,7 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgInvest{}
 
-func NewMsgInvest(creator string, fund string, amount string) *MsgInvest {
+func NewMsgInvest(creator string, fund string, amount *sdk.Coin) *MsgInvest {
 	return &MsgInvest{
 		Creator: creator,
 		Fund:    fund,

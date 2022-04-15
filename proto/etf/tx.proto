@@ -34,16 +34,34 @@ message MsgCreateFund {
 message MsgCreateFundResponse {}
 
 message MsgInvest {
-  string fund = 1;
-  cosmos.base.v1beta1.Coin investment = 2;
+  string creator = 1;
+
+  string fund = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+  string channel = 4;
+    // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  string timeout_height = 5;
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 6;
 }
 
 message MsgInvestResponse {
 }
 
 message MsgUninvest {
-  string fund = 1;
-  cosmos.base.v1beta1.Coin uninvestment = 2;
+  string creator = 1;
+
+  string fund = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+  string channel = 4;
+    // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  string timeout_height = 5;
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 6;
 }
 
 message MsgUninvestResponse {
