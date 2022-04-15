@@ -9,4 +9,5 @@ import (
 // x/etf module sentinel errors
 var (
 	ErrWrongBroker = sdkerrors.Register(ModuleName, 1100, "Invalid broker")
+	ErrFundNotFound = sdkerrors.Register(ModuleName, 1101, "Fund not found")
 )

@@ -379,7 +379,7 @@ func New(
 	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper)
-	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper)
+	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
 	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper)
 
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, brokerIBCModule)
@@ -390,7 +390,8 @@ func New(
 	ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
-		AddRoute(brokermoduletypes.ModuleName, icaControllerIBCModule)
+		AddRoute(brokermoduletypes.ModuleName, icaControllerIBCModule).
+		AddRoute(brokermoduletypes.ModuleName, transferIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route

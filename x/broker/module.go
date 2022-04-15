@@ -14,6 +14,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	"github.com/defund-labs/defund/x/broker/client/cli"
 	"github.com/defund-labs/defund/x/broker/keeper"
 	"github.com/defund-labs/defund/x/broker/types"
@@ -83,14 +84,16 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	keeper         keeper.Keeper
+	transferkeeper transferkeeper.Keeper
 }
 
 // NewAppModule creates and returns a new broker AppModule
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, transferkeeper transferkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
+		transferkeeper: transferkeeper,
 	}
 }
 

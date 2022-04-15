@@ -34,18 +34,16 @@ message MsgCreateFund {
 message MsgCreateFundResponse {}
 
 message MsgInvest {
-  string creator = 1;
-  string fund = 2;
-  string amount = 3;
+  string fund = 1;
+  cosmos.base.v1beta1.Coin investment = 2;
 }
 
 message MsgInvestResponse {
 }
 
 message MsgUninvest {
-  string creator = 1;
-  string fund = 2;
-  string amount = 3;
+  string fund = 1;
+  cosmos.base.v1beta1.Coin uninvestment = 2;
 }
 
 message MsgUninvestResponse {

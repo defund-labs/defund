@@ -1,6 +1,8 @@
 package inter_tx
 
 import (
+	"fmt"
+
 	proto "github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -117,27 +119,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
 	}
-
-	txMsgData := &sdk.TxMsgData{}
-	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
-	}
-
-	switch len(txMsgData.Data) {
-	case 0:
-		// TODO: handle for sdk 0.46.x
-		return nil
-	default:
-		for _, msgData := range txMsgData.Data {
-			response, err := handleMsgData(ctx, msgData)
-			if err != nil {
-				return err
-			}
-
-			im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
-		}
-		return nil
-	}
+	ctx.Logger().Info(fmt.Sprintf("Recieved Acknowledgement In Broker Module on Source Port %s and Dest Port %s", packet.SourcePort, packet.DestinationPort))
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.

@@ -11,9 +11,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
 type (
@@ -56,6 +56,22 @@ type BalanceKey struct {
 	Address string `json:"address"`
 }
 
+// Keeper function that send an IBC transfer to the account specified and creates a pending invest store.
+// Initializes the investment process.
+func (k Keeper) Invest(ctx sdk.Context, sendTo string, sendFrom string) error {
+	return nil
+}
+
+// Keeper function to rebalance an ETF using the IBC Broker Module
+func (k Keeper) RebalanceETF(ctx sdk.Context) {
+
+}
+
+// Keeper function that goes through all ETFs and rebalances them if the current height is a rebalance period
+func (k Keeper) RebalanceEndBlocker(ctx sdk.Context) {
+
+}
+
 // Helper function to be implemented in end blocker to interchain query pools on gravity dex (Cosmos Hub)
 func (k Keeper) QueryGravityDex(ctx sdk.Context) error {
 	path := "custom/liquidity/liquidityPools/"
@@ -93,7 +109,7 @@ func (k Keeper) QueryFundAccounts(ctx sdk.Context, address string, accountType s
 }
 
 // Helper function that gets all funds from store and creates an interquery for all ICA account balances
-// associated with the fund on the broker chains fund ICA account
+// associated with the fund on the broker chains fund ICA account.
 func (k Keeper) QueryAllAccounts(ctx sdk.Context) error {
 	funds := k.GetAllFund(ctx)
 	for _, fund := range funds {

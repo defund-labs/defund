@@ -4,9 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	"github.com/defund-labs/defund/x/broker/types"
 )
 
 type AccountKeeper interface {
@@ -58,5 +55,4 @@ type BankKeeper interface {
 type BrokerKeeper interface {
 	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
 	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
-	SendTx(ctx sdk.Context, msg *types.MsgSubmitTx, chanCap *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) error
 }
