@@ -1,5 +1,5 @@
 syntax = "proto3";
-package defundhub.defund.etf;
+package defundlabs.defund.etf;
 
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";

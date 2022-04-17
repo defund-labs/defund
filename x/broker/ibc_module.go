@@ -31,7 +31,13 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
+// OnChanOpenInit performs basic validation of channel initialization.
+// The channel order must be UNORDERED to match the Transfer module,
+// the counterparty port identifier must be either transfer or ibcaccount,
+// the channel version must be equal to the version in the types package,
+// there must not be an active channel for the specfied port identifier,
+// and the interchain accounts module must be able to claim the channel
+// capability.
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -85,7 +91,8 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// Disallow user-initiated channel closing for broker channels
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnChanCloseConfirm implements the IBCModule interface

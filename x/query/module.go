@@ -164,6 +164,8 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
+	// Run the end blocker keeper at the end of each block
+	am.keeper.EndBlockerRun(ctx)
 	// Get all pending interqueries and emit them as events
 	am.keeper.EmitInterqueryEvents(ctx)
 	return []abci.ValidatorUpdate{}

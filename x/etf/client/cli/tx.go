@@ -13,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	// "github.com/cosmos/cosmos-sdk/client/flags"
+
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -95,12 +97,13 @@ func CmdCreateFund() *cobra.Command {
 
 func CmdInvest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "invest [fund] [amount]",
-		Short: "Invest the specified amount into the dETF ticker.",
-		Args:  cobra.ExactArgs(2),
+		Use:   "invest [fund] [amount] [channel]",
+		Short: "Invest the specified amount into the dETF ticker using the IBC channel specified.",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
 			argAmount := args[1]
+			argChannel := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -112,10 +115,27 @@ func CmdInvest() *cobra.Command {
 				return err
 			}
 
+			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
+			if err != nil {
+				return err
+			}
+			timeoutHeight, err := clienttypes.ParseHeight(timeoutHeightStr)
+			if err != nil {
+				return err
+			}
+
+			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgInvest(
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
+				argChannel,
+				timeoutHeight.String(),
+				timeoutTimestamp,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -160,6 +180,9 @@ func CmdUninvest() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

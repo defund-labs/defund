@@ -18322,295 +18322,6 @@ paths:
           format: int64
       tags:
         - Query
-  /defund-labs/defund/etf/fund:
-    get:
-      summary: Queries a list of fund items.
-      operationId: DefundhubDefundEtfFundAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              fund:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    address:
-                      type: string
-                    symbol:
-                      type: string
-                    name:
-                      type: string
-                    description:
-                      type: string
-                    shares:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                    broker:
-                      type: string
-                    holdings:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          percent:
-                            type: string
-                            format: int64
-                          poolId:
-                            type: string
-                            title: Pool ID of the Pool for this holding on Broker
-                    rebalance:
-                      type: string
-                      format: int64
-                    baseDenom:
-                      type: string
-                    connectionId:
-                      type: string
-                    creator:
-                      type: string
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    title: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  '/defund-labs/defund/etf/fund/{index}':
-    get:
-      summary: Queries a fund by index.
-      operationId: DefundhubDefundEtfFund
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              fund:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  address:
-                    type: string
-                  symbol:
-                    type: string
-                  name:
-                    type: string
-                  description:
-                    type: string
-                  shares:
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
-                  broker:
-                    type: string
-                  holdings:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        percent:
-                          type: string
-                          format: int64
-                        poolId:
-                          type: string
-                          title: Pool ID of the Pool for this holding on Broker
-                  rebalance:
-                    type: string
-                    format: int64
-                  baseDenom:
-                    type: string
-                  connectionId:
-                    type: string
-                  creator:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: index
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  /defund-labs/defund/etf/fundPrice:
-    get:
-      summary: Queries a list of fundPrice items.
-      operationId: DefundhubDefundEtfFundPrice
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: ticker
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
   /defund-labs/defund/query/interquery:
     get:
       summary: Queries a list of interquery items.
@@ -19206,22 +18917,97 @@ paths:
           type: string
       tags:
         - Query
-  /defundlabs/defund/broker/params:
+  /defund-labs/defund/etf/fund:
     get:
-      summary: Parameters queries the parameters of the module.
-      operationId: DefundlabsDefundBrokerParams
+      summary: Queries a list of fund items.
+      operationId: DefundlabsDefundEtfFundAll
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              params:
-                description: params holds all the parameters of this module.
+              fund:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    symbol:
+                      type: string
+                    address:
+                      type: string
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    shares:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    broker:
+                      type: string
+                    holdings:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          token:
+                            type: string
+                          percent:
+                            type: string
+                            format: int64
+                          poolId:
+                            type: string
+                            title: Pool ID of the Pool for this holding on Broker
+                    rebalance:
+                      type: string
+                      format: int64
+                    baseDenom:
+                      type: string
+                    connectionId:
+                      type: string
+                    creator:
+                      type: string
+              pagination:
                 type: object
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
         default:
           description: An unexpected error response.
           schema:
@@ -19240,6 +19026,184 @@ paths:
                     '@type':
                       type: string
                   additionalProperties: {}
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  '/defund-labs/defund/etf/fund/{index}':
+    get:
+      summary: Queries a fund by index.
+      operationId: DefundlabsDefundEtfFund
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              fund:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  symbol:
+                    type: string
+                  address:
+                    type: string
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  shares:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  broker:
+                    type: string
+                  holdings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                        percent:
+                          type: string
+                          format: int64
+                        poolId:
+                          type: string
+                          title: Pool ID of the Pool for this holding on Broker
+                  rebalance:
+                    type: string
+                    format: int64
+                  baseDenom:
+                    type: string
+                  connectionId:
+                    type: string
+                  creator:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: index
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /defund-labs/defund/etf/fundPrice:
+    get:
+      summary: Queries a list of fundPrice items.
+      operationId: DefundlabsDefundEtfFundPrice
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: ticker
+          in: query
+          required: false
+          type: string
       tags:
         - Query
   /ibc/apps/interchain_accounts/controller/v1/params:
@@ -44984,211 +44948,6 @@ definitions:
     description: >-
       MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount
       response type.
-  defundhub.defund.etf.Fund:
-    type: object
-    properties:
-      id:
-        type: string
-      address:
-        type: string
-      symbol:
-        type: string
-      name:
-        type: string
-      description:
-        type: string
-      shares:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
-      broker:
-        type: string
-      holdings:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            percent:
-              type: string
-              format: int64
-            poolId:
-              type: string
-              title: Pool ID of the Pool for this holding on Broker
-      rebalance:
-        type: string
-        format: int64
-      baseDenom:
-        type: string
-      connectionId:
-        type: string
-      creator:
-        type: string
-  defundhub.defund.etf.Holding:
-    type: object
-    properties:
-      denom:
-        type: string
-      percent:
-        type: string
-        format: int64
-      poolId:
-        type: string
-        title: Pool ID of the Pool for this holding on Broker
-  defundhub.defund.etf.MsgCreateFundResponse:
-    type: object
-  defundhub.defund.etf.MsgInvestResponse:
-    type: object
-  defundhub.defund.etf.MsgUninvestResponse:
-    type: object
-  defundhub.defund.etf.QueryAllFundResponse:
-    type: object
-    properties:
-      fund:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-            address:
-              type: string
-            symbol:
-              type: string
-            name:
-              type: string
-            description:
-              type: string
-            shares:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
-            broker:
-              type: string
-            holdings:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  percent:
-                    type: string
-                    format: int64
-                  poolId:
-                    type: string
-                    title: Pool ID of the Pool for this holding on Broker
-            rebalance:
-              type: string
-              format: int64
-            baseDenom:
-              type: string
-            connectionId:
-              type: string
-            creator:
-              type: string
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            title: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  defundhub.defund.etf.QueryFundPriceResponse:
-    type: object
-  defundhub.defund.etf.QueryGetFundResponse:
-    type: object
-    properties:
-      fund:
-        type: object
-        properties:
-          id:
-            type: string
-          address:
-            type: string
-          symbol:
-            type: string
-          name:
-            type: string
-          description:
-            type: string
-          shares:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
-          broker:
-            type: string
-          holdings:
-            type: array
-            items:
-              type: object
-              properties:
-                denom:
-                  type: string
-                percent:
-                  type: string
-                  format: int64
-                poolId:
-                  type: string
-                  title: Pool ID of the Pool for this holding on Broker
-          rebalance:
-            type: string
-            format: int64
-          baseDenom:
-            type: string
-          connectionId:
-            type: string
-          creator:
-            type: string
   defundhub.defund.query.Interquery:
     type: object
     properties:
@@ -45538,16 +45297,225 @@ definitions:
             The data could be arbitrary format, providing nessecary data
             for example neighbouring node hash
     title: ProofOps is Merkle proof defined by the list of ProofOps
-  defundlabs.defund.broker.Params:
+  defundlabs.defund.broker.MsgRegisterAccountResponse:
     type: object
-    description: Params defines the parameters for the module.
-  defundlabs.defund.broker.QueryParamsResponse:
+    title: MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
+  defundlabs.defund.broker.MsgSubmitTxResponse:
+    type: object
+    title: MsgSubmitTxResponse defines the response for Msg/SubmitTx
+  defundlabs.defund.broker.QueryInterchainAccountFromAddressResponse:
     type: object
     properties:
-      params:
-        description: params holds all the parameters of this module.
+      interchain_account_address:
+        type: string
+    title: >-
+      QueryInterchainAccountFromAddressResponse the response type for the
+      Query/InterchainAccountAddress RPC
+  defundlabs.defund.etf.Fund:
+    type: object
+    properties:
+      id:
+        type: string
+      symbol:
+        type: string
+      address:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      shares:
         type: object
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      broker:
+        type: string
+      holdings:
+        type: array
+        items:
+          type: object
+          properties:
+            token:
+              type: string
+            percent:
+              type: string
+              format: int64
+            poolId:
+              type: string
+              title: Pool ID of the Pool for this holding on Broker
+      rebalance:
+        type: string
+        format: int64
+      baseDenom:
+        type: string
+      connectionId:
+        type: string
+      creator:
+        type: string
+  defundlabs.defund.etf.Holding:
+    type: object
+    properties:
+      token:
+        type: string
+      percent:
+        type: string
+        format: int64
+      poolId:
+        type: string
+        title: Pool ID of the Pool for this holding on Broker
+  defundlabs.defund.etf.MsgCreateFundResponse:
+    type: object
+  defundlabs.defund.etf.MsgInvestResponse:
+    type: object
+  defundlabs.defund.etf.MsgUninvestResponse:
+    type: object
+  defundlabs.defund.etf.QueryAllFundResponse:
+    type: object
+    properties:
+      fund:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            symbol:
+              type: string
+            address:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            shares:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            broker:
+              type: string
+            holdings:
+              type: array
+              items:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  percent:
+                    type: string
+                    format: int64
+                  poolId:
+                    type: string
+                    title: Pool ID of the Pool for this holding on Broker
+            rebalance:
+              type: string
+              format: int64
+            baseDenom:
+              type: string
+            connectionId:
+              type: string
+            creator:
+              type: string
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  defundlabs.defund.etf.QueryFundPriceResponse:
+    type: object
+  defundlabs.defund.etf.QueryGetFundResponse:
+    type: object
+    properties:
+      fund:
+        type: object
+        properties:
+          id:
+            type: string
+          symbol:
+            type: string
+          address:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+          shares:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          broker:
+            type: string
+          holdings:
+            type: array
+            items:
+              type: object
+              properties:
+                token:
+                  type: string
+                percent:
+                  type: string
+                  format: int64
+                poolId:
+                  type: string
+                  title: Pool ID of the Pool for this holding on Broker
+          rebalance:
+            type: string
+            format: int64
+          baseDenom:
+            type: string
+          connectionId:
+            type: string
+          creator:
+            type: string
   ibc.applications.interchain_accounts.controller.v1.Params:
     type: object
     properties:

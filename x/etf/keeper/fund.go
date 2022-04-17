@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -50,6 +51,23 @@ func (k Keeper) GetAllFund(ctx sdk.Context) (list []types.Fund) {
 	}
 
 	return
+}
+
+// GetFundBySymbol returns a fund by the funds symbol
+func (k Keeper) GetFundBySymbol(ctx sdk.Context, symbol string) (types.Fund, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Fund
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Symbol == symbol {
+			return val, nil
+		}
+	}
+	return types.Fund{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund with the sumbol %s does not exist", symbol)
 }
 
 // GetNextID gets the count of all funds and then adds 1 for the next fund id

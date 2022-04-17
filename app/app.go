@@ -101,7 +101,7 @@ import (
 	etfmodulekeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etfmoduletypes "github.com/defund-labs/defund/x/etf/types"
 
-	// Defund Interquery Module import
+	// Defund Interquery module imports
 	querymodule "github.com/defund-labs/defund/x/query"
 	querymodulekeeper "github.com/defund-labs/defund/x/query/keeper"
 	querymoduletypes "github.com/defund-labs/defund/x/query/types"
@@ -162,8 +162,8 @@ var (
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		etfmodule.AppModuleBasic{},
-		querymodule.AppModuleBasic{},
 		brokermodule.AppModuleBasic{},
+		querymodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -232,8 +232,8 @@ type App struct {
 	TransferKeeper      ibctransferkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	EtfKeeper           etfmodulekeeper.Keeper
-	QueryKeeper         querymodulekeeper.Keeper
 	BrokerKeeper        brokermodulekeeper.Keeper
+	InterqueryKeeper    querymodulekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -275,7 +275,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, etfmoduletypes.StoreKey,
-		querymoduletypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, brokermoduletypes.StoreKey,
+		icacontrollertypes.StoreKey, icahosttypes.StoreKey, brokermoduletypes.StoreKey, querymoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -414,15 +414,20 @@ func New(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
+		app.InterqueryKeeper,
 	)
-	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
+	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.InterqueryKeeper, app.BrokerKeeper)
 
-	app.QueryKeeper = *querymodulekeeper.NewKeeper(
+	app.InterqueryKeeper = *querymodulekeeper.NewKeeper(
 		appCodec,
 		keys[querymoduletypes.StoreKey],
 		keys[querymoduletypes.MemStoreKey],
+
+		app.AccountKeeper,
+		app.EtfKeeper,
+		app.BrokerKeeper,
 	)
-	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
+	interqueryModule := querymodule.NewAppModule(appCodec, app.InterqueryKeeper, app.AccountKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -457,7 +462,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		etfModule,
-		queryModule,
+		interqueryModule,
 		icaModule,
 		brokerModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -468,23 +473,23 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
-		querymoduletypes.ModuleName, upgradetypes.ModuleName, capabilitytypes.ModuleName,
+		upgradetypes.ModuleName, capabilitytypes.ModuleName,
 		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
 		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName,
+		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
-		querymoduletypes.ModuleName, upgradetypes.ModuleName, capabilitytypes.ModuleName,
+		upgradetypes.ModuleName, capabilitytypes.ModuleName,
 		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
 		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName,
+		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are

@@ -11,7 +11,7 @@ chains:
         account-prefix: defund
         keyring-backend: test
         gas-adjustment: 1.2
-        gas-prices: 0.01stake
+        gas-prices: 0.01ufetf
         debug: false
         timeout: 20s
         output-format: json

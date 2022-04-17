@@ -1,5 +1,5 @@
 syntax = "proto3";
-package defundhub.defund.broker;
+package defundlabs.defund.broker;
 
 // this line is used by starport scaffolding # genesis/proto/import
 import "gogoproto/gogo.proto";

@@ -24,7 +24,9 @@ require (
 )
 
 require (
+	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.0 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/tendermint/liquidity v1.5.0
 	golang.org/x/sys v0.0.0-20220307203707-22a9840ba4d7 // indirect
 )
