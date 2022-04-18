@@ -35,7 +35,7 @@ func GetTxCmd() *cobra.Command {
 
 func getRegisterAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "register",
+		Use: "register-broker-account",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -65,7 +65,7 @@ func getRegisterAccountCmd() *cobra.Command {
 
 func getSubmitTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "submit [path/to/sdk_msg.json]",
+		Use:  "cosmos-swap",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -89,7 +89,7 @@ func getSubmitTxCmd() *cobra.Command {
 				}
 			}
 
-			msg, err := types.NewMsgSubmitTx(txMsg, viper.GetString(FlagConnectionID), clientCtx.GetFromAddress().String())
+			msg, err := types.NewMsgCosmosSwap(txMsg, viper.GetString(FlagConnectionID), clientCtx.GetFromAddress().String())
 			if err != nil {
 				return err
 			}

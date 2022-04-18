@@ -119,19 +119,17 @@ proto-update-deps:
 ###                                Initialize                               ###
 ###############################################################################
 
-create-channel:
-	@echo "Making Relayer Channels"
-	@echo "Creating Defund-Transfer -> Theta-Transfer Channel"
-	hermes -c ./network/hermes/config.toml create channel defund theta-testnet-001 --port-a transfer --port-b transfer -o unordered
-	@echo "Creating Defund-Broker -> Theta-Transfer Channel"
-	hermes -c ./network/hermes/config.toml create channel defund theta-testnet-001 --port-a broker --port-b transfer -o unordered
-	@echo "Creating Defund-ICA -> Theta-ICA Channel"
-	hermes -c ./network/hermes/config.toml create channel defund theta-testnet-001 --port-a ibcaccount --port-b ibcaccount -o ordered
+create-connection:
+	@echo "Making Relayer Connection"
+	@echo "Creating Defund -> Theta Connection"
+	hermes -c ./network/hermes/config.toml create connection defund theta-testnet-001
 
 init: kill-dev 
 	@echo "Initializing both blockchains..."
 	./network/init.sh
 	./network/start.sh
+
+init-rly:
 	@echo "Initializing relayer..." 
 	./network/relayer/init.sh
 	./network/relayer/restore-keys.sh

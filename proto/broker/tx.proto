@@ -10,15 +10,15 @@ import "google/protobuf/any.proto";
 
 // Msg defines the Msg service.
 service Msg {
-    // Register defines a rpc handler for MsgRegisterAccount
-    rpc RegisterAccount(MsgRegisterAccount) returns (MsgRegisterAccountResponse);
-    // SubmitTx defines a rpc handler for MsgSubmitTx
-    rpc SubmitTx(MsgSubmitTx) returns (MsgSubmitTxResponse);
+    // Register defines a rpc handler for MsgRegisterBrokerAccount
+    rpc RegisterBrokerAccount(MsgRegisterBrokerAccount) returns (MsgRegisterBrokerAccountResponse);
+    // CosmosSwap defines a rpc handler for MsgCosmosSwap
+    rpc CosmosSwap(MsgCosmosSwap) returns (MsgCosmosSwapResponse);
     // this line is used by starport scaffolding # proto/tx/rpc
 }
 
-// MsgRegisterAccount defines the payload for Msg/RegisterAccount
-message MsgRegisterAccount {
+// MsgRegisterBrokerAccount defines the payload for Msg/RegisterBrokerAccount
+message MsgRegisterBrokerAccount {
     option (gogoproto.equal)           = false;
     option (gogoproto.goproto_getters) = false;
   
@@ -26,11 +26,11 @@ message MsgRegisterAccount {
     string connection_id              = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
   }
   
-  // MsgRegisterAccountResponse defines the response for Msg/RegisterAccount
-  message MsgRegisterAccountResponse {}
+  // MsgRegisterBrokerAccountResponse defines the response for Msg/RegisterBrokerAccount
+  message MsgRegisterBrokerAccountResponse {}
   
-  // MsgSubmitTx defines the payload for Msg/SubmitTx
-  message MsgSubmitTx {
+  // MsgCosmosSwap defines the payload for Msg/CosmosSwap
+  message MsgCosmosSwap {
     option (gogoproto.equal)           = false;
     option (gogoproto.goproto_getters) = false;
   
@@ -39,7 +39,7 @@ message MsgRegisterAccount {
     google.protobuf.Any msg            = 3;
   }
   
-  // MsgSubmitTxResponse defines the response for Msg/SubmitTx
-  message MsgSubmitTxResponse {}
+  // MsgCosmosSwapResponse defines the response for Msg/CosmosSwap
+  message MsgCosmosSwapResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message

@@ -50,3 +50,17 @@ sed -i -e 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $CHAIN_DIR/$CHAINI
 sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/$CHAINID_1/config/config.toml
 sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/$CHAINID_1/config/app.toml
 sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/$CHAINID_1/config/app.toml
+
+echo "Changing Genesis File"
+# Change crisis fee denom to fake detf
+contents="$(jq '.app_state.crisis.constant_fee.denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
+# Change mint denom to fake detf
+contents="$(jq '.app_state.mint.params.mint_denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
+# Change staking denom to fake detf
+contents="$(jq '.app_state.staking.params.bond_denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
+# Change gov deposit denom to fake detf
+contents="$(jq '.app_state.gov.deposit_params.min_deposit[0].denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json

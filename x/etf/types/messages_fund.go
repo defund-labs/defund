@@ -16,6 +16,7 @@ func NewMsgCreateFund(
 	holdings string,
 	rebalance int64,
 	basedenom string,
+	connectionid string,
 
 ) *MsgCreateFund {
 	return &MsgCreateFund{
@@ -27,6 +28,7 @@ func NewMsgCreateFund(
 		Holdings:    holdings,
 		Rebalance:   rebalance,
 		BaseDenom:   basedenom,
+		ConnectionId: connectionid,
 	}
 }
 

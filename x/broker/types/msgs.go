@@ -11,22 +11,22 @@ import (
 )
 
 var (
-	_ sdk.Msg = &MsgRegisterAccount{}
-	_ sdk.Msg = &MsgSubmitTx{}
+	_ sdk.Msg = &MsgRegisterBrokerAccount{}
+	_ sdk.Msg = &MsgCosmosSwap{}
 
-	_ codectypes.UnpackInterfacesMessage = MsgSubmitTx{}
+	_ codectypes.UnpackInterfacesMessage = MsgCosmosSwap{}
 )
 
 // NewMsgRegisterAccount creates a new MsgRegisterAccount instance
-func NewMsgRegisterAccount(owner, connectionID string) *MsgRegisterAccount {
-	return &MsgRegisterAccount{
+func NewMsgRegisterAccount(owner, connectionID string) *MsgRegisterBrokerAccount {
+	return &MsgRegisterBrokerAccount{
 		Owner:        owner,
 		ConnectionId: connectionID,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgRegisterAccount) ValidateBasic() error {
+func (msg MsgRegisterBrokerAccount) ValidateBasic() error {
 	if strings.TrimSpace(msg.Owner) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
@@ -39,7 +39,7 @@ func (msg MsgRegisterAccount) ValidateBasic() error {
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
+func (msg MsgRegisterBrokerAccount) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -49,13 +49,13 @@ func (msg MsgRegisterAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSubmitTx creates and returns a new MsgSubmitTx instance
-func NewMsgSubmitTx(sdkMsg sdk.Msg, connectionID, owner string) (*MsgSubmitTx, error) {
+func NewMsgCosmosSwap(sdkMsg sdk.Msg, connectionID, owner string) (*MsgCosmosSwap, error) {
 	any, err := PackTxMsgAny(sdkMsg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MsgSubmitTx{
+	return &MsgCosmosSwap{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Msg:          any,
@@ -78,7 +78,7 @@ func PackTxMsgAny(sdkMsg sdk.Msg) (*codectypes.Any, error) {
 }
 
 // UnpackInterfaces implements codectypes.UnpackInterfacesMessage
-func (msg MsgSubmitTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgCosmosSwap) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var (
 		sdkMsg sdk.Msg
 	)
@@ -87,7 +87,7 @@ func (msg MsgSubmitTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 }
 
 // GetTxMsg fetches the cached any message
-func (msg *MsgSubmitTx) GetTxMsg() sdk.Msg {
+func (msg *MsgCosmosSwap) GetTxMsg() sdk.Msg {
 	sdkMsg, ok := msg.Msg.GetCachedValue().(sdk.Msg)
 	if !ok {
 		return nil
@@ -97,7 +97,7 @@ func (msg *MsgSubmitTx) GetTxMsg() sdk.Msg {
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
+func (msg MsgCosmosSwap) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -107,7 +107,7 @@ func (msg MsgSubmitTx) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgSubmitTx) ValidateBasic() error {
+func (msg MsgCosmosSwap) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid owner address")

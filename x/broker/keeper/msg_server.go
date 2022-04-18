@@ -24,18 +24,18 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 // RegisterAccount implements the Msg/RegisterAccount interface
-func (k msgServer) RegisterAccount(goCtx context.Context, msg *types.MsgRegisterAccount) (*types.MsgRegisterAccountResponse, error) {
+func (k msgServer) RegisterBrokerAccount(goCtx context.Context, msg *types.MsgRegisterBrokerAccount) (*types.MsgRegisterBrokerAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner); err != nil {
 		return nil, err
 	}
 
-	return &types.MsgRegisterAccountResponse{}, nil
+	return &types.MsgRegisterBrokerAccountResponse{}, nil
 }
 
 // SubmitTx implements the Msg/SubmitTx interface
-func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*types.MsgSubmitTxResponse, error) {
+func (k msgServer) CosmosSwap(goCtx context.Context, msg *types.MsgCosmosSwap) (*types.MsgCosmosSwapResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(msg.Owner)
@@ -71,5 +71,5 @@ func (k msgServer) SubmitTx(goCtx context.Context, msg *types.MsgSubmitTx) (*typ
 		return nil, err
 	}
 
-	return &types.MsgSubmitTxResponse{}, nil
+	return &types.MsgCosmosSwapResponse{}, nil
 }

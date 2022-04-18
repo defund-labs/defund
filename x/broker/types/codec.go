@@ -15,15 +15,15 @@ var (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(MsgRegisterAccount{}, "broker/MsgRegisterAccount", nil)
-	cdc.RegisterConcrete(MsgSubmitTx{}, "broker/MsgSubmitTx", nil)
+	cdc.RegisterConcrete(MsgRegisterBrokerAccount{}, "broker/MsgRegisterBrokerAccount", nil)
+	cdc.RegisterConcrete(MsgCosmosSwap{}, "broker/MsgCosmosSwap", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgRegisterAccount{},
-		&MsgSubmitTx{},
+		&MsgRegisterBrokerAccount{},
+		&MsgCosmosSwap{},
 	)
 }

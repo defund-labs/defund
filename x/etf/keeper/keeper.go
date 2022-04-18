@@ -39,6 +39,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	channelKeeper types.ChannelKeeper,
 	interqueryKeeper types.InterqueryKeeper,
+	brokerKeeper types.BrokerKeeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
@@ -49,6 +50,7 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		channelKeeper: channelKeeper,
 		queryKeeper:   interqueryKeeper,
+		brokerKeeper: brokerKeeper,
 	}
 }
 

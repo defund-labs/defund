@@ -37,8 +37,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: theta-testnet-001
-            client-id: 07-tendermint-600
-            connection-id: connection-492
+            client-id: 07-tendermint-632
+            connection-id: connection-523
         src-channel-filter:
             rule: ""
             channel-list: []
@@ -47,8 +47,8 @@ paths:
     hubdefund:
         src:
             chain-id: theta-testnet-001
-            client-id: 07-tendermint-600
-            connection-id: connection-492
+            client-id: 07-tendermint-632
+            connection-id: connection-523
         dst:
             chain-id: defund
             client-id: 07-tendermint-0
