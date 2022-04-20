@@ -118,8 +118,10 @@ func (k Keeper) GetInvest(
 
 // GetAllInvest returns all invests from store
 func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	store := ctx.KVStore(k.storeKey)
+	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+
+	iterator := investStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
@@ -127,6 +129,26 @@ func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
 		var val types.Invest
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
+	}
+
+	return
+}
+
+// GetAllInvestbySymbol returns all invests from store based on symbol
+func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []types.Invest) {
+	store := ctx.KVStore(k.storeKey)
+	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+
+	iterator := investStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Invest
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Fund.Symbol == symbol {
+			list = append(list, val)
+		}
 	}
 
 	return

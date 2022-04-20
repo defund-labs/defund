@@ -10,11 +10,7 @@ option go_package = "github.com/defund-labs/defund/x/etf/types";
 message FundPrice {
   string id = 1;
   uint64 height = 2;
-  string price = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.moretags) = "yaml:\"price\"",
-    (gogoproto.nullable) = false
-  ];
+  cosmos.base.v1beta1.Coin amount = 3;
   string symbol = 4;
 }
 

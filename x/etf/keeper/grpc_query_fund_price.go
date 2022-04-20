@@ -25,7 +25,7 @@ func (k Keeper) FundPrice(goCtx context.Context, req *types.QueryFundPriceReques
 
 	fundPrice := types.FundPrice{
 		Height: uint64(ctx.BlockHeight()),
-		Price:  price,
+		Amount: &price,
 		Symbol: req.Symbol,
 	}
 
