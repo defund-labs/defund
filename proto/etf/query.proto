@@ -21,9 +21,14 @@ service Query {
 		option (google.api.http).get = "/defund-labs/defund/etf/fund";
 	}
 
-// Queries a list of fundPrice items.
+	// Queries a list of fundPrice items.
 	rpc FundPrice(QueryFundPriceRequest) returns (QueryFundPriceResponse) {
 		option (google.api.http).get = "/defund-labs/defund/etf/fundPrice";
+	}
+
+	// Queries a list of fund price items.
+	rpc FundPriceAll(QueryAllFundPriceRequest) returns (QueryAllFundPriceResponse) {
+		option (google.api.http).get = "/defund-labs/defund/etf/fundprice/{symbol}";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -53,6 +58,16 @@ message QueryFundPriceRequest {
 
 message QueryFundPriceResponse {
 	FundPrice price = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllFundPriceRequest {
+	string symbol = 1;
+	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryAllFundPriceResponse {
+	repeated FundPrice price = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3

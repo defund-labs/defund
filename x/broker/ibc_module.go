@@ -126,7 +126,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
 	}
-	ctx.Logger().Info(fmt.Sprintf("Recieved Acknowledgement In Broker Module on Source Port %s and Dest Port %s", packet.SourcePort, packet.DestinationPort))
+	ctx.Logger().Info(fmt.Sprintf("Received Acknowledgement In Broker Module on Source Port %s and Dest Port %s", packet.SourcePort, packet.DestinationPort))
 	return nil
 }
 

@@ -37,10 +37,12 @@ func (k Keeper) GetFund(
 	return val, true
 }
 
-// GetAllFund returns all fund
+// GetAllFund returns all funds in store
 func (k Keeper) GetAllFund(ctx sdk.Context) (list []types.Fund) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	store := ctx.KVStore(k.storeKey)
+	interqueryResultStore := prefix.NewStore(store, []byte(types.FundKeyPrefix))
+
+	iterator := interqueryResultStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 

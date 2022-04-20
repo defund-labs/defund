@@ -69,5 +69,5 @@ type InterqueryKeeper interface {
 	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error
 	GetInterqueryResultFromStore(ctx sdk.Context, storeid string) ([]byte, error)
 	CheckHoldings(ctx sdk.Context, broker string, holdings []Holding) error
-	GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) (banktypes.Balance, error)
+	GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error)
 }

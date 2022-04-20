@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	etftypes "github.com/defund-labs/defund/x/etf/types"
 	"github.com/defund-labs/defund/x/query/types"
 
@@ -160,7 +159,6 @@ func (k Keeper) QueryAllPools(ctx sdk.Context) error {
 	// Take the query with the most recent height (first in sorted slice)
 	if len(recentPools) > 0 {
 		for _, pool := range recentPools {
-			ctx.Logger().Debug("interquery pool id test: ", pool.Id)
 			err := k.QueryPoolAccount(ctx, pool.Id, pool.ReserveAccountAddress)
 			if err != nil {
 				return err
@@ -192,7 +190,6 @@ func (k Keeper) GetHighestHeightPools(ctx sdk.Context) ([]liquiditytypes.Pool, e
 	if len(poolQueries) > 0 {
 		query := poolQueries[0]
 		json.Unmarshal(query.Data, &pools)
-		ctx.Logger().Debug("From get all pools test: ", pools)
 	}
 
 	if len(poolQueries) == 0 {
@@ -216,10 +213,10 @@ func (k Keeper) GetHighestHeightPoolDetails(ctx sdk.Context, poolid string) (liq
 }
 
 // GetHighestHeightPoolBalance gets the most recent (highest height) balance/holdings of a pool in interqueryresult store
-func (k Keeper) GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) (banktypes.Balance, error) {
+func (k Keeper) GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error) {
 	queries := k.GetAllInterqueryResult(ctx)
 	poolQueries := []types.InterqueryResult{}
-	balance := banktypes.Balance{}
+	balances := []sdk.Coin{}
 	for _, query := range queries {
 		idSplit := strings.Split(query.Storeid, "-")
 		if idSplit[0] == "poolbalance" {
@@ -234,17 +231,17 @@ func (k Keeper) GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) (ban
 	})
 	// Take the query with the most recent height (first in sorted slice)
 	if len(poolQueries) > 0 {
-		query := poolQueries[0]
-		err := json.Unmarshal(query.Data, &balance)
+		rawquery := poolQueries[0]
+		err := json.Unmarshal(rawquery.Data, &balances)
 		if err != nil {
-			return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrMarshallingError, "Marshalling error for pool balance (PoolId: %s)", poolid)
+			return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrMarshallingError, "Marshalling error for pool balances (PoolId: %s)", poolid)
 		}
 	}
 
 	if len(poolQueries) == 0 {
-		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidPools, "No pools interqueried. Need pools interqueried to proceed")
+		return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidPools, "No pools interqueried. Need pools interqueried to proceed")
 	}
-	return banktypes.Balance{}, nil
+	return balances, nil
 }
 
 // CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
@@ -264,7 +261,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, broker string, holdings []etftype
 	}
 	// Make sure all fund holdings add up to 100%
 	if percentCheck != uint64(100) {
-		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up t0 100%. Got %d", percentCheck)
+		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up to 100%")
 	}
 	return nil
 }

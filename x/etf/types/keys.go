@@ -19,6 +19,9 @@ const (
 	// FundKeyPrefix is the prefix to retrieve all Fund stores
 	FundKeyPrefix = "Fund/value/"
 
+	// FundKeyPrefix is the prefix to retrieve all Fund stores
+	FundPriceKeyPrefix = "FundPrice/value/"
+
 	// InvestKeyPrefix is the prefix to retrieve all Invest stores
 	InvestKeyPrefix = "Invest/value/"
 
@@ -32,6 +35,19 @@ func KeyPrefix(p string) []byte {
 
 // FundKey returns the store key to retrieve a Fund from the index fields
 func FundKey(
+	id string,
+) []byte {
+	var key []byte
+
+	idBytes := []byte(id)
+	key = append(key, idBytes...)
+	key = append(key, []byte("/")...)
+
+	return key
+}
+
+// FundPriceKey returns the store key to retrieve a FundPrice from the index fields
+func FundPriceKey(
 	id string,
 ) []byte {
 	var key []byte
