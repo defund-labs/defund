@@ -7,6 +7,8 @@ Details on setting up a Defund node and/or validator are coming soon.
 
 ## Install
 
+You will need Golang, Rust, the Hermes IBC relayer, and our special interchain querying golang relayer () installed to run in dev. 
+
 ```
 git clone https://github.com/defund-labs/defund
 
@@ -15,52 +17,65 @@ cd defund
 make install
 ```
 
-`make install` installs additional components including, the hermes relayer by Informal, the Osmosis binary, and the Cosmos Hub binary (gaia).
+## Getting Started in Dev Mode
 
-## Getting Started
-
-```
+```bash
 make init
 
-make start
+make create-conn
+
+# Wait for the connection to be acknowledged then
+# start the relayer for interquerying
+make start-rly
 ```
-
-`make init` initializes the Defund chain as well as the hermes relayer and a local implementation of Osmosis and Gaia (Cosmos Hub).
-
-`make start` first starts a local version of Defund as well as the hermes relayer with a local version of Gaia (Cosmos Hub) and Osmosis.
 
 ## Frontend
 
-To start the frontend in dev please run the following commands in another terminal:
-
-```
-cd frontend
-npm install
-npm run dev
+```bash
+#Coming Soon!
 ```
 
-## Creating A Fund
+## Creating A dETF
 
 The following command is an example on creating a new dETF on Defund via the Defund binary:
 
+```bash
+# Create a new fund
+defundd tx etf create-fund ATOM2 "ATOM Top 2" "The top 2 coins in the cosmos!" uatom gdex uatom:50:1,ibc/68A333688E5B07451F95555F8FE510E43EF9D3D44DF0909964F92081EF9BE5A7:50:2 10 connection-0 --from $KEY_NAME --keyring-backend test --home ./network/data/defund --gas auto
 ```
 
+## Query dETF
+
+```bash
+defundd query etf fund ATOM2
+```
+
+## Query dETF Current Price
+
+```bash
+defundd query etf fund-price ATOM2
+```
+
+## Query dETF Historical Price
+
+```bash
+defundd query etf fund-prices ATOM2
 ```
 
 ## Invest In A Fund
 
 The following command is an example on investing in a dETF on Defund via the Defund binary:
 
-```
-
+```bash
+#Coming soon!
 ```
 
 ## Uninvest In A Fund
 
 The following command is an example of redeeming an investment in a dETF on Defund via the Defund binary:
 
-```
-
+```bash
+#Coming soon!
 ```
 
 ## Planned Roadmap
