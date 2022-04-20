@@ -1,5 +1,5 @@
 syntax = "proto3";
-package defundhub.defund.etf;
+package defundlabs.defund.etf;
 
 import "etf/fund.proto";
 // this line is used by starport scaffolding # proto/tx/import
@@ -14,7 +14,6 @@ option go_package = "github.com/defund-labs/defund/x/etf/types";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
-  rpc UpdateFund(MsgUpdateFund) returns (MsgUpdateFundResponse);
   rpc Invest(MsgInvest) returns (MsgInvestResponse);
   rpc Uninvest(MsgUninvest) returns (MsgUninvestResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
@@ -26,22 +25,26 @@ message MsgCreateFund {
   string symbol = 2;
   string name = 3;
   string description = 4;
+  string broker = 5;
+  string holdings = 6;
+  int64 rebalance = 7;
+  string baseDenom = 8;
+  string connectionId = 9;
 }
 message MsgCreateFundResponse {}
 
-message MsgUpdateFund {
-  string creator = 1;
-  string id = 2;
-
-  string name = 3;
-  string description = 4;
-}
-message MsgUpdateFundResponse {}
-
 message MsgInvest {
   string creator = 1;
+
   string fund = 2;
-  string amount = 3;
+  cosmos.base.v1beta1.Coin amount = 3;
+  string channel = 4;
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  string timeout_height = 5;
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 6;
 }
 
 message MsgInvestResponse {
@@ -49,8 +52,16 @@ message MsgInvestResponse {
 
 message MsgUninvest {
   string creator = 1;
+
   string fund = 2;
-  string amount = 3;
+  cosmos.base.v1beta1.Coin amount = 3;
+  string channel = 4;
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  string timeout_height = 5;
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 6;
 }
 
 message MsgUninvestResponse {

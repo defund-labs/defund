@@ -17,7 +17,7 @@ var _ = strconv.IntSize
 func createNFund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Fund {
 	items := make([]types.Fund, n)
 	for i := range items {
-		items[i].Id = strconv.Itoa(i)
+		items[i].Symbol = strconv.Itoa(i)
 
 		keeper.SetFund(ctx, items[i])
 	}
@@ -29,7 +29,7 @@ func TestFundGet(t *testing.T) {
 	items := createNFund(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetFund(ctx,
-			item.Id,
+			item.Symbol,
 		)
 		require.True(t, found)
 		require.Equal(t, item, rst)

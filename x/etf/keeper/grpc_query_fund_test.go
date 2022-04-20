@@ -30,21 +30,21 @@ func TestFundQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetFundRequest{
-				Index: msgs[0].Id,
+				Symbol: msgs[0].Symbol,
 			},
 			response: &types.QueryGetFundResponse{Fund: msgs[0]},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetFundRequest{
-				Index: msgs[1].Id,
+				Symbol: msgs[1].Symbol,
 			},
 			response: &types.QueryGetFundResponse{Fund: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetFundRequest{
-				Index: strconv.Itoa(100000),
+				Symbol: strconv.Itoa(100000),
 			},
 			err: status.Error(codes.InvalidArgument, "not found"),
 		},

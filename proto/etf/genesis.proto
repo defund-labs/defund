@@ -1,5 +1,5 @@
 syntax = "proto3";
-package defundhub.defund.etf;
+package defundlabs.defund.etf;
 
 import "etf/fund.proto";
 // this line is used by starport scaffolding # genesis/proto/import

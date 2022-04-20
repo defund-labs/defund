@@ -15,9 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/defund-labs/defund/x/query/client/cli"
 	"github.com/defund-labs/defund/x/query/keeper"
 	"github.com/defund-labs/defund/x/query/types"
@@ -163,39 +161,12 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-func NewQueryAddress(id uint64) sdk.AccAddress {
-	key := append([]byte("query"), sdk.Uint64ToBigEndian(id)...)
-	return address.Module("query", key)
-}
-
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	path := "/osmosis.gamm.v1beta1.Query/Pools"
-	clientid := "cosmos"
-	am.keeper.Logger(ctx).Info(fmt.Sprintf("Interquery event for path %s on clientid of %s has been initiated", path, clientid))
-	var queryModuleAddress authtypes.ModuleAccountI
-	if am.accountkeeper.GetModuleAccount(ctx, "query") == nil {
-		queryAddress := NewQueryAddress(1)
-		queryModuleAddress = authtypes.NewModuleAccount(
-			authtypes.NewBaseAccountWithAddress(
-				queryAddress,
-			),
-			"query",
-		)
-		am.accountkeeper.SetModuleAccount(ctx, queryModuleAddress)
-	} else {
-		queryModuleAddress = am.accountkeeper.GetModuleAccount(ctx, "query")
-	}
-	interquery := types.Interquery{
-		Creator:       queryModuleAddress.GetAddress().String(),
-		Storeid:       fmt.Sprintf("CosmosPool-%s", fmt.Sprint(ctx.BlockHeight())),
-		Path:          path,
-		TimeoutHeight: uint64(ctx.BlockHeight() + 10),
-		ClientId:      clientid,
-	}
-	am.keeper.SetInterquery(ctx, interquery)
-	// Get all pending interquery events and emit them
+func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
+	// Run the end blocker keeper at the end of each block
+	am.keeper.EndBlockerRun(ctx)
+	// Get all pending interqueries and emit them as events
 	am.keeper.EmitInterqueryEvents(ctx)
 	return []abci.ValidatorUpdate{}
 }

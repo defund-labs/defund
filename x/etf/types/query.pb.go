@@ -31,7 +31,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type QueryGetFundRequest struct {
-	Index string `protobuf:"bytes,1,opt,name=index,proto3" json:"index,omitempty"`
+	Symbol string `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
 }
 
 func (m *QueryGetFundRequest) Reset()         { *m = QueryGetFundRequest{} }
@@ -67,9 +67,9 @@ func (m *QueryGetFundRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetFundRequest proto.InternalMessageInfo
 
-func (m *QueryGetFundRequest) GetIndex() string {
+func (m *QueryGetFundRequest) GetSymbol() string {
 	if m != nil {
-		return m.Index
+		return m.Symbol
 	}
 	return ""
 }
@@ -215,7 +215,7 @@ func (m *QueryAllFundResponse) GetPagination() *query.PageResponse {
 }
 
 type QueryFundPriceRequest struct {
-	Ticker string `protobuf:"bytes,1,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Symbol string `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
 }
 
 func (m *QueryFundPriceRequest) Reset()         { *m = QueryFundPriceRequest{} }
@@ -251,14 +251,15 @@ func (m *QueryFundPriceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryFundPriceRequest proto.InternalMessageInfo
 
-func (m *QueryFundPriceRequest) GetTicker() string {
+func (m *QueryFundPriceRequest) GetSymbol() string {
 	if m != nil {
-		return m.Ticker
+		return m.Symbol
 	}
 	return ""
 }
 
 type QueryFundPriceResponse struct {
+	Price FundPrice `protobuf:"bytes,1,opt,name=price,proto3" json:"price"`
 }
 
 func (m *QueryFundPriceResponse) Reset()         { *m = QueryFundPriceResponse{} }
@@ -294,50 +295,167 @@ func (m *QueryFundPriceResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryFundPriceResponse proto.InternalMessageInfo
 
+func (m *QueryFundPriceResponse) GetPrice() FundPrice {
+	if m != nil {
+		return m.Price
+	}
+	return FundPrice{}
+}
+
+type QueryAllFundPriceRequest struct {
+	Symbol     string             `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllFundPriceRequest) Reset()         { *m = QueryAllFundPriceRequest{} }
+func (m *QueryAllFundPriceRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAllFundPriceRequest) ProtoMessage()    {}
+func (*QueryAllFundPriceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9b29f902a0b14e0e, []int{6}
+}
+func (m *QueryAllFundPriceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllFundPriceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllFundPriceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllFundPriceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllFundPriceRequest.Merge(m, src)
+}
+func (m *QueryAllFundPriceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllFundPriceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllFundPriceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllFundPriceRequest proto.InternalMessageInfo
+
+func (m *QueryAllFundPriceRequest) GetSymbol() string {
+	if m != nil {
+		return m.Symbol
+	}
+	return ""
+}
+
+func (m *QueryAllFundPriceRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type QueryAllFundPriceResponse struct {
+	Price      []FundPrice         `protobuf:"bytes,1,rep,name=price,proto3" json:"price"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllFundPriceResponse) Reset()         { *m = QueryAllFundPriceResponse{} }
+func (m *QueryAllFundPriceResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAllFundPriceResponse) ProtoMessage()    {}
+func (*QueryAllFundPriceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9b29f902a0b14e0e, []int{7}
+}
+func (m *QueryAllFundPriceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllFundPriceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllFundPriceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllFundPriceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllFundPriceResponse.Merge(m, src)
+}
+func (m *QueryAllFundPriceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllFundPriceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllFundPriceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllFundPriceResponse proto.InternalMessageInfo
+
+func (m *QueryAllFundPriceResponse) GetPrice() []FundPrice {
+	if m != nil {
+		return m.Price
+	}
+	return nil
+}
+
+func (m *QueryAllFundPriceResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterType((*QueryGetFundRequest)(nil), "defundhub.defund.etf.QueryGetFundRequest")
-	proto.RegisterType((*QueryGetFundResponse)(nil), "defundhub.defund.etf.QueryGetFundResponse")
-	proto.RegisterType((*QueryAllFundRequest)(nil), "defundhub.defund.etf.QueryAllFundRequest")
-	proto.RegisterType((*QueryAllFundResponse)(nil), "defundhub.defund.etf.QueryAllFundResponse")
-	proto.RegisterType((*QueryFundPriceRequest)(nil), "defundhub.defund.etf.QueryFundPriceRequest")
-	proto.RegisterType((*QueryFundPriceResponse)(nil), "defundhub.defund.etf.QueryFundPriceResponse")
+	proto.RegisterType((*QueryGetFundRequest)(nil), "defundlabs.defund.etf.QueryGetFundRequest")
+	proto.RegisterType((*QueryGetFundResponse)(nil), "defundlabs.defund.etf.QueryGetFundResponse")
+	proto.RegisterType((*QueryAllFundRequest)(nil), "defundlabs.defund.etf.QueryAllFundRequest")
+	proto.RegisterType((*QueryAllFundResponse)(nil), "defundlabs.defund.etf.QueryAllFundResponse")
+	proto.RegisterType((*QueryFundPriceRequest)(nil), "defundlabs.defund.etf.QueryFundPriceRequest")
+	proto.RegisterType((*QueryFundPriceResponse)(nil), "defundlabs.defund.etf.QueryFundPriceResponse")
+	proto.RegisterType((*QueryAllFundPriceRequest)(nil), "defundlabs.defund.etf.QueryAllFundPriceRequest")
+	proto.RegisterType((*QueryAllFundPriceResponse)(nil), "defundlabs.defund.etf.QueryAllFundPriceResponse")
 }
 
 func init() { proto.RegisterFile("etf/query.proto", fileDescriptor_9b29f902a0b14e0e) }
 
 var fileDescriptor_9b29f902a0b14e0e = []byte{
-	// 481 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x4f, 0x4f, 0xd4, 0x40,
-	0x18, 0xc6, 0x3b, 0xb0, 0x60, 0x18, 0x13, 0x4d, 0xc6, 0x4a, 0x48, 0x43, 0xaa, 0x56, 0x82, 0x2e,
-	0xe0, 0x4c, 0x40, 0xbf, 0x00, 0x98, 0xc0, 0xc5, 0x03, 0xf6, 0x68, 0xe2, 0x61, 0xda, 0xce, 0xd6,
-	0xc6, 0x32, 0x53, 0x3a, 0x53, 0x03, 0x31, 0x5e, 0x3c, 0x78, 0xf1, 0xa2, 0x31, 0x7e, 0x11, 0x3f,
-	0x05, 0x47, 0x12, 0x2f, 0x9e, 0x8c, 0xd9, 0xf5, 0x83, 0x98, 0xf9, 0x03, 0xd2, 0xb5, 0xa9, 0x7b,
-	0x7b, 0x67, 0xfb, 0xbc, 0xcf, 0xf3, 0x7b, 0xe7, 0x9d, 0x85, 0x37, 0x99, 0x1a, 0x91, 0xe3, 0x86,
-	0xd5, 0xa7, 0xb8, 0xaa, 0x85, 0x12, 0xc8, 0xcf, 0xd8, 0xa8, 0xe1, 0xd9, 0xab, 0x26, 0xc1, 0xb6,
-	0xc2, 0x4c, 0x8d, 0x82, 0xd5, 0x5c, 0x88, 0xbc, 0x64, 0x84, 0x56, 0x05, 0xa1, 0x9c, 0x0b, 0x45,
-	0x55, 0x21, 0xb8, 0xb4, 0x3d, 0xc1, 0x46, 0x2a, 0xe4, 0x91, 0x90, 0x24, 0xa1, 0x92, 0x59, 0x33,
-	0xf2, 0x66, 0x3b, 0x61, 0x8a, 0x6e, 0x93, 0x8a, 0xe6, 0x05, 0x37, 0x62, 0xa7, 0xbd, 0xa1, 0x03,
-	0x8d, 0xaf, 0x3d, 0xfb, 0xb9, 0xc8, 0x85, 0x29, 0x89, 0xae, 0xec, 0xaf, 0xd1, 0x26, 0xbc, 0xf5,
-	0x5c, 0xfb, 0x1c, 0x30, 0xb5, 0xdf, 0xf0, 0x2c, 0x66, 0xc7, 0x0d, 0x93, 0x0a, 0xf9, 0x70, 0xa1,
-	0xe0, 0x19, 0x3b, 0x59, 0x01, 0x77, 0xc1, 0xc3, 0xa5, 0xd8, 0x1e, 0xa2, 0x67, 0xd0, 0x6f, 0x8b,
-	0x65, 0x25, 0xb8, 0x64, 0xe8, 0x09, 0x1c, 0xe8, 0x20, 0x23, 0xbe, 0xbe, 0x13, 0xe0, 0xae, 0xc9,
-	0xb0, 0xee, 0xd8, 0x1b, 0x9c, 0xfd, 0xbc, 0xe3, 0xc5, 0x46, 0x1d, 0xbd, 0x74, 0xd1, 0xbb, 0x65,
-	0x79, 0x35, 0x7a, 0x1f, 0xc2, 0xbf, 0xb3, 0x38, 0xcb, 0x75, 0x6c, 0x07, 0xc7, 0x7a, 0x70, 0x6c,
-	0x6f, 0xd1, 0x0d, 0x8e, 0x0f, 0x69, 0xce, 0x5c, 0x6f, 0x7c, 0xa5, 0x33, 0xfa, 0x0a, 0x1c, 0xed,
-	0xa5, 0xff, 0x3f, 0xb4, 0xf3, 0xb3, 0xd3, 0xa2, 0x83, 0x16, 0xd6, 0x9c, 0xc1, 0x7a, 0xf0, 0x5f,
-	0x2c, 0x1b, 0xd9, 0xe2, 0x22, 0xf0, 0xb6, 0xc1, 0xd2, 0x09, 0x87, 0x75, 0x91, 0x5e, 0xc0, 0xa3,
-	0x65, 0xb8, 0xa8, 0x8a, 0xf4, 0x35, 0xab, 0xdd, 0xa5, 0xbb, 0x53, 0xb4, 0x02, 0x97, 0xa7, 0x1b,
-	0xac, 0xed, 0xce, 0xb7, 0x79, 0xb8, 0x60, 0x3e, 0xa1, 0x8f, 0x00, 0x0e, 0xf4, 0x77, 0x34, 0xec,
-	0x1e, 0xa7, 0x63, 0xc7, 0xc1, 0xc6, 0x2c, 0x52, 0x9b, 0x14, 0x6d, 0xbd, 0xff, 0xfe, 0xfb, 0xcb,
-	0xdc, 0x3a, 0x5a, 0x23, 0x56, 0xf9, 0xa8, 0xa4, 0x89, 0x74, 0x35, 0xb9, 0x78, 0x68, 0xe4, 0xad,
-	0x79, 0x26, 0xef, 0xd0, 0x07, 0x00, 0xaf, 0xe9, 0xf6, 0xdd, 0xb2, 0xec, 0x05, 0x6a, 0x6f, 0xbe,
-	0x17, 0x68, 0x6a, 0x89, 0xd1, 0x9a, 0x01, 0x0a, 0xd1, 0x6a, 0x1f, 0x10, 0xfa, 0x0c, 0xe0, 0xd2,
-	0xe5, 0xb5, 0xa1, 0xcd, 0x1e, 0xff, 0xe9, 0x6d, 0x04, 0x5b, 0xb3, 0x89, 0x1d, 0xce, 0xd0, 0xe0,
-	0xdc, 0x47, 0xf7, 0xfa, 0x70, 0x4c, 0xcb, 0xde, 0xd3, 0xb3, 0x71, 0x08, 0xce, 0xc7, 0x21, 0xf8,
-	0x35, 0x0e, 0xc1, 0xa7, 0x49, 0xe8, 0x9d, 0x4f, 0x42, 0xef, 0xc7, 0x24, 0xf4, 0x5e, 0x0c, 0xf3,
-	0x42, 0xe9, 0xb8, 0x54, 0x1c, 0x75, 0xd9, 0x9c, 0x18, 0x23, 0x75, 0x5a, 0x31, 0x99, 0x2c, 0x9a,
-	0x7f, 0xef, 0xe3, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xb2, 0x61, 0xfb, 0xdb, 0x56, 0x04, 0x00,
-	0x00,
+	// 552 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0xcd, 0x6e, 0xd3, 0x40,
+	0x14, 0x85, 0x33, 0x69, 0x5a, 0xd4, 0x0b, 0x02, 0x69, 0x68, 0xab, 0x12, 0x2a, 0x53, 0xcc, 0x4f,
+	0x69, 0x68, 0x66, 0x68, 0x10, 0x3b, 0x36, 0x2d, 0x52, 0xbb, 0x42, 0x2a, 0x59, 0xb0, 0x40, 0x62,
+	0x61, 0x27, 0x13, 0x63, 0xc9, 0xf1, 0xb8, 0x99, 0x31, 0x22, 0x20, 0x36, 0xac, 0x58, 0x21, 0xa4,
+	0x4a, 0x3c, 0x00, 0x12, 0xef, 0xd2, 0x65, 0x25, 0x36, 0xac, 0x10, 0x24, 0x3c, 0x08, 0x9a, 0x1f,
+	0x42, 0x9c, 0x06, 0xd7, 0x45, 0xdd, 0x8d, 0xad, 0x7b, 0xee, 0xf9, 0xce, 0xbd, 0x1e, 0xc3, 0x25,
+	0x26, 0x3b, 0x74, 0x3f, 0x65, 0xbd, 0x3e, 0x49, 0x7a, 0x5c, 0x72, 0xbc, 0xd8, 0x66, 0x9d, 0x34,
+	0x6e, 0x47, 0x9e, 0x2f, 0x88, 0x39, 0x12, 0x26, 0x3b, 0xd5, 0x95, 0x80, 0xf3, 0x20, 0x62, 0xd4,
+	0x4b, 0x42, 0xea, 0xc5, 0x31, 0x97, 0x9e, 0x0c, 0x79, 0x2c, 0x8c, 0xa8, 0x5a, 0x6b, 0x71, 0xd1,
+	0xe5, 0x82, 0xfa, 0x9e, 0x60, 0xa6, 0x1b, 0x7d, 0xb9, 0xe9, 0x33, 0xe9, 0x6d, 0xd2, 0xc4, 0x0b,
+	0xc2, 0x58, 0x17, 0xdb, 0xda, 0x8b, 0xca, 0x51, 0xf7, 0x35, 0xcf, 0x0b, 0x01, 0x0f, 0xb8, 0x3e,
+	0x52, 0x75, 0x32, 0x6f, 0xdd, 0x3a, 0x5c, 0x7e, 0xa2, 0xfa, 0xec, 0x32, 0xb9, 0x93, 0xc6, 0xed,
+	0x26, 0xdb, 0x4f, 0x99, 0x90, 0x78, 0x09, 0xe6, 0x44, 0xbf, 0xeb, 0xf3, 0x68, 0x19, 0xad, 0xa2,
+	0x3b, 0xf3, 0x4d, 0xfb, 0xe4, 0x3e, 0x86, 0x85, 0x6c, 0xb9, 0x48, 0x78, 0x2c, 0x18, 0x7e, 0x00,
+	0x15, 0x65, 0xa5, 0xab, 0xcf, 0x37, 0xae, 0x92, 0xa9, 0xe1, 0x88, 0x92, 0x6c, 0x57, 0x0e, 0xbf,
+	0x5f, 0x2b, 0x35, 0x75, 0xb9, 0xfb, 0xdc, 0xba, 0x6f, 0x45, 0xd1, 0xb8, 0xfb, 0x0e, 0xc0, 0xdf,
+	0x38, 0xb6, 0xe7, 0x6d, 0x62, 0xb2, 0x13, 0x95, 0x9d, 0x98, 0x49, 0xda, 0xec, 0x64, 0xcf, 0x0b,
+	0x98, 0xd5, 0x36, 0xc7, 0x94, 0xee, 0x27, 0x64, 0x71, 0x47, 0xfd, 0x8f, 0xe1, 0xce, 0x9c, 0x02,
+	0x17, 0xef, 0x66, 0xb8, 0xca, 0x9a, 0x6b, 0xed, 0x44, 0x2e, 0xe3, 0x99, 0x01, 0xa3, 0xb0, 0xa8,
+	0xb9, 0x94, 0xc3, 0x5e, 0x2f, 0x6c, 0xb1, 0x93, 0xe6, 0xfe, 0x14, 0x96, 0x26, 0x05, 0x36, 0xca,
+	0x43, 0x98, 0x4d, 0xd4, 0x0b, 0x3b, 0xa6, 0xd5, 0x9c, 0x2c, 0x5a, 0x68, 0x03, 0x19, 0x91, 0xfb,
+	0x1a, 0x96, 0xc7, 0x07, 0x54, 0x84, 0x65, 0x62, 0x3b, 0xe5, 0xff, 0xde, 0xce, 0x67, 0x04, 0x57,
+	0xa6, 0x98, 0x1f, 0xcf, 0x35, 0x73, 0xea, 0x5c, 0x67, 0xb6, 0xa9, 0xc6, 0xcf, 0x0a, 0xcc, 0x6a,
+	0x48, 0xfc, 0x01, 0x41, 0x45, 0xb9, 0xe1, 0xda, 0x3f, 0x50, 0xa6, 0xdc, 0xa3, 0xea, 0xdd, 0x42,
+	0xb5, 0xc6, 0xd7, 0xad, 0xbf, 0xfb, 0xfa, 0xeb, 0xa0, 0xbc, 0x86, 0x6f, 0x51, 0x53, 0x59, 0x57,
+	0x2a, 0x7b, 0xa6, 0x7f, 0x6e, 0x33, 0x7d, 0x63, 0xd6, 0xf0, 0x16, 0xbf, 0x47, 0x70, 0x4e, 0xe9,
+	0xb7, 0xa2, 0x28, 0x9f, 0x29, 0x7b, 0xbb, 0xf2, 0x99, 0x26, 0x6e, 0x8a, 0x7b, 0x53, 0x33, 0x39,
+	0x78, 0x25, 0x8f, 0x09, 0x1f, 0x20, 0x98, 0x1f, 0x6d, 0x02, 0x6f, 0xe4, 0x19, 0x4c, 0x7e, 0x66,
+	0xd5, 0x7a, 0xc1, 0x6a, 0x0b, 0xb4, 0xae, 0x81, 0x6e, 0xe0, 0xeb, 0x79, 0x40, 0x86, 0xe3, 0x0b,
+	0x82, 0x0b, 0xa3, 0x06, 0x6a, 0x4a, 0xb4, 0x40, 0xf2, 0x0c, 0xdb, 0xbd, 0xe2, 0x02, 0x8b, 0xd7,
+	0xd0, 0x78, 0x1b, 0xb8, 0x96, 0x87, 0xa7, 0xbf, 0xd1, 0xd1, 0x22, 0xb7, 0x1f, 0x1d, 0x0e, 0x1c,
+	0x74, 0x34, 0x70, 0xd0, 0x8f, 0x81, 0x83, 0x3e, 0x0e, 0x9d, 0xd2, 0xd1, 0xd0, 0x29, 0x7d, 0x1b,
+	0x3a, 0xa5, 0x67, 0xeb, 0x41, 0x28, 0x5f, 0xa4, 0x3e, 0x69, 0xf1, 0xee, 0xb4, 0x7e, 0xaf, 0x74,
+	0x47, 0xd9, 0x4f, 0x98, 0xf0, 0xe7, 0xf4, 0xff, 0xfc, 0xfe, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x23, 0x49, 0x19, 0xaa, 0x69, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -352,12 +470,14 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Queries a fund by index.
+	// Queries a fund by symbol.
 	Fund(ctx context.Context, in *QueryGetFundRequest, opts ...grpc.CallOption) (*QueryGetFundResponse, error)
 	// Queries a list of fund items.
 	FundAll(ctx context.Context, in *QueryAllFundRequest, opts ...grpc.CallOption) (*QueryAllFundResponse, error)
 	// Queries a list of fundPrice items.
 	FundPrice(ctx context.Context, in *QueryFundPriceRequest, opts ...grpc.CallOption) (*QueryFundPriceResponse, error)
+	// Queries a list of fund price items.
+	FundPriceAll(ctx context.Context, in *QueryAllFundPriceRequest, opts ...grpc.CallOption) (*QueryAllFundPriceResponse, error)
 }
 
 type queryClient struct {
@@ -370,7 +490,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) Fund(ctx context.Context, in *QueryGetFundRequest, opts ...grpc.CallOption) (*QueryGetFundResponse, error) {
 	out := new(QueryGetFundResponse)
-	err := c.cc.Invoke(ctx, "/defundhub.defund.etf.Query/Fund", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Query/Fund", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +499,7 @@ func (c *queryClient) Fund(ctx context.Context, in *QueryGetFundRequest, opts ..
 
 func (c *queryClient) FundAll(ctx context.Context, in *QueryAllFundRequest, opts ...grpc.CallOption) (*QueryAllFundResponse, error) {
 	out := new(QueryAllFundResponse)
-	err := c.cc.Invoke(ctx, "/defundhub.defund.etf.Query/FundAll", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Query/FundAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +508,16 @@ func (c *queryClient) FundAll(ctx context.Context, in *QueryAllFundRequest, opts
 
 func (c *queryClient) FundPrice(ctx context.Context, in *QueryFundPriceRequest, opts ...grpc.CallOption) (*QueryFundPriceResponse, error) {
 	out := new(QueryFundPriceResponse)
-	err := c.cc.Invoke(ctx, "/defundhub.defund.etf.Query/FundPrice", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Query/FundPrice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FundPriceAll(ctx context.Context, in *QueryAllFundPriceRequest, opts ...grpc.CallOption) (*QueryAllFundPriceResponse, error) {
+	out := new(QueryAllFundPriceResponse)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Query/FundPriceAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -397,12 +526,14 @@ func (c *queryClient) FundPrice(ctx context.Context, in *QueryFundPriceRequest, 
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Queries a fund by index.
+	// Queries a fund by symbol.
 	Fund(context.Context, *QueryGetFundRequest) (*QueryGetFundResponse, error)
 	// Queries a list of fund items.
 	FundAll(context.Context, *QueryAllFundRequest) (*QueryAllFundResponse, error)
 	// Queries a list of fundPrice items.
 	FundPrice(context.Context, *QueryFundPriceRequest) (*QueryFundPriceResponse, error)
+	// Queries a list of fund price items.
+	FundPriceAll(context.Context, *QueryAllFundPriceRequest) (*QueryAllFundPriceResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -417,6 +548,9 @@ func (*UnimplementedQueryServer) FundAll(ctx context.Context, req *QueryAllFundR
 }
 func (*UnimplementedQueryServer) FundPrice(ctx context.Context, req *QueryFundPriceRequest) (*QueryFundPriceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FundPrice not implemented")
+}
+func (*UnimplementedQueryServer) FundPriceAll(ctx context.Context, req *QueryAllFundPriceRequest) (*QueryAllFundPriceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FundPriceAll not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -433,7 +567,7 @@ func _Query_Fund_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundhub.defund.etf.Query/Fund",
+		FullMethod: "/defundlabs.defund.etf.Query/Fund",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Fund(ctx, req.(*QueryGetFundRequest))
@@ -451,7 +585,7 @@ func _Query_FundAll_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundhub.defund.etf.Query/FundAll",
+		FullMethod: "/defundlabs.defund.etf.Query/FundAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).FundAll(ctx, req.(*QueryAllFundRequest))
@@ -469,7 +603,7 @@ func _Query_FundPrice_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundhub.defund.etf.Query/FundPrice",
+		FullMethod: "/defundlabs.defund.etf.Query/FundPrice",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).FundPrice(ctx, req.(*QueryFundPriceRequest))
@@ -477,8 +611,26 @@ func _Query_FundPrice_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_FundPriceAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllFundPriceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FundPriceAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/defundlabs.defund.etf.Query/FundPriceAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FundPriceAll(ctx, req.(*QueryAllFundPriceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "defundhub.defund.etf.Query",
+	ServiceName: "defundlabs.defund.etf.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -492,6 +644,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FundPrice",
 			Handler:    _Query_FundPrice_Handler,
+		},
+		{
+			MethodName: "FundPriceAll",
+			Handler:    _Query_FundPriceAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -518,10 +674,10 @@ func (m *QueryGetFundRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Index) > 0 {
-		i -= len(m.Index)
-		copy(dAtA[i:], m.Index)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Index)))
+	if len(m.Symbol) > 0 {
+		i -= len(m.Symbol)
+		copy(dAtA[i:], m.Symbol)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Symbol)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -665,10 +821,10 @@ func (m *QueryFundPriceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Ticker) > 0 {
-		i -= len(m.Ticker)
-		copy(dAtA[i:], m.Ticker)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Ticker)))
+	if len(m.Symbol) > 0 {
+		i -= len(m.Symbol)
+		copy(dAtA[i:], m.Symbol)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Symbol)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -695,6 +851,107 @@ func (m *QueryFundPriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.Price.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllFundPriceRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllFundPriceRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllFundPriceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Symbol) > 0 {
+		i -= len(m.Symbol)
+		copy(dAtA[i:], m.Symbol)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Symbol)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllFundPriceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllFundPriceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllFundPriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Price) > 0 {
+		for iNdEx := len(m.Price) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Price[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -715,7 +972,7 @@ func (m *QueryGetFundRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Index)
+	l = len(m.Symbol)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -771,7 +1028,7 @@ func (m *QueryFundPriceRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Ticker)
+	l = len(m.Symbol)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -784,6 +1041,44 @@ func (m *QueryFundPriceResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = m.Price.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryAllFundPriceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Symbol)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryAllFundPriceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Price) > 0 {
+		for _, e := range m.Price {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -824,7 +1119,7 @@ func (m *QueryGetFundRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Symbol", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -852,7 +1147,7 @@ func (m *QueryGetFundRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Index = string(dAtA[iNdEx:postIndex])
+			m.Symbol = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1195,7 +1490,7 @@ func (m *QueryFundPriceRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ticker", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Symbol", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1223,7 +1518,7 @@ func (m *QueryFundPriceRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ticker = string(dAtA[iNdEx:postIndex])
+			m.Symbol = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1275,6 +1570,277 @@ func (m *QueryFundPriceResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryFundPriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Price.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllFundPriceRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllFundPriceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllFundPriceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Symbol", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Symbol = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllFundPriceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllFundPriceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllFundPriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Price = append(m.Price, FundPrice{})
+			if err := m.Price[len(m.Price)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

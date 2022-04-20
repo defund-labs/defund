@@ -19,7 +19,6 @@ import (
 	"github.com/defund-labs/defund/x/etf/client/cli"
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
-	querykeeper "github.com/defund-labs/defund/x/query/keeper"
 )
 
 var (
@@ -99,19 +98,21 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        keeper.Keeper
-	accountkeeper types.AccountKeeper
-	bankkeeper    types.BankKeeper
-	querykeeper   querykeeper.Keeper
+	keeper           keeper.Keeper
+	accountkeeper    types.AccountKeeper
+	bankkeeper       types.BankKeeper
+	interquerykeeper types.InterqueryKeeper
+	brokerkeeper     types.BrokerKeeper
 }
 
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountkeeper types.AccountKeeper, bankkeeper types.BankKeeper, querykeeper querykeeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountkeeper types.AccountKeeper, bankkeeper types.BankKeeper, interquerykeeper types.InterqueryKeeper, brokerkeeper types.BrokerKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(cdc),
-		keeper:         keeper,
-		accountkeeper:  accountkeeper,
-		bankkeeper:     bankkeeper,
-		querykeeper:    querykeeper,
+		AppModuleBasic:   NewAppModuleBasic(cdc),
+		keeper:           keeper,
+		accountkeeper:    accountkeeper,
+		bankkeeper:       bankkeeper,
+		interquerykeeper: interquerykeeper,
+		brokerkeeper:     brokerkeeper,
 	}
 }
 
@@ -170,5 +171,6 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	am.keeper.EndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

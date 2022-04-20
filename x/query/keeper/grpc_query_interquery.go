@@ -20,7 +20,7 @@ func (k Keeper) InterqueryAll(c context.Context, req *types.QueryAllInterqueryRe
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	interqueryStore := prefix.NewStore(store, types.KeyPrefix(types.InterqueryKeyPrefix))
+	interqueryStore := prefix.NewStore(store, types.InterqueryKeyPrefix)
 
 	pageRes, err := query.Paginate(interqueryStore, req.Pagination, func(key []byte, value []byte) error {
 		var interquery types.Interquery
@@ -65,7 +65,7 @@ func (k Keeper) InterqueryResultAll(c context.Context, req *types.QueryAllInterq
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	interqueryResultStore := prefix.NewStore(store, types.KeyPrefix(types.InterqueryResultKeyPrefix))
+	interqueryResultStore := prefix.NewStore(store, types.InterqueryResultKeyPrefix)
 
 	pageRes, err := query.Paginate(interqueryResultStore, req.Pagination, func(key []byte, value []byte) error {
 		var interqueryresult types.InterqueryResult
@@ -110,7 +110,7 @@ func (k Keeper) InterqueryTimeoutResultAll(c context.Context, req *types.QueryAl
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	interqueryTimeoutResultStore := prefix.NewStore(store, types.KeyPrefix(types.InterqueryTimeoutResultKeyPrefix))
+	interqueryTimeoutResultStore := prefix.NewStore(store, types.InterqueryTimeoutResultKeyPrefix)
 
 	pageRes, err := query.Paginate(interqueryTimeoutResultStore, req.Pagination, func(key []byte, value []byte) error {
 		var interquerytimeoutresult types.InterqueryTimeoutResult

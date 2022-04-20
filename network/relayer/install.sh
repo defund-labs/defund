@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd $HOME
-cargo install --version 0.9.0 ibc-relayer-cli --bin hermes --locked
-sudo cp $HOME/.cargo/bin/hermes /usr/local/bin
+git clone https://github.com/schnetzlerjoe/relayer
+make install

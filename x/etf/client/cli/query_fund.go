@@ -45,18 +45,18 @@ func CmdListFund() *cobra.Command {
 
 func CmdShowFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fund [id]",
-		Short: "Get and show fund of Id specified",
+		Use:   "fund [symbol]",
+		Short: "Get and show fund of symbol specified",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argIndex := args[0]
+			argSymbol := args[0]
 
 			params := &types.QueryGetFundRequest{
-				Index: argIndex,
+				Symbol: argSymbol,
 			}
 
 			res, err := queryClient.Fund(context.Background(), params)

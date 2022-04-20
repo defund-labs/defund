@@ -28,7 +28,7 @@ func networkWithFundObjects(t *testing.T, n int) (*network.Network, []types.Fund
 
 	for i := 0; i < n; i++ {
 		state.FundList = append(state.FundList, types.Fund{
-			Id: strconv.Itoa(i),
+			Symbol: strconv.Itoa(i),
 		})
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
@@ -54,7 +54,7 @@ func TestShowFund(t *testing.T) {
 	}{
 		{
 			desc:    "found",
-			idIndex: objs[0].Id,
+			idIndex: objs[0].Symbol,
 
 			args: common,
 			obj:  objs[0],

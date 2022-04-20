@@ -4,6 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 )
 
 type AccountKeeper interface {
@@ -50,4 +52,22 @@ type BankKeeper interface {
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	DelegateCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+}
+
+type BrokerKeeper interface {
+	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
+	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
+	SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
+}
+
+type ChannelKeeper interface {
+	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+}
+
+type InterqueryKeeper interface {
+	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error
+	GetInterqueryResultFromStore(ctx sdk.Context, storeid string) ([]byte, error)
+	CheckHoldings(ctx sdk.Context, broker string, holdings []Holding) error
+	GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error)
 }

@@ -7,7 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgUninvest{}
 
-func NewMsgUninvest(creator string, fund string, amount string) *MsgUninvest {
+func NewMsgUninvest(creator string, fund string, amount *sdk.Coin) *MsgUninvest {
 	return &MsgUninvest{
 		Creator: creator,
 		Fund:    fund,
