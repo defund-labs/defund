@@ -102,7 +102,7 @@ cosmovisor version
 defundd version
 ```
 
-These two commands should both output `0.0.2-alpha`
+These two commands should both output `0.0.2`
 
 Reset private validator file to genesis state:
 
