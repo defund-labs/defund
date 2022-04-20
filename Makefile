@@ -9,10 +9,6 @@ DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bu
 install: go.sum
 		@echo "--> Installing defundd"
 		@go install ./cmd/defundd
-		@echo "---> Installing gaiad"
-		@bash ./network/cosmos/cosmos.sh
-		@echo "---> Installing Golang relayer"
-		@bash ./network/relayer/install.sh
 
 install-debug: go.sum
 	go build -gcflags="all=-N -l" ./cmd/defundd
