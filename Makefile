@@ -1,33 +1,122 @@
 #!/usr/bin/make -f
-PACKAGES=$(shell go list ./...)
-DOCKER := $(shell which docker)
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8
+
+PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
+VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+COMMIT := $(shell git log -1 --format='%H')
+LEDGER_ENABLED ?= true
+SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
+BUILDDIR ?= $(CURDIR)/build
+
+export GO111MODULE = on
+
+# process build tags
+
+build_tags = netgo
+ifeq ($(LEDGER_ENABLED),true)
+  ifeq ($(OS),Windows_NT)
+    GCCEXE = $(shell where gcc.exe 2> NUL)
+    ifeq ($(GCCEXE),)
+      $(error gcc.exe not installed for ledger support, please install or set LEDGER_ENABLED=false)
+    else
+      build_tags += ledger
+    endif
+  else
+    UNAME_S = $(shell uname -s)
+    ifeq ($(UNAME_S),OpenBSD)
+      $(warning OpenBSD detected, disabling ledger support (https://github.com/cosmos/cosmos-sdk/issues/1988))
+    else
+      GCC = $(shell command -v gcc 2> /dev/null)
+      ifeq ($(GCC),)
+        $(error gcc not installed for ledger support, please install or set LEDGER_ENABLED=false)
+      else
+        build_tags += ledger
+      endif
+    endif
+  endif
+endif
+
+ifeq (cleveldb,$(findstring cleveldb,$(DEFUND_BUILD_OPTIONS)))
+  build_tags += gcc
+else ifeq (rocksdb,$(findstring rocksdb,$(DEFUND_BUILD_OPTIONS)))
+  build_tags += gcc
+endif
+build_tags += $(BUILD_TAGS)
+build_tags := $(strip $(build_tags))
+
+whitespace :=
+whitespace += $(whitespace)
+comma := ,
+build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
+
+# process linker flags
+
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=defund \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=defundd \
+		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
+		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+
+ifeq (cleveldb,$(findstring cleveldb,$(DEFUND_BUILD_OPTIONS)))
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
+else ifeq (rocksdb,$(findstring rocksdb,$(DEFUND_BUILD_OPTIONS)))
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=rocksdb
+endif
+ifeq (,$(findstring nostrip,$(DEFUND_BUILD_OPTIONS)))
+  ldflags += -w -s
+endif
+ldflags += $(LDFLAGS)
+ldflags := $(strip $(ldflags))
+
+BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+# check for nostrip option
+ifeq (,$(findstring nostrip,$(DEFUND_BUILD_OPTIONS)))
+  BUILD_FLAGS += -trimpath
+endif
+
+# The below include contains the tools target.
+include ./devtools/Makefile
 
 ###############################################################################
-###                           Install                                       ###
+###                                  Build                                  ###
 ###############################################################################
-install: go.sum
-		@echo "--> Installing defundd"
-		@go install ./cmd/defundd
-		@echo "---> Installing gaiad"
-		@bash ./network/cosmos/cosmos.sh
-		@echo "---> Installing Golang relayer"
-		@bash ./network/relayer/install.sh
 
-install-debug: go.sum
-	go build -gcflags="all=-N -l" ./cmd/defundd
+all: install lint test
+
+BUILD_TARGETS := build install
+
+build: BUILD_ARGS=-o $(BUILDDIR)/
+
+$(BUILD_TARGETS): go.sum $(BUILDDIR)/
+	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+
+$(BUILDDIR)/:
+	mkdir -p $(BUILDDIR)/
+
+build-linux: go.sum
+	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+
+build-contract-tests-hooks:
+	mkdir -p $(BUILDDIR)
+	go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/ ./cmd/contract_tests
+
+go-mod-cache: go.sum
+	@echo "--> Download go modules to local cache"
+	@go mod download
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
-	GO111MODULE=on go mod verify
-
-test:
-	@go test -mod=readonly $(PACKAGES) -cover
-
-lint:
-	@echo "--> Running linter"
-	@golangci-lint run
 	@go mod verify
+
+draw-deps:
+	@# requires brew install graphviz or apt-get install graphviz
+	go get github.com/RobotsAndPencils/goviz
+	@goviz -i ./cmd/defundd -d 2 | dot -Tpng -o dependency-graph.png
+
+clean:
+	rm -rf $(BUILDDIR)/ artifacts/
+
+distclean: clean
+	rm -rf vendor/
 
 ###############################################################################
 ###                                Protobuf                                 ###
@@ -152,11 +241,3 @@ kill-dev:
 	-@killall defundd 2>/dev/null
 	-@killall gaiad 2>/dev/null
 	-@killall rly 2>/dev/null
-
-get-genesis:
-	@echo $(HOME)
-	@wget -O $(HOME)/defund/network/data/gaia/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json
-
-	@wget https://github.com/cosmos/mainnet/raw/master/genesis.cosmoshub-4.json.gz
-	@gzip -d genesis.cosmoshub-4.json.gz
-	@mv genesis.cosmoshub-4.json $(HOME)/defund/network/data/gaia/config/genesis.json
