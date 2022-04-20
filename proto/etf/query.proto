@@ -11,9 +11,9 @@ option go_package = "github.com/defund-labs/defund/x/etf/types";
 
 // Query defines the gRPC querier service.
 service Query {
-    // Queries a fund by index.
+    // Queries a fund by symbol.
 	rpc Fund(QueryGetFundRequest) returns (QueryGetFundResponse) {
-		option (google.api.http).get = "/defund-labs/defund/etf/fund/{index}";
+		option (google.api.http).get = "/defund-labs/defund/etf/fund/{symbol}";
 	}
 
 	// Queries a list of fund items.
@@ -30,7 +30,7 @@ service Query {
 }
 
 message QueryGetFundRequest {
-	  string index = 1;
+	  string symbol = 1;
 
 }
 
@@ -48,10 +48,11 @@ message QueryAllFundResponse {
 }
 
 message QueryFundPriceRequest {
-  string ticker = 1;
+  string symbol = 1;
 }
 
 message QueryFundPriceResponse {
+	FundPrice price = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3

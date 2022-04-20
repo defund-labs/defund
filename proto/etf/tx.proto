@@ -39,7 +39,7 @@ message MsgInvest {
   string fund = 2;
   cosmos.base.v1beta1.Coin amount = 3;
   string channel = 4;
-    // Timeout height relative to the current block height.
+  // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
   string timeout_height = 5;
   // Timeout timestamp in absolute nanoseconds since unix epoch.
@@ -56,7 +56,7 @@ message MsgUninvest {
   string fund = 2;
   cosmos.base.v1beta1.Coin amount = 3;
   string channel = 4;
-    // Timeout height relative to the current block height.
+  // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
   string timeout_height = 5;
   // Timeout timestamp in absolute nanoseconds since unix epoch.

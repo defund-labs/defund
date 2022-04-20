@@ -101,7 +101,7 @@ import (
 	etfmodulekeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etfmoduletypes "github.com/defund-labs/defund/x/etf/types"
 
-	// Defund Interquery module imports
+	// Defund Query module imports
 	querymodule "github.com/defund-labs/defund/x/query"
 	querymodulekeeper "github.com/defund-labs/defund/x/query/keeper"
 	querymoduletypes "github.com/defund-labs/defund/x/query/types"
@@ -233,7 +233,7 @@ type App struct {
 	TransferKeeper      ibctransferkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	EtfKeeper           etfmodulekeeper.Keeper
-	InterqueryKeeper    querymodulekeeper.Keeper
+	QueryKeeper         querymodulekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -274,8 +274,9 @@ func New(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, ibctransfertypes.StoreKey, etfmoduletypes.StoreKey,
-		icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, brokermoduletypes.StoreKey, querymoduletypes.StoreKey,
+		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
+		capabilitytypes.StoreKey, brokermoduletypes.StoreKey, querymoduletypes.StoreKey,
+		etfmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -408,20 +409,7 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
-	app.EtfKeeper = *etfmodulekeeper.NewKeeper(
-		appCodec,
-		keys[etfmoduletypes.StoreKey],
-		keys[etfmoduletypes.MemStoreKey],
-
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.InterqueryKeeper,
-		app.BrokerKeeper,
-	)
-	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.InterqueryKeeper, app.BrokerKeeper)
-
-	app.InterqueryKeeper = *querymodulekeeper.NewKeeper(
+	app.QueryKeeper = *querymodulekeeper.NewKeeper(
 		appCodec,
 		keys[querymoduletypes.StoreKey],
 		keys[querymoduletypes.MemStoreKey],
@@ -430,7 +418,20 @@ func New(
 		app.EtfKeeper,
 		app.BrokerKeeper,
 	)
-	interqueryModule := querymodule.NewAppModule(appCodec, app.InterqueryKeeper, app.AccountKeeper)
+	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
+
+	app.EtfKeeper = *etfmodulekeeper.NewKeeper(
+		appCodec,
+		keys[etfmoduletypes.StoreKey],
+		keys[etfmoduletypes.MemStoreKey],
+
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.QueryKeeper,
+		app.BrokerKeeper,
+	)
+	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -465,7 +466,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		etfModule,
-		interqueryModule,
+		queryModule,
 		icaModule,
 		brokerModule,
 		// this line is used by starport scaffolding # stargate/app/appModule

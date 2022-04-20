@@ -14,11 +14,11 @@ var _ = strconv.Itoa(0)
 
 func CmdFundPrice() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fund-price [ticker]",
+		Use:   "fund-price [symbol]",
 		Short: "Get the price of a fund",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			reqTicker := args[0]
+			reqSymbol := args[0]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -29,7 +29,7 @@ func CmdFundPrice() *cobra.Command {
 
 			params := &types.QueryFundPriceRequest{
 
-				Ticker: reqTicker,
+				Symbol: reqSymbol,
 			}
 
 			res, err := queryClient.FundPrice(cmd.Context(), params)

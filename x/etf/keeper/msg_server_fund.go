@@ -14,8 +14,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-func NewFundAddress(fundId uint64) sdk.AccAddress {
-	key := append([]byte("etf"), sdk.Uint64ToBigEndian(fundId)...)
+func NewFundAddress(fundId string) sdk.AccAddress {
+	key := append([]byte("etf"), []byte(fundId)...)
 	return address.Module("etf", key)
 }
 
@@ -23,8 +23,9 @@ func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/pool/%s", symbol)
 }
 
-// Helper function that parses a string of holdings in the format "ATOM:50:1,OSMO:50:2" (DENOM:PERCENT:POOL,...) into a list of holdings
-func ParseStringHoldings(holdings string) ([]types.Holding, error) {
+// Helper function that parses a string of holdings in the format "ATOM:50:1,OSMO:50:2" (DENOM:PERCENT:POOL,...) into a slice of type holding
+// and checks to make sure that the holdings are all supported denoms from the specified broker and pool
+func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings string) ([]types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
 	holdingsList := []types.Holding{}
 	for _, holding := range rawHoldings {
@@ -39,30 +40,31 @@ func ParseStringHoldings(holdings string) ([]types.Holding, error) {
 			PoolId:  sepHoldings[2],
 		})
 	}
+	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
+	err := k.queryKeeper.CheckHoldings(ctx, broker, holdingsList)
+	if err != nil {
+		return nil, err
+	}
 	return holdingsList, nil
 }
 
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Get next id for new fund
-	id := k.GetNextID(
-		ctx,
-	)
+	// Basic CreateFund validation
+	msg.ValidateBasic()
 
 	// Check if the value already exists
 	_, isFound := k.GetFund(
 		ctx,
-		id,
+		msg.Symbol,
 	)
 	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "id already exists")
+		return nil, sdkerrors.Wrap(types.ErrSymbolExists, fmt.Sprintf("symbol %s already exists", msg.Symbol))
 	}
 
-	idInt, _ := strconv.ParseUint(id, 10, 64)
-
 	// Generate and get a new fund address
-	fundAddress := NewFundAddress(idInt)
+	fundAddress := NewFundAddress(msg.Symbol)
 
 	// Create and save corresponding module account to the account keeper
 	acc := k.accountKeeper.NewAccount(ctx, authtypes.NewModuleAccount(
@@ -81,14 +83,14 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		return nil, err
 	}
 
-	holdings, err := ParseStringHoldings(msg.Holdings)
+	holdings, err := k.ParseStringHoldings(ctx, msg.Broker, msg.Holdings)
 	if err != nil {
 		return nil, err
 	}
 
 	var fund = types.Fund{
 		Creator:      msg.Creator,
-		Id:           id,
+		Symbol:       msg.Symbol,
 		Address:      acc.GetAddress().String(),
 		Name:         msg.Name,
 		Description:  msg.Description,

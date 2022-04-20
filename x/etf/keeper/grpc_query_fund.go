@@ -47,7 +47,7 @@ func (k Keeper) Fund(c context.Context, req *types.QueryGetFundRequest) (*types.
 
 	val, found := k.GetFund(
 		ctx,
-		req.Index,
+		req.Symbol,
 	)
 	if !found {
 		return nil, status.Error(codes.InvalidArgument, "not found")

@@ -14,7 +14,7 @@ func (k Keeper) SetFund(ctx sdk.Context, fund types.Fund) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
 	b := k.cdc.MustMarshal(&fund)
 	store.Set(types.FundKey(
-		fund.Id,
+		fund.Symbol,
 	), b)
 }
 
@@ -77,18 +77,13 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 
 	defer iterator.Close()
 
-	var list []types.Fund
+	count := 0
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Fund
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-		count := len(list)
-		add := count + 1
-		id = strconv.Itoa(add)
+		count = count + 1
 	}
 
-	return id
+	return strconv.Itoa(count)
 }
 
 // SetInvest set a specific invest in the store from its index

@@ -7,6 +7,15 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
+message FundPrice {
+  uint64 height = 1;
+  string price = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
 message Holding {
   string token = 1;
   int64 percent = 2;
@@ -15,24 +24,23 @@ message Holding {
 }
 
 message Fund {
-  string id = 1;
-  string symbol = 2;
-  string address = 3; 
-  string name = 4; 
-  string description = 5; 
-  cosmos.base.v1beta1.Coin shares = 6 [
+  string symbol = 1;
+  string address = 2; 
+  string name = 3; 
+  string description = 4; 
+  cosmos.base.v1beta1.Coin shares = 5 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = false
   ];
-  string broker = 7;
-  repeated Holding holdings = 8 [
+  string broker = 6;
+  repeated Holding holdings = 7 [
     (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
     (gogoproto.nullable) = false
   ];
-  int64 rebalance = 9;
-  string baseDenom = 10;
-  string connectionId = 11;
-  string creator = 12;
+  int64 rebalance = 8;
+  string baseDenom = 9;
+  string connectionId = 10;
+  string creator = 11;
 }
 
 message Invest {

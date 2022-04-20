@@ -13,10 +13,10 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		FundList: []types.Fund{
 			{
-				Id: "0",
+				Symbol: "0",
 			},
 			{
-				Id: "1",
+				Symbol: "1",
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state

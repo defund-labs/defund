@@ -8,13 +8,45 @@ import (
 
 /////////////////////////////// Interquery Store Helpers ///////////////////////////////////////////
 
+func (k Keeper) MarshalInterquery(interquery types.Interquery) ([]byte, error) {
+	return interquery.Marshal()
+}
+
+func (k Keeper) UnmarshalInterquery(bz []byte) (types.Interquery, error) {
+	var query types.Interquery
+	return query, k.cdc.UnmarshalInterface(bz, &query)
+}
+
+func (k Keeper) MarshalInterqueryResult(interquery types.InterqueryResult) ([]byte, error) {
+	return interquery.Marshal()
+}
+
+func (k Keeper) UnmarshalInterqueryResult(bz []byte) (types.InterqueryResult, error) {
+	var query types.InterqueryResult
+	return query, k.cdc.UnmarshalInterface(bz, &query)
+}
+
+func (k Keeper) MarshalInterqueryTimeoutResult(interquery types.InterqueryTimeoutResult) ([]byte, error) {
+	return interquery.Marshal()
+}
+
+func (k Keeper) UnmarshalInterqueryTimeoutResult(bz []byte) (types.InterqueryTimeoutResult, error) {
+	var query types.InterqueryTimeoutResult
+	return query, k.cdc.UnmarshalInterface(bz, &query)
+}
+
 // SetInterquery set a specific interquery in the store from its index
-func (k Keeper) SetInterquery(ctx sdk.Context, interquery types.Interquery) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryKeyPrefix))
-	b := k.cdc.MustMarshal(&interquery)
-	store.Set(types.InterqueryKey(
-		interquery.Storeid,
-	), b)
+func (k Keeper) SetInterquery(ctx sdk.Context, interquery types.Interquery) error {
+	bz, err := k.MarshalInterquery(interquery)
+	if err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	interqueryKey := types.GetKeyPrefixInterquery(interquery.GetStoreid())
+	store.Set(interqueryKey, bz)
+
+	return nil
 }
 
 // GetInterquery returns a interquery from its index
@@ -23,7 +55,7 @@ func (k Keeper) GetInterquery(
 	index string,
 
 ) (val types.Interquery, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
 
 	b := store.Get(types.InterqueryKey(
 		index,
@@ -38,7 +70,7 @@ func (k Keeper) GetInterquery(
 
 // GetAllInterquery returns all interquery
 func (k Keeper) GetAllInterquery(ctx sdk.Context) (list []types.Interquery) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -55,12 +87,17 @@ func (k Keeper) GetAllInterquery(ctx sdk.Context) (list []types.Interquery) {
 /////////////////////////////// InterqueryResult Store Helpers ///////////////////////////////////////////
 
 // SetInterquery set a specific interquery in the store from its index
-func (k Keeper) SetInterqueryResult(ctx sdk.Context, interqueryresult types.InterqueryResult) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryResultKeyPrefix))
-	b := k.cdc.MustMarshal(&interqueryresult)
-	store.Set(types.InterqueryResultKey(
-		interqueryresult.Storeid,
-	), b)
+func (k Keeper) SetInterqueryResult(ctx sdk.Context, interquery types.InterqueryResult) error {
+	bz, err := k.MarshalInterqueryResult(interquery)
+	if err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	interqueryKey := types.GetKeyPrefixInterqueryResult(interquery.GetStoreid())
+	store.Set(interqueryKey, bz)
+
+	return nil
 }
 
 // GetInterquery returns a interquery from its index
@@ -69,7 +106,7 @@ func (k Keeper) GetInterqueryResult(
 	index string,
 
 ) (val types.InterqueryResult, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryResultKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryResultKeyPrefix)
 
 	b := store.Get(types.InterqueryResultKey(
 		index,
@@ -82,22 +119,12 @@ func (k Keeper) GetInterqueryResult(
 	return val, true
 }
 
-// RemoveInterquery removes a interquery from the store
-func (k Keeper) RemoveInterqueryResult(
-	ctx sdk.Context,
-	storeid string,
-
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryResultKeyPrefix))
-	store.Delete(types.InterqueryResultKey(
-		storeid,
-	))
-}
-
-// GetAllInterquery returns all interquery
+// GetAllInterqueryResult returns all interquery results from the store
 func (k Keeper) GetAllInterqueryResult(ctx sdk.Context) (list []types.InterqueryResult) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryResultKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	store := ctx.KVStore(k.storeKey)
+	interqueryResultStore := prefix.NewStore(store, types.InterqueryResultKeyPrefix)
+
+	iterator := interqueryResultStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
@@ -113,12 +140,17 @@ func (k Keeper) GetAllInterqueryResult(ctx sdk.Context) (list []types.Interquery
 /////////////////////////////// InterqueryTimeoutResult Store Helpers ///////////////////////////////////////////
 
 // SetInterquery set a specific interquery in the store from its index
-func (k Keeper) SetInterqueryTimeoutResult(ctx sdk.Context, interquerytimeout types.InterqueryTimeoutResult) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryTimeoutResultKeyPrefix))
-	b := k.cdc.MustMarshal(&interquerytimeout)
-	store.Set(types.InterqueryTimeoutResultKey(
-		interquerytimeout.Storeid,
-	), b)
+func (k Keeper) SetInterqueryTimeoutResult(ctx sdk.Context, interquery types.InterqueryTimeoutResult) error {
+	bz, err := k.MarshalInterqueryTimeoutResult(interquery)
+	if err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	interqueryKey := types.GetKeyPrefixInterqueryTimeoutResult(interquery.GetStoreid())
+	store.Set(interqueryKey, bz)
+
+	return nil
 }
 
 // GetInterquery returns a interquery from its index
@@ -127,7 +159,7 @@ func (k Keeper) GetInterqueryTimeoutResult(
 	storeid string,
 
 ) (val types.InterqueryTimeoutResult, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryTimeoutResultKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryTimeoutResultKeyPrefix)
 
 	b := store.Get(types.InterqueryTimeoutResultKey(
 		storeid,
@@ -140,21 +172,9 @@ func (k Keeper) GetInterqueryTimeoutResult(
 	return val, true
 }
 
-// RemoveInterquery removes a interquery from the store
-func (k Keeper) RemoveInterqueryTimeoutResult(
-	ctx sdk.Context,
-	storeid string,
-
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryTimeoutResultKeyPrefix))
-	store.Delete(types.InterqueryTimeoutResultKey(
-		storeid,
-	))
-}
-
 // GetAllInterquery returns all interquery
 func (k Keeper) GetAllInterqueryTimeoutResult(ctx sdk.Context) (list []types.InterqueryTimeoutResult) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InterqueryTimeoutResultKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryTimeoutResultKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()

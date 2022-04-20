@@ -53,10 +53,10 @@ func CmdShowFund() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argIndex := args[0]
+			argSymbol := args[0]
 
 			params := &types.QueryGetFundRequest{
-				Index: argIndex,
+				Symbol: argSymbol,
 			}
 
 			res, err := queryClient.Fund(context.Background(), params)
