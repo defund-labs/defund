@@ -11,7 +11,7 @@ func (k Keeper) SetFundPrice(ctx sdk.Context, fundprice types.FundPrice) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundPriceKeyPrefix))
 	b := k.cdc.MustMarshal(&fundprice)
 	store.Set(types.FundPriceKey(
-		fundprice.Symbol,
+		fundprice.Id,
 	), b)
 }
 

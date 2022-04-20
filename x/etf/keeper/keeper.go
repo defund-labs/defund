@@ -133,6 +133,7 @@ func (k Keeper) CreateAllFundPriceEndBlock(ctx sdk.Context) error {
 			Height: uint64(ctx.BlockHeight()),
 			Price:  price,
 			Symbol: fund.Symbol,
+			Id:     fmt.Sprintf("%s-%s", fund.Symbol, strconv.FormatInt(ctx.BlockHeight(), 10)),
 		}
 		k.SetFundPrice(ctx, fundPrice)
 	}

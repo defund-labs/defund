@@ -8,13 +8,14 @@ import "cosmos/base/v1beta1/coin.proto";
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
 message FundPrice {
-  uint64 height = 1;
-  string price = 2 [
+  string id = 1;
+  uint64 height = 2;
+  string price = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.moretags) = "yaml:\"price\"",
     (gogoproto.nullable) = false
   ];
-  string symbol = 3;
+  string symbol = 4;
 }
 
 message Holding {

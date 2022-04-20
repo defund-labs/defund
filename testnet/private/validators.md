@@ -86,9 +86,7 @@ source ~/.profile
 Download and replace the genesis file:
 
 ```bash
-cd $HOME/.defundd/config
-wget wget https://github.com/osmosis-labs/networks/raw/main/osmo-test-4/genesis.tar.bz2
-tar -xjf genesis.tar.bz2 && rm genesis.tar.bz2
+# Need to Add
 ```
 
 Copy the current defundd binary into the cosmovisor/genesis folder:

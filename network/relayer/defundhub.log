@@ -1,2 +1,1 @@
-ts=2022-04-20T08:21:39.602163Z lvl=info msg="Debug server listening" sys=debughttp addr=localhost:7597
-ts=2022-04-20T08:22:39.705476Z lvl=warn msg="Error retrieving pending interqueries" src_chain_id=defund dst_chain_id=theta-testnet-001 error="post failed: Post \"http://sentry-01.theta-testnet.polypore.xyz:26657\": EOF"
+ts=2022-04-20T09:48:04.309968Z lvl=info msg="Debug server listening" sys=debughttp addr=localhost:7597
