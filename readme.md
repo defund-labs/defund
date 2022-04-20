@@ -7,7 +7,7 @@ Details on setting up a Defund node and/or validator are coming soon.
 
 ## Install
 
-You will need Golang, Rust, the Hermes IBC relayer, and our special interchain querying golang relayer () installed to run in dev. 
+You will need Golang, Rust, the Hermes IBC relayer, and the Defund Golang relayer (https://github.com/defund-labs/relayer) installed to run in dev. 
 
 ```
 git clone https://github.com/defund-labs/defund
@@ -41,6 +41,8 @@ The following command is an example on creating a new dETF on Defund via the Def
 
 ```bash
 # Create a new fund
+# defundd tx etf create-fund [symbol] [name] [fund description] [base denom] [broker] [holdings] [rebalance period] [connection-id]
+# holdings follow a comma seperated list format like so, denom:percent:poolId,denom:percent:poolId
 defundd tx etf create-fund ATOM2 "ATOM Top 2" "The top 2 coins in the cosmos!" uatom gdex uatom:50:1,ibc/68A333688E5B07451F95555F8FE510E43EF9D3D44DF0909964F92081EF9BE5A7:50:2 10 connection-0 --from $KEY_NAME --keyring-backend test --home ./network/data/defund --gas auto
 ```
 
@@ -49,6 +51,9 @@ defundd tx etf create-fund ATOM2 "ATOM Top 2" "The top 2 coins in the cosmos!" u
 ```bash
 defundd query etf fund ATOM2
 ```
+
+All dETF's start at a price of 1 base denom. After the first investment all prices are proportially based on the underlying holdings
+of that dETF.
 
 ## Query dETF Current Price
 
