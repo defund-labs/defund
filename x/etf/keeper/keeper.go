@@ -79,16 +79,17 @@ func sum(items []sdk.Dec) sdk.Dec {
 }
 
 // CreateFundPrice creates a current fund price for a fund symbol
-func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Dec, error) {
+func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Coin, error) {
 	fund, found := k.GetFund(ctx, symbol)
+	invests := k.GetAllInvestbySymbol(ctx, symbol)
 	if !found {
-		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrFundNotFound, "Could not find fund (%s)", symbol)
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrFundNotFound, "Could not find fund (%s)", symbol)
 	}
 	comp := []sdk.Dec{}
 	for _, holding := range fund.Holdings {
 		balances, err := k.queryKeeper.GetHighestHeightPoolBalance(ctx, holding.PoolId)
 		if err != nil {
-			return sdk.Dec{}, err
+			return sdk.Coin{}, err
 		}
 		if balances[0].Denom == holding.Token && fund.BaseDenom != holding.Token {
 			baseAmount := balances[0].Amount.ToDec()
@@ -111,11 +112,21 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Dec, error)
 			comp = append(comp, sdk.NewDec(1).Mul(percentDec))
 		}
 		if len(comp) == 0 {
-			return sdk.Dec{}, sdkerrors.Wrapf(types.ErrFundNotFound, "No price details found for symbol (%s)", symbol)
+			return sdk.Coin{}, sdkerrors.Wrapf(types.ErrFundNotFound, "No price details found for symbol (%s)", symbol)
 		}
 	}
 
-	price := sum(comp)
+	price := sdk.Coin{}
+
+	// If the fund is brand new, the price starts at 1,000,000 BaseDenom (1,000,000 uatom for example)
+	if len(invests) == 0 {
+		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(1000000))
+	}
+
+	if len(invests) > 0 {
+		total := sum(comp)
+		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.RoundInt64()))
+	}
 
 	return price, nil
 }
@@ -131,7 +142,7 @@ func (k Keeper) CreateAllFundPriceEndBlock(ctx sdk.Context) error {
 
 		fundPrice := types.FundPrice{
 			Height: uint64(ctx.BlockHeight()),
-			Price:  price,
+			Amount: &price,
 			Symbol: fund.Symbol,
 			Id:     fmt.Sprintf("%s-%s", fund.Symbol, strconv.FormatInt(ctx.BlockHeight(), 10)),
 		}
@@ -163,16 +174,6 @@ func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.F
 	k.SetInvest(ctx, invest)
 	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return nil
-}
-
-// RebalanceETF rebalances an ETF using the IBC Broker Module
-func (k Keeper) RebalanceETF(ctx sdk.Context) {
-
-}
-
-// RebalanceEndBlocker goes through all ETFs and rebalances them if the current height is a rebalance period
-func (k Keeper) RebalanceEndBlocker(ctx sdk.Context) {
-
 }
 
 func (k Keeper) EndBlocker(ctx sdk.Context) error {
