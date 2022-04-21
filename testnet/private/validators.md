@@ -128,7 +128,7 @@ journalctl -u defund -f
 Show your public key to be used in the create-validator command below
 
 ```bash
-gaiad tendermint show-validator
+defundd tendermint show-validator
 ```
 
 Create your validator
