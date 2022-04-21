@@ -42,7 +42,7 @@ nano config.toml
 Use page down or arrow keys to get to the line that says seeds = "" and replace it with the following:
 
 ```bash
-seeds = "1b3e596531dd8f36363b13339beed2364900e4c6:104.131.41.157:26656"
+seeds = "1b3e596531dd8f36363b13339beed2364900e4c6@104.131.41.157:26656"
 ```
 
 Next, add persistent peers:
