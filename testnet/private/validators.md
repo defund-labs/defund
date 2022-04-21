@@ -42,7 +42,7 @@ nano config.toml
 Use page down or arrow keys to get to the line that says seeds = "" and replace it with the following:
 
 ```bash
-seeds = ""
+seeds = "1b3e596531dd8f36363b13339beed2364900e4c6:104.131.41.157:26656"
 ```
 
 Next, add persistent peers:
@@ -85,7 +85,7 @@ Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
 Environment="DAEMON_LOG_BUFFER_SIZE=512"
 Environment="UNSAFE_SKIP_BACKUP=true"
 User=$USER
-ExecStart=${HOME}/go/bin/bin/defundd start
+ExecStart=${HOME}/go/bin/defundd start
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
@@ -135,7 +135,7 @@ Create your validator
 
 ```bash
 defundd tx staking create-validator \
-  --amount=1000000uatom \
+  --amount=1000000ufetf \
   --pubkey=$(defundd tendermint show-validator) \
   --moniker="choose a moniker" \
   --chain-id=defund-private-1 \
@@ -144,7 +144,6 @@ defundd tx staking create-validator \
   --commission-max-change-rate="0.01" \
   --min-self-delegation="1000000" \
   --gas="auto" \
-  --gas-prices="0.0025ufetf" \
   --from=<key_name>
 ```
 
