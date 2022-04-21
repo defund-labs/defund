@@ -35,53 +35,25 @@ defundd init NODE_NAME --chain-id=defund-private-1
 Open up the config.toml to edit the seeds and persistent peers:
 
 ```bash
-cd $HOME/.defundd/config
+cd $HOME/.defund/config
 nano config.toml
 ```
 
 Use page down or arrow keys to get to the line that says seeds = "" and replace it with the following:
 
 ```bash
-seeds = "0f9a9c694c46bd28ad9ad6126e923993fc6c56b1@137.184.181.105:26656"
+seeds = ""
 ```
 
 Next, add persistent peers:
 
 ```bash
-persistent_peers = "4ab030b7fd75ed895c48bcc899b99c17a396736b@137.184.190.127:26656,3dbffa30baab16cc8597df02945dcee0aa0a4581@143.198.139.33:26656"
+persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656"
 ```
 
 Then press ```Ctrl+O``` then enter to save, then ```Ctrl+X``` to exit
 
-## Set Up Cosmovisor
-
-Set up cosmovisor to automate many aspects of future defundd upgrades. To install Cosmovisor:
-
-```bash
-go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0
-```
-
-Create the required directories:
-
-```bash
-mkdir -p ~/.defundd/cosmovisor
-mkdir -p ~/.defundd/cosmovisor/genesis
-mkdir -p ~/.defundd/cosmovisor/genesis/bin
-mkdir -p ~/.defundd/cosmovisor/upgrades
-```
-
-Set the environment variables:
-
-```bash
-echo "# Setup Cosmovisor" >> ~/.profile
-echo "export DAEMON_NAME=defundd" >> ~/.profile
-echo "export DAEMON_HOME=$HOME/.defundd" >> ~/.profile
-echo "export DAEMON_ALLOW_DOWNLOAD_BINARIES=false" >> ~/.profile
-echo "export DAEMON_LOG_BUFFER_SIZE=512" >> ~/.profile
-echo "export DAEMON_RESTART_AFTER_UPGRADE=true" >> ~/.profile
-echo "export UNSAFE_SKIP_BACKUP=true" >> ~/.profile
-source ~/.profile
-```
+## Genesis State
 
 Download and replace the genesis file:
 
@@ -89,34 +61,19 @@ Download and replace the genesis file:
 # Need to Add
 ```
 
-Copy the current defundd binary into the cosmovisor/genesis folder:
-
-```bash
-cp $GOPATH/bin/defundd ~/.defundd/cosmovisor/genesis/bin
-```
-
-To check your work, ensure the version of cosmovisor and defundd are the same:
-
-```bash
-cosmovisor version
-defundd version
-```
-
-These two commands should both output `0.0.2`
-
 Reset private validator file to genesis state:
 
 ```bash
-defundd unsafe-reset-all
+defundd tendermint unsafe-reset-all
 ```
 
 ## Set Up Defund Service File
 
-Set up a service to allow cosmovisor to run in the background as well as restart automatically if it runs into any problems:
+Set up a service to allow Defund node to run in the background as well as restart automatically if it runs into any problems:
 
 ```bash
 echo "[Unit]
-Description=Cosmovisor daemon
+Description=Defund daemon
 After=network-online.target
 [Service]
 Environment="DAEMON_NAME=defundd"
@@ -126,20 +83,20 @@ Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
 Environment="DAEMON_LOG_BUFFER_SIZE=512"
 Environment="UNSAFE_SKIP_BACKUP=true"
 User=$USER
-ExecStart=${HOME}/go/bin/cosmovisor start
+ExecStart=${HOME}/go/bin/bin/defundd start
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
 LimitNPROC=infinity
 [Install]
 WantedBy=multi-user.target
-" >cosmovisor.service
+" >defund.service
 ```
 
 Move this new file to the systemd directory:
 
 ```bash
-sudo mv cosmovisor.service /lib/systemd/system/cosmovisor.service
+sudo mv defund.service /lib/systemd/system/defund.service
 ```
 
 ## Start Defund Service
@@ -149,19 +106,19 @@ Reload and start the service:
 ```bash
 sudo systemctl daemon-reload
 systemctl restart systemd-journald
-sudo systemctl start cosmovisor
+sudo systemctl start defund
 ```
 
 Check the status of the service:
 
 ```bash
-sudo systemctl status cosmovisor
+sudo systemctl status defund
 ```
 
 To see live logs of the service:
 
 ```bash
-journalctl -u cosmovisor -f
+journalctl -u defund -f
 ```
 
 ## Create Validator
@@ -175,24 +132,24 @@ gaiad tendermint show-validator
 Create your validator
 
 ```bash
-gaiad tx staking create-validator \
+defundd tx staking create-validator \
   --amount=1000000uatom \
-  --pubkey=$(gaiad tendermint show-validator) \
+  --pubkey=$(defundd tendermint show-validator) \
   --moniker="choose a moniker" \
-  --chain-id=<chain_id> \
+  --chain-id=defund-private-1 \
   --commission-rate="0.10" \
   --commission-max-rate="0.20" \
   --commission-max-change-rate="0.01" \
   --min-self-delegation="1000000" \
   --gas="auto" \
-  --gas-prices="0.0025uatom" \
+  --gas-prices="0.0025ufetf" \
   --from=<key_name>
 ```
 
 Confirm your validator is running by using this command
 
 ```bash
-gaiad query tendermint-validator-set | grep "$(gaiad tendermint show-address)"
+defundd query tendermint-validator-set | grep "$(defundd tendermint show-address)"
 ```
 
 Happy Investing!
