@@ -58,7 +58,9 @@ Then press ```Ctrl+O``` then enter to save, then ```Ctrl+X``` to exit
 Download and replace the genesis file:
 
 ```bash
-# Need to Add
+cd $HOME/.defund/config
+
+wget https://raw.githubusercontent.com/schnetzlerjoe/defund/main/testnet/private/genesis.json
 ```
 
 Reset private validator file to genesis state:
