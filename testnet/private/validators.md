@@ -29,7 +29,8 @@ make install
 ## Initialize Defund Node
 
 ```bash
-defundd init NODE_NAME --chain-id=defund-private-1
+defundd config chain-id defund-private-1
+defundd init NODE_NAME
 ```
 
 Open up the config.toml to edit the seeds and persistent peers:
@@ -74,7 +75,8 @@ defundd tendermint unsafe-reset-all
 Set up a service to allow Defund node to run in the background as well as restart automatically if it runs into any problems:
 
 ```bash
-echo "[Unit]
+sudo tee /lib/systemd/system/defund.service > /dev/null <<EOF
+[Unit]
 Description=Defund daemon
 After=network-online.target
 [Service]
@@ -92,14 +94,9 @@ LimitNOFILE=infinity
 LimitNPROC=infinity
 [Install]
 WantedBy=multi-user.target
-" >defund.service
+EOF
 ```
 
-Move this new file to the systemd directory:
-
-```bash
-sudo mv defund.service /lib/systemd/system/defund.service
-```
 
 ## Start Defund Service
 
@@ -120,7 +117,7 @@ sudo systemctl status defund
 To see live logs of the service:
 
 ```bash
-journalctl -u defund -f
+journalctl -f -n 100 -u defund -o cat
 ```
 
 ## Create Validator
@@ -152,5 +149,45 @@ Confirm your validator is running by using this command
 ```bash
 defundd query tendermint-validator-set | grep "$(defundd tendermint show-address)"
 ```
+
+## Useful commands
+
+valoper addr
+```bash
+defundd keys show <key_name> --bech val -a
+```
+
+balance
+```bash
+defundd archwayd q bank balances <key_addr>
+```
+
+get commission
+```bash
+defundd tx distribution withdraw-rewards <valoper_addr> --from <key_name> --commission --gas auto -y
+```
+
+get rewards
+```bash
+defundd tx distribution withdraw-all-rewards --from <key_name> --gas auto -y
+```
+
+validators (active set)
+```bash
+defundd q staking validators --limit=2000 -oj \
+| jq -r '.validators[] | select(.status=="BOND_STATUS_BONDED") | [(.tokens|tonumber / pow(10;6)), .description.moniker] | @csv' \
+| column -t -s"," | tr -d '"'| sort -k1 -n -r | nl
+```
+
+delegate
+```bash
+defundd tx staking delegate <valoper_addr> <amout_tokens>ufetf --from <key_name> --gas auto -y
+```
+
+send
+```bash
+defundd tx bank send <key_name> <wallet_addr> <amout_tokens>ufetf --gas auto -y
+```
+
 
 Happy Investing!
