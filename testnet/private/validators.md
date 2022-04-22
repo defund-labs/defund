@@ -16,6 +16,27 @@ Details on setting up a Defund node and/or validator on Akash are coming very so
 
 ## Joining the Testnet
 
+### Install Dependencies
+
+```
+# basic dependencies
+sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get install make build-essential gcc git jq chrony -y
+
+# install go (v1.18.0+ is required!)
+wget https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
+
+# source go
+cat <<EOF >> ~/.profile
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export GO111MODULE=on
+export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+EOF
+
+source ~/.profile
+```
+
 ### Install the Defund binary
 
 ```
