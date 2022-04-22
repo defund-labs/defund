@@ -86,7 +86,7 @@ wget https://raw.githubusercontent.com/schnetzlerjoe/defund/main/testnet/private
 
 # check genesis shasum
 sha256sum ~/.defund/config/genesis.json
-# output: a510bb954983e06c0d22792951ac366799fbb16df05dd0d03fa6eaf85678c77d
+# output: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032
 ```
 
 Reset private validator file to genesis state:
