@@ -41,9 +41,8 @@ source ~/.profile
 
 ```
 git clone https://github.com/defund-labs/defund
-
 cd defund
-
+git checkout v0.0.2
 make install
 ```
 
