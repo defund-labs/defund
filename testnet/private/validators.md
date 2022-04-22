@@ -171,7 +171,7 @@ defundd keys show <key_name> --bech val -a
 
 balance
 ```bash
-defundd archwayd q bank balances <key_addr>
+defundd q bank balances <key_addr>
 ```
 
 get commission
