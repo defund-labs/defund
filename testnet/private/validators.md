@@ -16,13 +16,33 @@ Details on setting up a Defund node and/or validator on Akash are coming very so
 
 ## Joining the Testnet
 
+### Install Dependencies
+
+```
+# basic dependencies
+sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get install make build-essential gcc git jq chrony -y
+
+# install go (v1.18.0+ is required!)
+wget https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
+
+# source go
+cat <<EOF >> ~/.profile
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export GO111MODULE=on
+export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+EOF
+
+source ~/.profile
+```
+
 ### Install the Defund binary
 
 ```
 git clone https://github.com/defund-labs/defund
-
 cd defund
-
+git checkout v0.0.2
 make install
 ```
 
@@ -49,7 +69,7 @@ seeds = "1b3e596531dd8f36363b13339beed2364900e4c6@104.131.41.157:26656"
 Next, add persistent peers:
 
 ```bash
-persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656"
+persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656,f114c02efc5aa7ee3ee6733d806a1fae2fbfb66b@5.189.178.222:46656,8980faac5295875a5ecd987a99392b9da56c9848@85.10.216.151:26656,3c3170f0bcbdcc1bef12ed7b92e8e03d634adf4e@65.108.103.236:27656"
 ```
 
 Then press ```Ctrl+O``` then enter to save, then ```Ctrl+X``` to exit
@@ -63,6 +83,10 @@ Download and replace the genesis file:
 cd $HOME/.defund/config
 
 wget https://raw.githubusercontent.com/schnetzlerjoe/defund/main/testnet/private/genesis.json
+
+# check genesis shasum
+sha256sum ~/.defund/config/genesis.json
+# output: a510bb954983e06c0d22792951ac366799fbb16df05dd0d03fa6eaf85678c77d
 ```
 
 Reset private validator file to genesis state:
