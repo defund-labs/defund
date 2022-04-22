@@ -53,6 +53,7 @@ persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656
 
 Then press ```Ctrl+O``` then enter to save, then ```Ctrl+X``` to exit
 
+
 ## Genesis State
 
 Download and replace the genesis file:
@@ -68,6 +69,17 @@ Reset private validator file to genesis state:
 ```bash
 defundd tendermint unsafe-reset-all
 ```
+
+## Add/Recover Keys
+To create new keypair - make sure you save the mnemonics!
+```bash
+defundd keys add <key-name> 
+```
+Restore existing wallet with mnemonic seed phrase. You will be prompted to enter mnemonic seed. 
+```bash
+defundd keys add <key-name> --recover
+```
+Request tokens in [DeFund Discord](https://discord.com/invite/QuXAdnd7Pc)
 
 ## Set Up Defund Service File
 
