@@ -92,7 +92,8 @@ Please do not skip the next step. Run this command and ensure the right genesis 
 ```bash
 # check genesis shasum
 sha256sum ~/.defund/config/genesis.json
-#output: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032
+# output must be: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032
+# other wise you have an incorrect genesis file
 ```
 
 Reset private validator file to genesis state:
