@@ -85,10 +85,14 @@ cd $HOME/.defund/config
 wget https://github.com/defund-labs/defund/blob/v0.0.2/testnet/private/genesis.json
 
 Please do not skip the next step. Run this command and ensure the right genesis is being used.
+```
 
+## Check The Genesis File (DO NOT SKIP)
+
+```bash
 # check genesis shasum
-**sha256sum ~/.defund/config/genesis.json**
-**output: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032**
+sha256sum ~/.defund/config/genesis.json
+#output: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032
 ```
 
 Reset private validator file to genesis state:
