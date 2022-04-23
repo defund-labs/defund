@@ -82,7 +82,7 @@ Download and replace the genesis file:
 ```bash
 cd $HOME/.defund/config
 
-wget https://github.com/defund-labs/defund/blob/v0.0.2/testnet/private/genesis.json
+wget https://raw.githubusercontent.com/defund-labs/defund/v0.0.2/testnet/private/genesis.json
 
 Please do not skip the next step. Run this command and ensure the right genesis is being used.
 ```
