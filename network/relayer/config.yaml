@@ -6,7 +6,7 @@ chains:
     - type: cosmos
       value:
         key: rly1
-        chain-id: defund-private-1
+        chain-id: defund
         rpc-addr: http://localhost:26657
         account-prefix: defund
         keyring-backend: test
@@ -32,13 +32,13 @@ chains:
 paths:
     defundhub:
         src:
-            chain-id: defund-private-1
+            chain-id: defund
             client-id: 07-tendermint-0
             connection-id: connection-0
         dst:
             chain-id: theta-testnet-001
-            client-id: 07-tendermint-688
-            connection-id: connection-578
+            client-id: 07-tendermint-689
+            connection-id: connection-579
         src-channel-filter:
             rule: ""
             channel-list: []
@@ -47,10 +47,10 @@ paths:
     hubdefund:
         src:
             chain-id: theta-testnet-001
-            client-id: 07-tendermint-688
-            connection-id: connection-578
+            client-id: 07-tendermint-689
+            connection-id: connection-579
         dst:
-            chain-id: defund-private-1
+            chain-id: defund
             client-id: 07-tendermint-0
             connection-id: connection-0
         src-channel-filter:

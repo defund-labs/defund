@@ -83,7 +83,7 @@ host = '0.0.0.0'
 
 # Specify the port over which the built-in HTTP server will serve the restful API
 # requests. Default: 3000
-port = 3000
+port = 3005
 
 
 # The telemetry section defines parameters for Hermes' built-in telemetry capabilities.
@@ -102,10 +102,10 @@ host = '0.0.0.0'
 port = 3001
 
 [[chains]]
-id = 'defund-private-1'
-rpc_addr = 'http://localhost:26657'
-grpc_addr = 'http://localhost:9090'
-websocket_addr = 'ws://localhost:26657/websocket'
+id = 'defund'
+rpc_addr = 'http://0.0.0.0:26657'
+grpc_addr = 'http://0.0.0.0:9090'
+websocket_addr = 'ws://0.0.0.0:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
 key_name = 'testkey'

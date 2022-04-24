@@ -1,2 +1,2 @@
-ts=2022-04-20T18:51:28.081479Z lvl=info msg="Debug server listening" sys=debughttp addr=localhost:7597
-ts=2022-04-20T19:48:27.667939Z lvl=warn msg="Error retrieving pending interqueries" src_chain_id=defund dst_chain_id=theta-testnet-001 error="post failed: Post \"http://sentry-01.theta-testnet.polypore.xyz:26657\": EOF"
+ts=2022-04-22T23:20:10.000587Z lvl=info msg="Debug server listening" sys=debughttp addr=localhost:7597
+ts=2022-04-22T23:34:40.675628Z lvl=warn msg="Context finished while waiting for RelayInterqueries to complete" src_chain_id=defund dst_chain_id=theta-testnet-001 error="context deadline exceeded"

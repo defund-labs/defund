@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/tendermint/tendermint/libs/log"
 	"google.golang.org/grpc/codes"
@@ -118,9 +116,8 @@ func (k Keeper) QueryGravityDex(ctx sdk.Context) error {
 	clientid := "07-tendermint-0"
 	keyRaw := PoolsKey{}
 	key, err := json.Marshal(keyRaw)
-	heightStr := strconv.FormatInt(ctx.BlockHeight(), 10)
 	timeoutHeight := uint64(ctx.BlockHeight() + 10)
-	storeid := fmt.Sprintf("gdex-pools-%s", heightStr)
+	storeid := fmt.Sprintf("gdex-pools")
 
 	err = k.CreateInterqueryRequest(ctx, storeid, path, key, timeoutHeight, clientid)
 	if err != nil {
@@ -129,8 +126,8 @@ func (k Keeper) QueryGravityDex(ctx sdk.Context) error {
 	return nil
 }
 
-// Helper function that creates an interquery for an account balance on Cosmos with the accountType as part of the store id
-func (k Keeper) QueryPoolAccount(ctx sdk.Context, pool uint64, address string) error {
+// QueryPoolAccount creates and interchain query for the balance of an address for a relayer to submit as a interquery result
+func (k Keeper) QueryPoolAccount(ctx sdk.Context, address string) error {
 	path := "custom/bank/all_balances/"
 	clientid := "07-tendermint-0"
 	keyRaw := BalanceKey{address}
@@ -139,8 +136,7 @@ func (k Keeper) QueryPoolAccount(ctx sdk.Context, pool uint64, address string) e
 		return err
 	}
 	timeoutHeight := uint64(ctx.BlockHeight() + 10)
-	heightStr := strconv.FormatInt(ctx.BlockHeight(), 10)
-	storeid := fmt.Sprintf("poolbalance-%d-%s", pool, heightStr)
+	storeid := fmt.Sprintf("balance-%d", address)
 
 	err = k.CreateInterqueryRequest(ctx, storeid, path, key, timeoutHeight, clientid)
 	if err != nil {
@@ -149,9 +145,9 @@ func (k Keeper) QueryPoolAccount(ctx sdk.Context, pool uint64, address string) e
 	return nil
 }
 
-// QueryAllPools queries all pool accounts from gdex from most recent pools store
-func (k Keeper) QueryAllPools(ctx sdk.Context) error {
-	recentPools, err := k.GetHighestHeightPools(ctx)
+// QueryAllPools queries all pool accounts from most recent pools store
+func (k Keeper) QueryAllPools(ctx sdk.Context, broker string) error {
+	recentPools, err := k.GetInterqueryPoolAll(ctx, broker)
 	// Log error if error returns from query. Do not want to panic application. Just log
 	if err != nil {
 		ctx.Logger().Error(err.Error())
@@ -159,48 +155,31 @@ func (k Keeper) QueryAllPools(ctx sdk.Context) error {
 	// Take the query with the most recent height (first in sorted slice)
 	if len(recentPools) > 0 {
 		for _, pool := range recentPools {
-			err := k.QueryPoolAccount(ctx, pool.Id, pool.ReserveAccountAddress)
+			err := k.QueryPoolAccount(ctx, pool.ReserveAccountAddress)
 			if err != nil {
 				return err
 			}
 		}
-	} else {
-		ctx.Logger().Error("no pools in store to interquery")
 	}
 
 	return nil
 }
 
-// GetHighestHeightPools gets the most recent (highest height) of all pools in interqueryresult store
-func (k Keeper) GetHighestHeightPools(ctx sdk.Context) ([]liquiditytypes.Pool, error) {
-	queries := k.GetAllInterqueryResult(ctx)
-	poolQueries := []types.InterqueryResult{}
+// GetInterqueryPoolAll gets all the most recent pools from the broker specified in the interquery result store
+func (k Keeper) GetInterqueryPoolAll(ctx sdk.Context, broker string) ([]liquiditytypes.Pool, error) {
+	storeid := fmt.Sprintf("%s-pools", broker)
+	rawpools, found := k.GetInterqueryResult(ctx, storeid)
+	if !found {
+		return nil, fmt.Errorf("pools interquery not found: (%s)", storeid)
+	}
 	pools := []liquiditytypes.Pool{}
-	for _, query := range queries {
-		idSplit := strings.Split(query.Storeid, "-")
-		if idSplit[0] == "gdex" && idSplit[1] == "pools" {
-			poolQueries = append(poolQueries, query)
-		}
-	}
-	// Sort tje poolQueries from largest to smallest
-	sort.SliceStable(poolQueries, func(i, j int) bool {
-		return poolQueries[i].Height > poolQueries[j].Height
-	})
-	// Take the query with the most recent height (first in sorted slice)
-	if len(poolQueries) > 0 {
-		query := poolQueries[0]
-		json.Unmarshal(query.Data, &pools)
-	}
-
-	if len(poolQueries) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidPools, "No pools interqueried. Need pools interqueried to proceed")
-	}
+	json.Unmarshal(rawpools.Data, &pools)
 	return pools, nil
 }
 
-// GetHighestHeightPoolDetails gets the most recent (highest height) pool details of a specific pool in interqueryresult store
-func (k Keeper) GetHighestHeightPoolDetails(ctx sdk.Context, poolid string) (liquiditytypes.Pool, error) {
-	pools, err := k.GetHighestHeightPools(ctx)
+// GetInterqueryPool gets the most recent pool details of a specific pool in an interquery result store by looping through all pools
+func (k Keeper) GetInterqueryPool(ctx sdk.Context, broker string, poolid string) (liquiditytypes.Pool, error) {
+	pools, err := k.GetInterqueryPoolAll(ctx, broker)
 	if err != nil {
 		ctx.Logger().Error(err.Error())
 	}
@@ -212,34 +191,17 @@ func (k Keeper) GetHighestHeightPoolDetails(ctx sdk.Context, poolid string) (liq
 	return liquiditytypes.Pool{}, sdkerrors.Wrapf(types.ErrInvalidPool, "Pool not found (%s)", poolid)
 }
 
-// GetHighestHeightPoolBalance gets the most recent (highest height) balance/holdings of a pool in interqueryresult store
-func (k Keeper) GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error) {
-	queries := k.GetAllInterqueryResult(ctx)
-	poolQueries := []types.InterqueryResult{}
+// GetBalance gets the most recent balance/holdings of an account in an interquery result store
+func (k Keeper) GetBalance(ctx sdk.Context, account string) ([]sdk.Coin, error) {
+	storeid := fmt.Sprintf("balance-%s", account)
+	rawbalance, found := k.GetInterqueryResult(ctx, storeid)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrInterqueryNotFound, "Interquery not found (%s)", storeid)
+	}
 	balances := []sdk.Coin{}
-	for _, query := range queries {
-		idSplit := strings.Split(query.Storeid, "-")
-		if idSplit[0] == "poolbalance" {
-			if idSplit[1] == poolid {
-				poolQueries = append(poolQueries, query)
-			}
-		}
-	}
-	// Sort tje poolQueries from largest to smallest
-	sort.SliceStable(poolQueries, func(i, j int) bool {
-		return poolQueries[i].Height > poolQueries[j].Height
-	})
-	// Take the query with the most recent height (first in sorted slice)
-	if len(poolQueries) > 0 {
-		rawquery := poolQueries[0]
-		err := json.Unmarshal(rawquery.Data, &balances)
-		if err != nil {
-			return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrMarshallingError, "Marshalling error for pool balances (PoolId: %s)", poolid)
-		}
-	}
-
-	if len(poolQueries) == 0 {
-		return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidPools, "No pools interqueried. Need pools interqueried to proceed")
+	err := json.Unmarshal(rawbalance.Data, &balances)
+	if err != nil {
+		return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrMarshallingError, "Marshalling error for interquery: (%s)", storeid)
 	}
 	return balances, nil
 }
@@ -250,7 +212,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, broker string, holdings []etftype
 	percentCheck := uint64(0)
 	for _, holding := range holdings {
 		percentCheck = percentCheck + uint64(holding.Percent)
-		pool, err := k.GetHighestHeightPoolDetails(ctx, holding.PoolId)
+		pool, err := k.GetInterqueryPool(ctx, broker, holding.PoolId)
 		if err != nil {
 			return err
 		}
@@ -273,12 +235,12 @@ func (k Keeper) EndBlockerRun(ctx sdk.Context) error {
 		// Add gravity dex interquery
 		err := k.QueryGravityDex(ctx)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("Error Creating Cosmos GDex Pool Interquery: %s", err))
+			ctx.Logger().Debug(fmt.Sprintf("Error Creating Cosmos GDex Pool Interquery: %s", err))
 		}
 		// Add interquery for all pool account balances on gdex
-		err = k.QueryAllPools(ctx)
+		err = k.QueryAllPools(ctx, "gdex")
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("Error Creating Interquery For All Pool Accounts: %s", err))
+			ctx.Logger().Debug(fmt.Sprintf("Error Creating Interquery For All Pool Accounts: %s", err))
 		}
 	}
 	return nil

@@ -7,14 +7,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/defund-labs/defund/x/broker/keeper"
+	"github.com/defund-labs/defund/x/broker/types"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+	liquiditytypes "github.com/tendermint/liquidity/x/liquidity/types"
 )
 
 var _ porttypes.IBCModule = IBCModule{}
@@ -151,19 +153,30 @@ func (im IBCModule) NegotiateAppVersion(
 	return "", nil
 }
 
-func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
+func (im IBCModule) handleMsgData(ctx sdk.Context, msgData *sdk.MsgData, packet channeltypes.Packet, ackErr bool, timeout bool) error {
 	switch msgData.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
+	case sdk.MsgTypeURL(&liquiditytypes.MsgSwapWithinBatch{}):
+		msgResponse := &liquiditytypes.MsgSwapWithinBatch{}
 		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "cannot unmarshal send response message for swap: %s", err.Error())
+		}
+		err := im.keeper.HandleICASwap(ctx, msgResponse, packet, ackErr, timeout)
+		if err != nil {
+			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "error handling ica swap logic: %s", err.Error())
 		}
 
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
+		return nil
+	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+		msgResponse := &ibctransfertypes.MsgTransfer{}
+		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message for transfer: %s", err.Error())
+		}
+		err := im.keeper.HandleICASend(ctx, msgResponse, packet, ackErr, timeout)
+		if err != nil {
+			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "error handling ica transfer logic: %s", err.Error())
+		}
 	default:
-		return "", nil
+		return nil
 	}
+	return nil
 }

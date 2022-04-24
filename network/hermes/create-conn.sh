@@ -6,6 +6,6 @@ set -e
 
 ### Configure the clients and connection
 echo "Initiating connection handshake..."
-hermes create connection defund-private-1 theta-testnet-001
+$HERMES_BINARY -c $CONFIG_DIR create connection defund theta-testnet-001
 
 sleep 2

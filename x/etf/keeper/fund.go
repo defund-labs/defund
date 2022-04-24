@@ -153,3 +153,135 @@ func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []typ
 
 	return
 }
+
+// GetInvestBySequence returns an invest store based on its sequence and channel
+func (k Keeper) GetInvestBySequence(ctx sdk.Context, sequence uint64, channel string) (types.Invest, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Invest
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Channel == channel && val.Sequence == sequence {
+			return val, nil
+		}
+	}
+	return types.Invest{}, sdkerrors.Wrapf(types.ErrInvestNotFound, "invest not found for sequence %s on channel %s", sequence, channel)
+}
+
+// GetNextIDInvest gets the count of all invest and then adds 1 for the next invest id
+func (k Keeper) GetNextIDInvest(ctx sdk.Context) (id string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	count := 0
+
+	for ; iterator.Valid(); iterator.Next() {
+		count = count + 1
+	}
+
+	return strconv.Itoa(count)
+}
+
+// SetUninvest set a specific uninvest in the store from its index
+func (k Keeper) SetUninvest(ctx sdk.Context, uninvest types.Uninvest) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
+	b := k.cdc.MustMarshal(&uninvest)
+	store.Set(types.InvestKey(
+		uninvest.Id,
+	), b)
+}
+
+// GetUninvest returns a invest from its index
+func (k Keeper) GetUninvest(
+	ctx sdk.Context,
+	index string,
+
+) (val types.Uninvest, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UninvestKeyPrefix))
+
+	b := store.Get(types.UninvestKey(
+		index,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// GetAllUninvest returns all invests from store
+func (k Keeper) GetAllUninvest(ctx sdk.Context) (list []types.Uninvest) {
+	store := ctx.KVStore(k.storeKey)
+	uninvestStore := prefix.NewStore(store, []byte(types.UninvestKeyPrefix))
+
+	iterator := uninvestStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Uninvest
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}
+
+// GetAllUninvestbySymbol returns all uninvests from store based on symbol
+func (k Keeper) GetAllUninvestbySymbol(ctx sdk.Context, symbol string) (list []types.Uninvest) {
+	store := ctx.KVStore(k.storeKey)
+	uninvestStore := prefix.NewStore(store, []byte(types.UninvestKeyPrefix))
+
+	iterator := uninvestStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Uninvest
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Fund.Symbol == symbol {
+			list = append(list, val)
+		}
+	}
+
+	return
+}
+
+// GetUninvestBySequence returns an Uninvest store based on its sequence and channel
+func (k Keeper) GetUninvestBySequence(ctx sdk.Context, sequence uint64, channel string) (types.Uninvest, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UninvestKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Uninvest
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Channel == channel && val.Sequence == sequence {
+			return val, nil
+		}
+	}
+	return types.Uninvest{}, sdkerrors.Wrapf(types.ErrUninvestNotFound, "Uninvest not found for sequence %s on channel %s", sequence, channel)
+}
+
+// GetNextIDUninvest gets the count of all uninvests and then adds 1 for the next uninvest id
+func (k Keeper) GetNextIDUninvest(ctx sdk.Context) (id string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UninvestKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	count := 0
+
+	for ; iterator.Valid(); iterator.Next() {
+		count = count + 1
+	}
+
+	return strconv.Itoa(count)
+}

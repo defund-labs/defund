@@ -13,6 +13,7 @@ import (
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -20,6 +21,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 	liquiditytypes "github.com/tendermint/liquidity/x/liquidity/types"
 )
 
@@ -32,9 +34,10 @@ type Keeper struct {
 	icaControllerKeeper icacontrollerkeeper.Keeper
 	transferKeeper      transferkeeper.Keeper
 	channelKeeper       channelkeeper.Keeper
+	etfkeeper           etfkeeper.Keeper
 }
 
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, etfKeeper etfkeeper.Keeper) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
@@ -43,6 +46,7 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkee
 		icaControllerKeeper: iaKeeper,
 		transferKeeper:      transferKeeper,
 		channelKeeper:       channelKeeper,
+		etfkeeper:           etfKeeper,
 	}
 }
 
@@ -74,11 +78,50 @@ func (k Keeper) RegisterBrokerAccount(ctx sdk.Context, connectionID, owner strin
 }
 
 // Creates an ICA Transfer msg on a host ICA chain
-func (k Keeper) IBCTransfer(ctx sdk.Context) {
+func (k Keeper) ICAIBCTransfer(ctx sdk.Context, msgs []*ibctransfertypes.MsgTransfer, owner string, connectionID string) (sequence uint64, err error) {
+	seralizeMsgs := []sdk.Msg{}
+	for _, msg := range msgs {
+		msg.ValidateBasic()
+		seralizeMsgs = append(seralizeMsgs, msg)
+	}
 
+	portID, err := icatypes.NewControllerPortID(owner)
+	if err != nil {
+		return 0, err
+	}
+
+	channelID, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
+	if !found {
+		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
+	}
+
+	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	if !found {
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+	}
+
+	data, err := icatypes.SerializeCosmosTx(k.cdc, seralizeMsgs)
+	if err != nil {
+		return sequence, err
+	}
+
+	packetData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: data,
+	}
+
+	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
+	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
+	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
+	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
+	if err != nil {
+		return sequence, err
+	}
+
+	return sequence, nil
 }
 
-// Sends an IBC transfer
+// SendTransfer sends an IBC transfer
 func (k Keeper) SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
@@ -98,7 +141,7 @@ func (k Keeper) SendTransfer(ctx sdk.Context, owner string, channel string, toke
 	return nil
 }
 
-// Helper function that creates and returns a MsgSwapWithinBatch msg to be run on Cosmos Hub via ICA
+// CreateCosmosTrade creates and returns a MsgSwapWithinBatch msg to be run on Cosmos Hub via ICA
 func (k Keeper) CreateCosmosTrade(ctx sdk.Context, trader string, poolid uint64, offercoin sdk.Coin, demandcoin string, swapfeerate sdk.Dec, limitprice sdk.Dec) (*liquiditytypes.MsgSwapWithinBatch, error) {
 	trade := liquiditytypes.MsgSwapWithinBatch{
 		SwapRequesterAddress: trader,
@@ -113,7 +156,7 @@ func (k Keeper) CreateCosmosTrade(ctx sdk.Context, trader string, poolid uint64,
 	return &trade, nil
 }
 
-// This keeper function creates and sends a list of trades via ICA to the Gravity Dex (on Cosmos Hub)
+// SendCosmosTrades creates and sends a list of trades via ICA to the Gravity Dex (on Cosmos Hub)
 func (k Keeper) SendCosmosTrades(ctx sdk.Context, msgs []*liquiditytypes.MsgSwapWithinBatch, owner string, connectionID string) (sequence uint64, err error) {
 
 	seralizeMsgs := []sdk.Msg{}
@@ -156,4 +199,99 @@ func (k Keeper) SendCosmosTrades(ctx sdk.Context, msgs []*liquiditytypes.MsgSwap
 	}
 
 	return sequence, nil
+}
+
+// HandleICASwapInvest handles the logic when a swap pertaining to an invest comes in as an IBC ack, error or timeout
+func (k Keeper) HandleICASwapInvest(ctx sdk.Context, msgData *liquiditytypes.MsgSwapWithinBatch, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	invest, err := k.etfkeeper.GetInvestBySequence(ctx, packet.Sequence, packet.SourceChannel)
+	if err != nil {
+		return err
+	}
+	if !ackErr && !timeout {
+		// Change the invest status from pending to complete once swap goes through
+		invest.Status = "complete"
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	if ackErr {
+		/// Change the invest status from pending to error and log error if ica error occurs
+		invest.Status = "error"
+		invest.Error = msgData.String()
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	if timeout {
+		/// Change the invest status from pending to timeout if ica timeout occurs
+		invest.Status = "timeout"
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	return nil
+}
+
+// HandleICATransferInvest handles the logic when a IBC transfer pertaining to an invest comes in as an IBC ack, error or timeout
+func (k Keeper) HandleICATransferInvest(ctx sdk.Context, msgData *ibctransfertypes.MsgTransfer, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	invest, err := k.etfkeeper.GetInvestBySequence(ctx, packet.Sequence, packet.SourceChannel)
+	if err != nil {
+		return err
+	}
+	// Handle successfull execution logic
+	if !ackErr && !timeout {
+		// Change the invest status from pending to complete once swap goes through
+		invest.Status = "pending-swap"
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	// Handle unsuccessfull execution logic
+	if ackErr {
+		// Change the invest status from pending to error and log error if ica error occurs
+		invest.Status = "error"
+		invest.Error = msgData.String()
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	if timeout {
+		/// Change the invest status from pending to timeout if ica timeout occurs
+		invest.Status = "timeout"
+		k.etfkeeper.SetInvest(ctx, invest)
+	}
+	return nil
+}
+
+// HandleICATransferUninvest handles the logic when a IBC transfer pertaining to an uninvest comes in as an IBC ack or timeout
+func (k Keeper) HandleICATransferUninvest(ctx sdk.Context, msgData *ibctransfertypes.MsgTransfer, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	uninvest, err := k.etfkeeper.GetUninvestBySequence(ctx, packet.Sequence, packet.SourceChannel)
+	if err != nil {
+		return err
+	}
+	// Handle successfull execution logic
+	if !ackErr && !timeout {
+		// Change the uninvest status from pending to complete once swap goes through
+		uninvest.Status = "complete"
+		k.etfkeeper.SetUninvest(ctx, uninvest)
+	}
+	// Handle unsuccessfull execution logic
+	if ackErr {
+		// Change the uninvest status from pending to error and log error if ica error occurs
+		uninvest.Status = "error"
+		uninvest.Error = msgData.String()
+		k.etfkeeper.SetUninvest(ctx, uninvest)
+	}
+	if timeout {
+		/// Change the uninvest status from pending to timeout if ica timeout occurs
+		uninvest.Status = "timeout"
+		k.etfkeeper.SetUninvest(ctx, uninvest)
+	}
+	return nil
+}
+
+// HandleICASwapRebalance handles the logic when a swap pertaining to a fund rebalance comes in as an IBC ack, error or timeout
+func (k Keeper) HandleICASwapRebalance(ctx sdk.Context, msgData *liquiditytypes.MsgSwapWithinBatch, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	return nil
+}
+
+// HandleICASwap looks up the channel and sequence in all rebalance, invest and uninvest messages to determine which ICA
+// response belongs to either invest or uninvest
+func (k Keeper) HandleICASwap(ctx sdk.Context, msgData *liquiditytypes.MsgSwapWithinBatch, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	return nil
+}
+
+// HandleICASend handles an ICA IBC send from another chain. In Defunds case, we need to handle it if it is an uninvest
+func (k Keeper) HandleICASend(ctx sdk.Context, msgData *ibctransfertypes.MsgTransfer, packet channeltypes.Packet, ackErr bool, timeout bool) error {
+	return nil
 }
