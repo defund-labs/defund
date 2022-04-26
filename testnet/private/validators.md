@@ -82,7 +82,7 @@ Download and replace the genesis file:
 ```bash
 cd $HOME/.defund/config
 
-wget https://raw.githubusercontent.com/defund-labs/defund/v0.0.2/testnet/private/genesis.json
+curl -s https://raw.githubusercontent.com/defund-labs/defund/v0.0.2/testnet/private/genesis.json > ~/.defund/config/genesis.json
 
 Please do not skip the next step. Run this command and ensure the right genesis is being used.
 ```
@@ -123,12 +123,6 @@ sudo tee /lib/systemd/system/defund.service > /dev/null <<EOF
 Description=Defund daemon
 After=network-online.target
 [Service]
-Environment="DAEMON_NAME=defundd"
-Environment="DAEMON_HOME=${HOME}/.defundd"
-Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
-Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
-Environment="DAEMON_LOG_BUFFER_SIZE=512"
-Environment="UNSAFE_SKIP_BACKUP=true"
 User=$USER
 ExecStart=${HOME}/go/bin/defundd start
 Restart=always
@@ -147,7 +141,7 @@ Reload and start the service:
 
 ```bash
 sudo systemctl daemon-reload
-systemctl restart systemd-journald
+sudo systemctl restart systemd-journald
 sudo systemctl start defund
 ```
 
