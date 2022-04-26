@@ -24,7 +24,7 @@ sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get install make build
 
 # install go (v1.18.0+ is required!)
 wget https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz && rm -r go1.18.1.linux-amd64.tar.gz
 
 # source go
 cat <<EOF >> ~/.profile
