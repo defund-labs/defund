@@ -16,3 +16,20 @@ client:
 faucet:
   name: faucet
   coins: ["50000000000000ufetf"]
+genesis:
+  chain_id: "defund"
+  app_state:
+    staking:
+      params:
+        bond_denom: "ufetf"
+    mint:
+      params:
+        mint_denom: "ufetf"
+    crisis:
+      constant_fee:
+        denom: "ufetf"
+    gov:
+      deposit_params:
+        min_deposit:
+          - amount: "10000000"
+            denom: "ufetf"
