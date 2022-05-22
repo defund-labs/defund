@@ -2,6 +2,8 @@ import { reactive } from "vue";
 
 export const store = reactive({
 	stakePopup: false,
+	votePopup: false,
+	currentVoteSelection: null,
 	delegateInput: false,
 	undelegateInput: false,
 	valueDelegate: true,
@@ -202,5 +204,6 @@ export const store = reactive({
 	lastTxLog: null,
 	showTxSuccess: false,
 	showTxFail: false,
-	showTxStatus: false
+	showTxStatus: false,
+	govProps: []
 })

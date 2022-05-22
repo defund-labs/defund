@@ -59,7 +59,7 @@ export default {
         let delegations = computed(() => {
             $s.dispatch("cosmos.staking.v1beta1/QueryDelegation", { params: {
                 validator_addr: store.currentValidator.operator_address,  delegator_addr: address.value
-            }, subscribe: true, all: false })
+            }, subscribe: false, all: false })
             var allDelegations = $s.getters["cosmos.staking.v1beta1/getDelegation"]({
                 params: { validator_addr: store.currentValidator.operator_address,  delegator_addr: address.value },
             })
@@ -68,7 +68,8 @@ export default {
 
         return {
             delegations: JSON.parse(JSON.stringify(delegations.value)).delegation_response,
-            store: store
+            store: store,
+            address
         }
     },
     methods: {
@@ -80,7 +81,6 @@ export default {
                 store.valueDelegate = true
                 store.valueUndelegate = true
                 store.currentValidator = null
-                store.showDelegateButtons = false
             }
         },
         toggleInput: function(undelegate = false) {

@@ -1,12 +1,12 @@
 <template>
   <div class="container">
-    <div class="w-layout-grid grid">
+    <div v-if="fund.fund" class="w-layout-grid">
       <div class="w-layout-grid grid-3">
         <div>
           <div class="w-layout-grid grid-fund-header">
             <div>
-                <h1 class="heading-title">{{fund.name}}</h1>
-                <h1 style="margin-top:10px" class="heading-symbol title-spacer">{{fund.symbol}}</h1>
+                <h1 class="heading-title">{{fund.fund.name}}</h1>
+                <h1 style="margin-top:10px" class="heading-symbol title-spacer">{{fund.fund.symbol}}</h1>
             </div>
             <div>
                 <h2 class="heading-price">1 ATOM</h2>
@@ -21,10 +21,67 @@
           </div>
           <div>
             <h1 style="margin-top:10px" class="heading-symbol title-spacer">About</h1>
-            <p>{{fund.description}}</p>
+            <p style="font-size: large; font-weight: 400;">{{fund.fund.description}}</p>
+          </div>
+          <div>
+              <h1 style="margin-top:10px; margin-bottom:10px;" class="heading-symbol title-spacer">Composition</h1>
+              <v-grid
+                theme="material"
+                :source="fund.fund.holdings"
+                :columns="columns"
+                filter=false
+                readonly=true
+                col-size=275
+                row-size=60
+                can-focus=false
+              ></v-grid>
           </div>
         </div>
       </div>
+      <div>
+        <div class="buy-div">
+          <div style="height: 30px;" class="border-bottom">
+            <h4 style="font-size: large; font-weight: 600;">{{"Buy " + fund.fund.symbol}}</h4>
+          </div>
+          <div style="height: 200px;" class="three-row-grid border-bottom">
+            <div style="font-size: large; font-weight: 400;" class="two-col-grid">
+              <div>
+                Invest In
+              </div>
+              <div>
+                <select v-model="selected" style="width: 100%; height: 36px; border-radius: 5px; padding: 0px 10px;" class="input input-border">
+                  <option :value="fund.fund.baseDenom">{{mapToIBC[fund.fund.baseDenom]}}</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size: large; font-weight: 400;" class="two-col-grid">
+              <div>
+                Amount
+              </div>
+              <div>
+                <input @change="(event) => updateComputedShares(event)" type="number" style="width: 100%; height: 36px; border-radius: 5px; padding: 0px 10px;" class="input input-border"/>
+              </div>
+            </div>
+            <div style="font-size: large; font-weight: 400;" class="two-col-grid">
+              <div>
+                Shares
+              </div>
+              <div>
+                {{computedShares}}
+              </div>
+            </div>
+          </div>
+          <div style="display: flex;justify-content: center;">
+            <button style="background-color: green; border-color: green;" class="sp-button"> Place Order</button>
+          </div>
+          <div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else>
+      Loading...
     </div>
   </div>
 </template>
@@ -33,24 +90,47 @@
 import { SpSpacer } from '@starport/vue'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
+import { VGrid } from "@revolist/vue3-datagrid";
+import _ from 'lodash'
+import { store } from '../store/local/popup.js';
 
 export default {
   name: 'Fund',
   components: { 
-    SpSpacer
+    SpSpacer,
+    VGrid
    },
-  data: function() {
+  data() {
     let $s = useStore()
 
+    // Add fund data to store
     const symbol = this.$route.params.symbol
     let fundRaw = computed(() => {
       $s.dispatch("defundlabs.defund.etf/QueryFund", { params: { symbol: symbol }, subscribe: false, all: false })
       var fund = $s["getters"]["defundlabs.defund.etf/getFund"]({
         params: { symbol: symbol }
-      })["fund"]
+      })
       return fund
     })
-    const fund = JSON.parse(JSON.stringify(fundRaw.value))
+
+    // Add fund price data to store
+    let fundPriceRaw = computed(() => {
+      $s.dispatch("defundlabs.defund.etf/QueryFundPriceAll", { params: { symbol: symbol }, query: { "pagination.reverse": true, "pagination.limit": 100 }, subscribe: false, all: false })
+      var fundprice = $s["getters"]["defundlabs.defund.etf/getFundPriceAll"]({
+        params: { symbol: symbol },
+        query: { "pagination.reverse": true, "pagination.limit": 100 }
+      })
+      return fundprice
+    })
+
+    // Add current fund price data to store
+    let currentFundPriceRaw = computed(() => {
+      $s.dispatch("defundlabs.defund.etf/QueryFundPrice", { query: { symbol: symbol }, subscribe: true, all: false })
+      var currentfundprice = $s["getters"]["defundlabs.defund.etf/getFundPrice"]({
+        params: { symbol: symbol }
+      })
+      return currentfundprice
+    })
 
     return {
       options: {
@@ -75,7 +155,7 @@ export default {
           axisTicks: {
             show: false
           },
-          categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998]
+          categories: [],
         },
         yaxis: {
           labels: {
@@ -94,17 +174,47 @@ export default {
         stroke: {
           curve: "smooth"
         },
+        tooltip: {
+          followCursor: true
+        },
         dataLabels: {
           enabled: false
         }
       },
-      series: [{
-        name: 'Price',
-        data: [30, 40, 45, 50, 49, 60, 70, 91]
-      }],
-      fund: fund
+      series: [],
+      fund: fundRaw,
+      fundprice: fundPriceRaw,
+      columns: [
+        { name: "Token", prop: "token" },
+        { name: "Percent (%)", prop: "percent" }, 
+      ],
+      mapToIBC: store.IBCToTokenMap,
+      selected: 'uatom',
+      computedShares: 0,
+      currentPrice: currentFundPriceRaw
     }
-  }
+  },
+  watch: {
+    fundprice(newValue, oldValue) {
+      if(this.series.length <= 0) {
+        this.options.xaxis.categories = _.map(this.fundprice.price, (p) => { 
+          return Number(p.height)
+        }).sort()
+        this.series.push({
+          name: 'Price',
+          data: _.map(this.fundprice.price, (p) => { 
+            return Number(p.amount.amount)/1000000 
+          })
+        })
+      }
+    }
+  },
+  methods: {
+    updateComputedShares(e) {
+      const amount = e.target.value
+      this.computedShares = amount / this.currentPrice.amount.amount
+    }
+  },
 }
 </script>
 
@@ -113,8 +223,7 @@ export default {
     display: -ms-grid;
     display: grid;
     grid-auto-columns: 1fr;
-    -ms-grid-columns: 1fr 1fr;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.75fr;
     -ms-grid-rows: auto auto;
     grid-template-rows: auto auto;
     grid-row-gap: 16px;
@@ -183,5 +292,45 @@ export default {
   .chart {
       --chart-positive: var(--positive);
       --chart-negative: var(--negative);
+  }
+
+  revo-grid {
+      min-height: 200px;
+  }
+
+  .buy-div {
+    right: 30px;
+    top: 20%;
+    width: 22%;
+    height: 400px;
+    border-width: 2px;
+    border-style: outset;
+    border-color: rgba(0, 0, 0, 0.027);
+    display: grid;
+    grid-template-rows: 0.10fr auto auto;
+    padding: 20px;
+    background-color: white;
+    position: fixed;
+    border-radius: 10px;
+    z-index: 100;
+  }
+  .border-bottom {
+    border-color: rgba(0, 0, 0, 0.027);
+    border-width: 2px;
+    border-bottom-style: solid;
+  }
+  .three-row-grid {
+    display: grid;
+    grid-template-rows: auto auto auto;
+  }
+  .two-col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .input-border {
+    border-color: rgba(0, 0, 0, 0.027);
+    border-width: 2px;
+    border-style: solid;
   }
 </style>
