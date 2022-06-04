@@ -3,7 +3,10 @@ import { reactive } from "vue";
 export const store = reactive({
 	stakePopup: false,
 	votePopup: false,
-	currentVoteSelection: null,
+	currentVoteSelection: {
+		proposal_id: null,
+        current_vote: null
+	},
 	delegateInput: false,
 	undelegateInput: false,
 	valueDelegate: true,
@@ -205,5 +208,7 @@ export const store = reactive({
 	showTxSuccess: false,
 	showTxFail: false,
 	showTxStatus: false,
-	govProps: []
+	govProps: [],
+	sendingTx: false,
+	twitter: null
 })

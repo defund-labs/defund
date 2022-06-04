@@ -22,14 +22,14 @@
                             <div class="details-within">Description</div>
                             <div>{{store.currentValidator["description.details"]}}</div>
                         </div>
-                        <div class="desc-div">
+                        <div v-if="!justDelegate" class="desc-div">
                             <div class="details-within">My Delegations</div>
                             <p>{{delegations ? String(Number(delegations.balance.amount)/1000000) : 0}} FETF</p>
                         </div>
                     </div>
                     <div v-if="!store.delegateInput" class="delegate-button-div">
                         <SpButton v-on:click="toggleInput(false)">Delegate</SpButton>
-                        <SpButton v-on:click="toggleInput(true)" style="margin-left:10px;">Undelegate</SpButton>
+                        <SpButton v-if="!justDelegate" v-on:click="toggleInput(true)" style="margin-left:10px;">Undelegate</SpButton>
                     </div>
                     <div v-if="store.delegateInput">
                         <DelegateForm :delegations="delegations"></DelegateForm>
@@ -44,11 +44,12 @@
 import { SpTheme, SpButton } from '@starport/vue';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
-import { store } from '../store/local/popup.js';
+import { store } from '../store/local/store.js';
 import DelegateForm from './DelegateForm.vue'
 export default {
     name: "StakePopup",
     components: { SpTheme, SpButton, DelegateForm },
+    props: ["myDelegations", "justDelegate"],
     setup(props) {
         let $s = useStore()
 
@@ -132,7 +133,6 @@ export default {
         background-color: white;
         border: 0 solid rgba(0,0,0,.2);
         border-radius: 0.4375rem;
-        box-shadow: 0 15px 35px rgb(50 50 93 / 20%), 0 5px 15px rgb(0 0 0 / 17%);
     }
     .close-div{
         position: absolute;

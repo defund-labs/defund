@@ -161,7 +161,7 @@
 <script lang="ts">
 import { computed, defineComponent, reactive } from 'vue'
 import { useStore } from 'vuex'
-import { store } from '../store/local/popup'
+import { store } from '../store/local/store.js'
 import router from '../router'
 import { SpButton, SpDropdown, SpSpacer, SpTypography } from '@starport/vue'
 import _ from 'lodash';
@@ -280,6 +280,9 @@ export default defineComponent({
         connectionId: connectionId
       }
 
+      this.local.sendingTx = true
+      this.local.showTxStatus = true
+
       const res = await this.store.dispatch("defundlabs.defund.etf/sendMsgCreateFund", {
           value: value,
           fee: [{
@@ -289,19 +292,17 @@ export default defineComponent({
           memo: ""
       })
 
-      console.log(res)
-
       if(res.code == 0) { 
+        this.local.sendingTx= false
         this.local.showTxSuccess = true 
         this.local.showTxFail = false
         this.local.lastTxHash = res.transactionHash
-        this.local.showTxStatus = true
       } else {
+        this.local.sendingTx= false
         this.local.showTxSuccess = false
         this.local.showTxFail = true
         this.local.lastTxHash = res.transactionHash
         this.local.lastTxLog = res.rawLog
-        this.local.showTxStatus = true
       }
 
       return res

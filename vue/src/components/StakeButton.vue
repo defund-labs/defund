@@ -9,7 +9,7 @@
 </template>
  
 <script>
-import { store } from '../store/local/popup.js';
+import { store } from '../store/local/store.js';
 export default {
   name: "StakeButton",
   data() {

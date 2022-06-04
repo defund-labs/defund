@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { store } from '../store/local/popup.js';
+import { store } from '../store/local/store.js';
 import { SpButton } from '@starport/vue'
 import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
@@ -69,16 +69,27 @@ export default {
             })
             const amtInput = document.getElementById('amt-input')
             const amount = amtInput.value * 1000000
-            $s.dispatch("cosmos.staking.v1beta1/sendMsgDelegate", {
+            store.showTxStatus = true
+            store.sendingTx = true
+            const ret = await $s.dispatch("cosmos.staking.v1beta1/sendMsgDelegate", {
                 value: { delegator_address: address.value,
                 validator_address: store.currentValidator.operator_address,
                 amount: {
                     denom: "ufetf",
                     amount: String(amount)
-                }}
+                }},
+                fee: [{
+                    amount: "200000",
+                    denom: "ufetf"
+                }],
+                memo: ""
             })
 
             store.stakePopup = false
+
+            store.sendingTx = false
+            store.showTxSuccess = true
+            store.lastTxHash = ret.transactionHash
             emit('close')
         }
 
@@ -89,16 +100,27 @@ export default {
             })
             const amtInput = document.getElementById('amt-input')
             const amount = amtInput.value * 1000000
-            $s.dispatch("cosmos.staking.v1beta1/sendMsgUndelegate", {
+            store.showTxStatus = true
+            store.sendingTx = true
+            const ret = await $s.dispatch("cosmos.staking.v1beta1/sendMsgUndelegate", {
                 value: { delegator_address: address.value,
                 validator_address: store.currentValidator.operator_address,
                 amount: {
                     denom: "ufetf",
                     amount: String(amount)
-                }}
+                }},
+                fee: [{
+                    amount: "200000",
+                    denom: "ufetf"
+                }],
+                memo: ""
             })
 
             store.stakePopup = false
+
+            store.sendingTx = false
+            store.showTxSuccess = true
+            store.lastTxHash = ret.transactionHash
             emit('close')
         }
 

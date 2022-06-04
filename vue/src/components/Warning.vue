@@ -50,7 +50,7 @@
 </template>
  
 <script>
-import { store } from '../store/local/popup'
+import { store } from '../store/local/store.js'
 export default {
   name: "Warning",
   data() {

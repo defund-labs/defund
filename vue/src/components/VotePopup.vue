@@ -2,46 +2,46 @@
     <div class="cover">
         <div v-on:click="closePopup" class="close-div">
         </div>
-        <div class="popup-container">
+        <div v-if="proposal" class="popup-container">
             <div class="modal-body">
                 <div class="details-within">Your Vote (Prop {{proposal.proposal_id}})</div>
-                <div style="border-radius: 6px; box-shadow: rgba(50, 50, 93, 0.15) 0px 1px 3px 0px, rgba(0, 0, 0, 0.02) 0px 0px 1px 0px;">
+                <div style="border-radius: 6px;">
                     <ul class="list-group">
-                        <li class="list-group-item" style="cursor: pointer;">
-                            <div :proposal="proposal.proposal_id" v-on:click="e => setVoteSelection(e, 'yes')" class="container">
-                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row">
+                        <li v-on:click="e => setVoteSelection(e, 'yes')" class="list-group-item" style="cursor: pointer;">
+                            <div class="container">
+                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row-option">
                                     <div class="col-option" style="padding-right: 0px;">
-                                        <div :id="'yes-select-' + proposal.proposal_id" class="voteOption"></div>
+                                        <div id="yes-option" class="voteOption"></div>
                                     </div>
                                     <div class="col">Yes</div>
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" style="cursor: pointer;">
-                            <div :proposal="proposal.proposal_id" v-on:click="e => setVoteSelection(e, 'no')" class="container">
-                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row">
+                        <li v-on:click="e => setVoteSelection(e, 'no')" class="list-group-item" style="cursor: pointer;">
+                            <div class="container">
+                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row-option">
                                     <div class="col-option" style="padding-right: 0px;">
-                                        <div :id="'no-select-' + proposal.proposal_id" class="voteOption"></div>
+                                        <div id="no-option" class="voteOption"></div>
                                     </div>
                                     <div class="col">No</div>
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" style="cursor: pointer;">
-                            <div :proposal="proposal.proposal_id" v-on:click="e => setVoteSelection(e, 'veto')" class="container">
-                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row">
+                        <li v-on:click="e => setVoteSelection(e, 'veto')" class="list-group-item" style="cursor: pointer;">
+                            <div class="container">
+                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row-option">
                                     <div class="col-option" style="padding-right: 0px;">
-                                        <div :id="'veto-select-' + proposal.proposal_id" class="voteOption"></div>
+                                        <div id="veto-option" class="voteOption"></div>
                                     </div>
                                     <div class="col">No With Veto</div>
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" style="cursor: pointer;">
-                            <div :proposal="proposal.proposal_id" v-on:click="e => setVoteSelection(e, 'abstain')" class="container">
-                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row">
+                        <li v-on:click="e => setVoteSelection(e, 'abstain')" class="list-group-item" style="cursor: pointer;">
+                            <div class="container">
+                                <div style="display: grid;grid-template-columns: 0.10fr 0.90fr;" class="justify-content-between align-items-center row-option">
                                     <div class="col-option" style="padding-right: 0px;">
-                                        <div :id="'abstain-select-' + proposal.proposal_id" class="voteOption"></div>
+                                        <div id="abstain-option" class="voteOption"></div>
                                     </div>
                                     <div class="col">Abstain</div>
                                 </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="delegate-button-div">
                     <SpButton v-on:click="closePopup(false)">Cancel</SpButton>
-                    <SpButton style="margin-left:10px;">Vote</SpButton>
+                    <SpButton v-on:click="submitVote" style="margin-left:10px;">Vote</SpButton>
                 </div>
             </div>
         </div>
@@ -59,40 +59,94 @@
 </template>
 
 <script>
+import { computed } from 'vue';
 import { SpTheme, SpButton } from '@starport/vue';
-import { store } from '../store/local/popup.js';
-import DelegateForm from './DelegateForm.vue';
+import { store } from '../store/local/store.js';
+import { useStore } from 'vuex';
 export default {
     name: "VotePopup",
-    components: { SpTheme, SpButton, DelegateForm },
-    props: ["proposal"],
-    data(props) {
+    components: { SpTheme, SpButton },
+    data() {
+        const $s = useStore();
+
+        let proposal = computed(() => {
+            $s.dispatch("cosmos.gov.v1beta1/QueryProposal", { params:{ proposal_id: store.currentVoteSelection.proposal_id } , subscribe: false, all: false})
+            var prop = $s["getters"]["cosmos.gov.v1beta1/getProposal"]({ params: { proposal_id: store.currentVoteSelection.proposal_id }})["proposal"]
+            return prop
+        })
+
+        let creator = computed(() => $s.getters['common/wallet/address'])
+
+        const submitVote = async () => {
+            const voteMap = {
+                "yes": 1,
+                "no": 3,
+                "abstain": 2,
+                "veto": 4
+            }
+            const value = {
+                proposal_id: this.store.currentVoteSelection.proposal_id,
+                voter: this.creator,
+                option: voteMap[this.store.currentVoteSelection.current_vote]
+            }
+
+            this.store.sendingTx = true
+            this.store.showTxStatus = true
+
+            const res = await $s.dispatch("cosmos.gov.v1beta1/sendMsgVote", {
+                value: value,
+                fee: [{
+                    amount: "200000",
+                    denom: "ufetf"
+                }],
+                memo: ""
+            })
+
+            if(res.code == 0) {
+                this.store.sendingTx= false
+                this.store.showTxSuccess = true 
+                this.store.showTxFail = false
+                this.store.lastTxHash = res.transactionHash
+            } else {
+                this.store.sendingTx= false
+                this.store.showTxSuccess = false
+                this.store.showTxFail = true
+                this.store.lastTxHash = res.transactionHash
+                this.store.lastTxLog = res.rawLog
+            }
+            return res
+        }
+
         return {
-            store: store
+            store: store,
+            proposal,
+            creator,
+            submitVote
         }
     },
     methods: {
-        closePopup: function() {
+        closePopup() {
             if (store.votePopup == false) {
                 store.votePopup = true
             } else {
                 store.votePopup = false
-                store.currentVoteSelection = null
+                const oldSelect = document.getElementById(store.currentVoteSelection.current_vote + "-option")
+                oldSelect.style = ""
+                store.currentVoteSelection = {
+                    proposal_id: null,
+                    current_vote: null
+                }
             }
         },
-        setVoteSelection(e, value) {
-            console.log(e.target.getAttribute("original-title"))
-            // Change the current selection back to normal
-            if(store.currentVoteSelection) {
-                const oldelement = document.getElementById(store.currentVoteSelection + "-select")
-                oldelement.style = ""
+        setVoteSelection(e, selection) {
+            if (store.currentVoteSelection.current_vote) {
+                const oldSelect = document.getElementById(store.currentVoteSelection.current_vote + "-option")
+                oldSelect.style = ""
             }
 
-            // Set the new selected element to highlight
-            const newelement = document.getElementById(value + "-select")
-            newelement.style = "border-color: #6CE5E8;"
-
-            store.currentVoteSelection = value
+            const newSelect = document.getElementById(selection + "-option")
+            newSelect.style = "border-color: #6CE5E8;"
+            store.currentVoteSelection.current_vote = selection
         }
     },
 }
@@ -127,7 +181,6 @@ export default {
         background-color: white;
         border: 0 solid rgba(0,0,0,.2);
         border-radius: 0.4375rem;
-        box-shadow: 0 15px 35px rgb(50 50 93 / 20%), 0 5px 15px rgb(0 0 0 / 17%);
     }
     .close-div{
         position: absolute;
@@ -199,7 +252,14 @@ export default {
         padding-left: 0;
         margin-bottom: 0;
     }
-    .row > * {
+    .row {
+        font-size: medium;
+        border-color: rgba(0, 0, 0, 0.027);
+        border-width: 2px;
+        border-bottom-style: solid;
+        padding-bottom: 25px;
+    }
+    .row-option {
         font-size: medium;
     }
     .voteOption {

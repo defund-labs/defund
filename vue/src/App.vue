@@ -8,6 +8,7 @@
       <router-view />
     </SpTheme>
     <div v-if="store.showTxStatus" class="tx-status-div">
+      <Sending v-if="store.sendingTx"></Sending>
       <Success v-if="store.showTxSuccess">
         <a :href="'https://defund.explorers.guru/transaction/' + store.lastTxHash" target="_blank" style="text-decoration: none;">View Transaction</a>
       </Success>
@@ -27,11 +28,30 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import Success from './components/Success.vue'
 import Warning from './components/Warning.vue'
-import { store } from './store/local/popup'
+import Sending from './components/Sending.vue'
+import { store } from './store/local/store.js'
+import { initializeApp } from "firebase/app";
 export default {
-  components: { SpTheme, Navbar, Success, Warning },
+  components: { SpTheme, Navbar, Success, Warning, Sending },
+
+  beforeCreate() {
+    // Setup Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAEhEsltgtOuYI7cEzCEaRbk2ivjb3ucQ",
+      authDomain: "defund-testnet.firebaseapp.com",
+      projectId: "defund-testnet",
+      storageBucket: "defund-testnet.appspot.com",
+      messagingSenderId: "504104480253",
+      appId: "1:504104480253:web:d6d23ef58070bdb9757d94",
+      measurementId: "G-P5VM8QDYBY"
+    };
+
+    // Initialize Firebase
+    initializeApp(firebaseConfig);
+  },
 
   setup() {
+
     // store
     let $s = useStore()
 
@@ -73,6 +93,7 @@ body {
   overflow: hidden;
 }
 .tx-status-div {
+  z-index: 500;
   position: fixed;
   bottom: 10px;
   width: 40%;

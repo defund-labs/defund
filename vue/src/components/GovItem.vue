@@ -1,6 +1,5 @@
 <template>
   <div style="margin-bottom: 40px;">
-    <VotePopup :proposal="proposal" v-if="store.votePopup"></VotePopup>
     <div class="row">
         <div class="css-1van9nl">
           <div class="three-col-grid">
@@ -43,14 +42,14 @@
             <div>
               <p class="title-header">Total Deposit</p>
               <div class="chakra-skeleton css-143twa6">
-                <div class="css-79elbk">{{convertSmallToLarge(proposal.total_deposit[0].amount)}} FETF</div>
+                <div class="css-79elbk"> {{proposal.total_deposit.length > 0 ? convertSmallToLarge(proposal.total_deposit[0].amount) : NaN}} FETF</div>
               </div>
             </div>
           </div>
         </div>
         <div class="button-div">
           <a :href="'https://defund.explorers.guru/proposal/' + proposal.proposal_id" target="_blank" class="sp-button">Details</a>
-          <button v-on:click="toggleVotePopup" style="margin-left: 10px;" class="sp-button">Vote</button>
+          <button v-if="proposal.status == 'PROPOSAL_STATUS_VOTING_PERIOD'" :proposal="proposal.proposal_id" v-on:click="e => toggleVotePopup(e)" style="margin-left: 10px;" class="sp-button">Vote</button>
         </div>
     </div>
   </div>
@@ -58,13 +57,11 @@
  
 <script>
 import { SpTheme } from '@starport/vue';
-import VotePopup from './VotePopup.vue';
-import { store } from '../store/local/popup.js';
+import { store } from '../store/local/store.js';
 export default {
   name: "GovItem",
   components: {
     SpTheme,
-    VotePopup
   },
   props: ["proposal"],
   data(props) {
@@ -73,8 +70,10 @@ export default {
     }
   },
   methods: {
-    toggleVotePopup() {
+    toggleVotePopup(e) {
       store.votePopup = true
+
+      store.currentVoteSelection.proposal_id = e.target.getAttribute("proposal")
     },
     extractDate(string) {
       return string.split("T")[0]

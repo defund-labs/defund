@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="child-container">
     <div class="row row-sm-revers">
       <div class="col-md-6">
         <SpAssets />

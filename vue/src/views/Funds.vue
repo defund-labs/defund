@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="child-container">
     <header class="funds-header">
       <h2 class="title">Funds</h2>
       <a @click="router.push('/funds/create')" style="font-size: large;font-weight: 600;cursor: pointer;">Create -></a>

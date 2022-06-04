@@ -9,14 +9,14 @@
                 <h1 style="margin-top:10px" class="heading-symbol title-spacer">{{fund.fund.symbol}}</h1>
             </div>
             <div>
-                <h2 class="heading-price">1 ATOM</h2>
+                <h2 class="heading-price">{{currentPrice}} {{store.IBCToTokenMap[fund.fund.baseDenom]}}</h2>
                 <h4 style="margin-top:10px" class="heading-growth title-spacer">+0.00% (Today)</h4>
             </div>
           </div>
         </div>
         <div></div>
         <div class="w-layout-grid grid-4">
-          <div>
+          <div v-if="series[0].data.length > 0">
             <apexchart height="350" type="area" :options="options" :series="series"></apexchart>
           </div>
           <div>
@@ -26,27 +26,32 @@
           <div>
               <h1 style="margin-top:10px; margin-bottom:10px;" class="heading-symbol title-spacer">Composition</h1>
               <v-grid
+                style="height: fit-content;"
                 theme="material"
-                :source="fund.fund.holdings"
+                :source="holdings"
                 :columns="columns"
                 filter=false
                 readonly=true
                 col-size=275
                 row-size=60
                 can-focus=false
+                height="fit-content"
               ></v-grid>
           </div>
         </div>
       </div>
       <div>
-        <div class="buy-div">
-          <div style="height: 30px;" class="border-bottom">
-            <h4 style="font-size: large; font-weight: 600;">{{"Buy " + fund.fund.symbol}}</h4>
+        <div v-if="buyDiv" class="buy-div">
+          <div style="height: 100%; margin-bottom: 15px;" class="two-col-grid border-bottom">
+            <h4 style="font-size: large; font-weight: 600;">Create</h4>
+            <div style="text-align: right;">
+              <img @click="toggleBuySell" style="text-align: right; grid-template-columns: 0.80fr 0.20fr; cursor: pointer" height="15" src="/redo.svg"/>
+            </div>
           </div>
-          <div style="height: 200px;" class="three-row-grid border-bottom">
+          <div style="height: 200px;" class="three-row-grid">
             <div style="font-size: large; font-weight: 400;" class="two-col-grid">
               <div>
-                Invest In
+                Base
               </div>
               <div>
                 <select v-model="selected" style="width: 100%; height: 36px; border-radius: 5px; padding: 0px 10px;" class="input input-border">
@@ -66,22 +71,69 @@
               <div>
                 Shares
               </div>
-              <div>
+              <div style="text-align: right;">
                 {{computedShares}}
               </div>
             </div>
           </div>
-          <div style="display: flex;justify-content: center;">
-            <button style="background-color: green; border-color: green;" class="sp-button"> Place Order</button>
+          <div class="border-bottom" style="display: flex;justify-content: center;padding-bottom: 15px;">
+            <button @click="createShareAction" style="background-color: green; border-color: green;" class="sp-button">Create Shares</button>
           </div>
-          <div>
-
+          <div style="font-size: medium; font-weight: 400; margin-top: 10px;" class="two-col-grid">
+            <div>
+              Available
+            </div>
+            <div style="text-align: right;">
+              {{getDenomBalance(balances, fund.fund.baseDenom)}}
+            </div>
+          </div>
+        </div>
+        <div v-else class="sell-div">
+          <div style="height: 100%; margin-bottom: 15px;" class="two-col-grid border-bottom">
+            <h4 style="font-size: large; font-weight: 600;">Redeem</h4>
+            <div style="text-align: right;">
+              <img @click="toggleBuySell" style="text-align: right; grid-template-columns: 0.80fr 0.20fr; cursor: pointer;" height="15" src="/redo.svg"/>
+            </div>
+          </div>
+          <div style="height: 300px;" class="three-row-grid">
+            <div style="font-size: large; font-weight: 400;" class="two-col-grid">
+              <div>
+                Receive
+              </div>
+              <div>
+                <select v-model="selected" style="width: 100%; height: 36px; border-radius: 5px; padding: 0px 10px;" class="input input-border">
+                  <option :value="fund.fund.baseDenom">Shares</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size: large; font-weight: 400;" class="two-col-grid">
+              <div>
+                Amount
+              </div>
+              <div>
+                <input @change="(event) => updateComputedSharesSell(event)" type="number" style="width: 100%; height: 36px; border-radius: 5px; padding: 0px 10px;" class="input input-border"/>
+              </div>
+            </div>
+            <div class="border-bottom" style="display: flex;justify-content: center;">
+              <button @click="redeemShareAction" style="background-color: red; border-color: red;" class="sp-button">Redeem Shares</button>
+            </div>
+            <div style="font-size: medium; font-weight: 400; margin-top: 10px;" class="two-col-grid">
+              <div>
+                Available
+              </div>
+              <div style="text-align: right;">
+                {{getFundDenomBalance(balances, fund.fund.shares.denom)}}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div v-else>
-      Loading...
+    <div style="display:grid; justify-content: center; align-items: center; font-size: medium; height: 70vh; font-weight: 600;" v-else>
+      <img
+          width="50"
+          src="/logo_animation.gif"
+      />
     </div>
   </div>
 </template>
@@ -92,7 +144,7 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { VGrid } from "@revolist/vue3-datagrid";
 import _ from 'lodash'
-import { store } from '../store/local/popup.js';
+import { store } from '../store/local/store.js';
 
 export default {
   name: 'Fund',
@@ -102,6 +154,10 @@ export default {
    },
   data() {
     let $s = useStore()
+
+    let address = computed(() => {
+        return $s.getters['common/wallet/address']
+    })
 
     // Add fund data to store
     const symbol = this.$route.params.symbol
@@ -129,7 +185,21 @@ export default {
       var currentfundprice = $s["getters"]["defundlabs.defund.etf/getFundPrice"]({
         params: { symbol: symbol }
       })
-      return currentfundprice
+      return currentfundprice.value ? currentfundprice : 1
+    })
+
+    // Add wallet balances to store
+    let balances = computed(() => {
+        if (address.value) {
+            $s.dispatch('cosmos.bank.v1beta1/QueryAllBalances', {
+                params: { address: address.value },
+                options: { subscribe: true }
+            })
+        }
+
+        return $s.getters['cosmos.bank.v1beta1/getAllBalances']({
+            params: { address: address.value },
+        })
     })
 
     return {
@@ -191,7 +261,13 @@ export default {
       mapToIBC: store.IBCToTokenMap,
       selected: 'uatom',
       computedShares: 0,
-      currentPrice: currentFundPriceRaw
+      computedSharesSell: 0,
+      currentPrice: currentFundPriceRaw,
+      address,
+      balances,
+      store,
+      buyDiv: true,
+      holdings: []
     }
   },
   watch: {
@@ -207,12 +283,75 @@ export default {
           })
         })
       }
+    },
+    fund(newValue, oldValue) {
+      var holdings = newValue.fund.holdings
+      for (let i = 0; i < holdings.length; i++) {
+        holdings[i]["token"] = this.mapToIBC[holdings[i]["token"]]
+      }
+      this.holdings = holdings
+      return holdings
     }
   },
   methods: {
     updateComputedShares(e) {
       const amount = e.target.value
-      this.computedShares = amount / this.currentPrice.amount.amount
+      this.computedShares = amount / this.currentPrice
+    },
+    updateComputedSharesSell(e) {
+      const amount = e.target.value
+      this.computedSharesSell = amount * this.currentPrice
+    },
+    getDenomBalance(balances, denom) {
+      var balance = null
+
+      if (balances) {
+
+          balances = JSON.parse(JSON.stringify(balances)).balances
+
+          const found = _.filter(balances, function(o) { return o.denom == denom })
+
+          if(found.length == 0) { return String(0) + " " + this.store.IBCToTokenMap[denom] }
+
+          balance = String(Number(found[0].amount)/1000000)
+
+          return balance + " " + this.store.IBCToTokenMap[denom]
+
+      }
+
+      return String(0)
+    },
+    getFundDenomBalance(balances, denom) {
+      var balance = null
+
+      if (balances) {
+
+          balances = JSON.parse(JSON.stringify(balances)).balances
+
+          const found = _.filter(balances, function(o) { return o.denom == denom })
+
+          if(found.length == 0) { return String(0) + " Shares" }
+
+          balance = String(Number(found[0].amount)/1000000)
+
+          return balance + " " + "Shares"
+
+      }
+
+      return String(0)
+    },
+    toggleBuySell() {
+      if (this.buyDiv == false) {
+        this.buyDiv = true
+      } else {
+        this.buyDiv = false
+      }
+    },
+    redeemShareAction() {
+      alert("Redemptions will be activated on the first chain upgrade...")
+    },
+    createShareAction() {
+      alert("Creations will be activated on the first chain upgrade...")
     }
   },
 }
@@ -302,7 +441,21 @@ export default {
     right: 30px;
     top: 20%;
     width: 22%;
-    height: 400px;
+    border-width: 2px;
+    border-style: outset;
+    border-color: rgba(0, 0, 0, 0.027);
+    display: grid;
+    grid-template-rows: 0.10fr auto auto;
+    padding: 20px;
+    background-color: white;
+    position:fixed;
+    border-radius: 10px;
+    z-index: 80;
+  }
+  .sell-div {
+    right: 30px;
+    top: 20%;
+    width: 22%;
     border-width: 2px;
     border-style: outset;
     border-color: rgba(0, 0, 0, 0.027);
@@ -312,7 +465,7 @@ export default {
     background-color: white;
     position: fixed;
     border-radius: 10px;
-    z-index: 100;
+    z-index: 80;
   }
   .border-bottom {
     border-color: rgba(0, 0, 0, 0.027);
