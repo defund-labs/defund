@@ -254,7 +254,7 @@ export default {
     }
     .row {
         font-size: medium;
-        border-color: rgba(0, 0, 0, 0.027);
+        border-color: rgba(0, 0, 0, 0.089);
         border-width: 2px;
         border-bottom-style: solid;
         padding-bottom: 25px;

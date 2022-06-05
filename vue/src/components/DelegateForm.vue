@@ -71,7 +71,7 @@ export default {
             const amount = amtInput.value * 1000000
             store.showTxStatus = true
             store.sendingTx = true
-            const ret = await $s.dispatch("cosmos.staking.v1beta1/sendMsgDelegate", {
+            const res = await $s.dispatch("cosmos.staking.v1beta1/sendMsgDelegate", {
                 value: { delegator_address: address.value,
                 validator_address: store.currentValidator.operator_address,
                 amount: {
@@ -85,12 +85,20 @@ export default {
                 memo: ""
             })
 
-            store.stakePopup = false
+            if(res.code == 0) { 
+                store.sendingTx= false
+                store.showTxSuccess = true 
+                store.showTxFail = false
+                store.lastTxHash = res.transactionHash
+            } else {
+                store.sendingTx= false
+                store.showTxSuccess = false
+                store.showTxFail = true
+                store.lastTxHash = res.transactionHash
+                store.lastTxLog = res.rawLog
+            }
 
-            store.sendingTx = false
-            store.showTxSuccess = true
-            store.lastTxHash = ret.transactionHash
-            emit('close')
+            return res
         }
 
         //Create send unbound/undelegate msg function
@@ -102,7 +110,7 @@ export default {
             const amount = amtInput.value * 1000000
             store.showTxStatus = true
             store.sendingTx = true
-            const ret = await $s.dispatch("cosmos.staking.v1beta1/sendMsgUndelegate", {
+            const res = await $s.dispatch("cosmos.staking.v1beta1/sendMsgUndelegate", {
                 value: { delegator_address: address.value,
                 validator_address: store.currentValidator.operator_address,
                 amount: {
@@ -116,12 +124,20 @@ export default {
                 memo: ""
             })
 
-            store.stakePopup = false
+            if(res.code == 0) { 
+                store.sendingTx= false
+                store.showTxSuccess = true 
+                store.showTxFail = false
+                store.lastTxHash = res.transactionHash
+            } else {
+                store.sendingTx= false
+                store.showTxSuccess = false
+                store.showTxFail = true
+                store.lastTxHash = res.transactionHash
+                store.lastTxLog = res.rawLog
+            }
 
-            store.sendingTx = false
-            store.showTxSuccess = true
-            store.lastTxHash = ret.transactionHash
-            emit('close')
+            return res
         }
 
         return {

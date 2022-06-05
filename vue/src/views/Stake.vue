@@ -3,7 +3,7 @@
     <div v-if="store.stakePopup">
       <StakePopup/>
     </div>
-    <div id="your-stake-div">
+    <div v-if="typeof(rows_rewards) != 'undefined' && rows_rewards.length > 0" id="your-stake-div">
       <header class="funds-header">
         <h2 class="title">Your Stake</h2>
       </header>
@@ -65,7 +65,16 @@ import _ from 'lodash';
 import { store } from '../store/local/store.js';
 
 export default {
-  name: "Stake",
+  name: "Stake", 
+  beforeMount() {
+
+    let $s = useStore()
+
+    let address = computed(() => {
+        return $s.getters['common/wallet/address']
+    })
+
+  },
   data() {
     let $s = useStore()
 
@@ -73,31 +82,19 @@ export default {
         return $s.getters['common/wallet/address']
     })
 
-    let rewards = computed(() => {
-      $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: address.value }, subscribe: false, all: false })
-      var rewards_raw = $s["getters"]["cosmos.staking.v1beta1/getDelegatorValidators"]({params: { delegator_addr: address.value }})
-      var rewards = rewards_raw["validators"]
-      if (typeof(rewards) != "undefined") {
-        for (let i = 0; i < rewards.length; i++) {
-          /////////////// Add Rewards /////////////////
-          $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationRewards", {params: { delegator_address: address.value, validator_address: rewards[i].operator_address }, subscribe: false, all: false })
-          var rewards_for_val_raw = $s["getters"]["cosmos.distribution.v1beta1/getDelegationRewards"]({params: { delegator_address: address.value, validator_address: rewards[i].operator_address }})
-          rewards_for_val_raw = _.filter(rewards_for_val_raw["rewards"], function(o) { return o.denom == "ufetf" })
-          rewards[i]["rewards"] = rewards_for_val_raw
-          /////////////////////////////////////////////
-          rewards[i]["tokens"] = String(Number(rewards[i]["tokens"])/1000000) + " FETF"
-          rewards[i] = flatten(rewards[i]);
-          rewards[i]["commission.commission_rates.rate"] = String(_.round(Number(rewards[i]["commission.commission_rates.rate"]) * 100, 2)) + "%"
-          rewards[i]["delegator_shares"] = String(_.round(Number(rewards[i]["delegator_shares"])/1000000, 2)) + " FETF"
-          rewards[i]["rewards.0.amount"] = String(_.round(Number(rewards[i]["rewards.0.amount"])/1000000, 2)) + " FETF"
-          if (rewards[i]["rewards.0.amount"] == "NaN FETF") { rewards[i]["rewards.0.amount"] = "0" + " FETF" }
-        }
-      }
-      return rewards
-    })
+    if(address) {
+
+      $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: address.value }, subscribe: true, all: false })
+
+      $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorDelegations", {params: { delegator_addr: address.value }, subscribe: true, all: false })
+
+      $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: address.value }, subscribe: true, all: false })
+    
+      $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+
+    }
 
     let vals = computed(() => {
-      $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: false, all: false})
       var validators_raw = $s["getters"]["cosmos.staking.v1beta1/getValidators"]()
       var validators = validators_raw["validators"]
       validators = _.orderBy(validators, [function(o) { return Number(o.tokens); }], ["desc"]);
@@ -111,6 +108,77 @@ export default {
       if(typeof(validators_raw) == "undefined") { this.total = Number(validators_raw["pagination"]["total"]) }
       return validators
     })
+
+    let rewards = computed(() => {
+      var validators_raw = $s["getters"]["cosmos.staking.v1beta1/getDelegatorValidators"]({params: { delegator_addr: address.value }})
+      var validators = validators_raw["validators"]
+      if (typeof(validators) != "undefined") {
+        for (let i = 0; i < validators.length; i++) {
+          validators[i] = flatten(validators[i]);
+          // Get the all the rewards for curret wallet (from store)
+          var all_rewards = $s["getters"]["cosmos.distribution.v1beta1/getDelegationTotalRewards"]({params: { delegator_address: address.value }})
+          // Filter all the rewards for the current validator in the for loop
+          var current_rewards = _.filter(all_rewards["rewards"], function(o) { return o.validator_address == validators[i]["operator_address"] })[0]
+          // If no current rewards are found for validator, skip the current and continue the loop
+          if(typeof(current_rewards) == "undefined") { continue }
+          // Filter the rewards for just ufetf for teh validator found above
+          var rewards = _.filter(current_rewards["reward"], function(o) { return o.denom == "ufetf" })[0]
+          // If no base denom (fetf) rewards are found for validator, skip the current and continue the loop
+          if(typeof(rewards) == "undefined") { continue }
+          rewards["rewards.amount"] = String(_.round(Number(rewards["amount"])/1000000, 2)) + " FETF"
+          rewards["rewards.denom"] = "fetf"
+          if (rewards["amount"] == "NaN FETF") { rewards["amount"] = "0" + " FETF" }
+          // Get the all the delegations for curret wallet (from store)
+          var all_delegations = $s["getters"]["cosmos.staking.v1beta1/getDelegatorDelegations"]({params: { delegator_addr: address.value }})
+          // Filter all the delegations for the current validator in the for loop
+          var current_delegation = _.filter(all_delegations["delegation_responses"], function(o) { return o.delegation.validator_address == validators[i]["operator_address"] })[0]
+          current_delegation["data"] = {}
+          current_delegation["data"]["delegation.amount"] = String(_.round(Number(current_delegation["balance"]["amount"])/1000000, 2)) + " FETF"
+          current_delegation["data"]["delegation.denom"] = "fetf"
+          // If no current rewards are found for validator, skip the current and continue the loop
+          if(typeof(current_delegation) == "undefined") { continue }
+          validators[i] = {...validators[i], ...rewards, ...current_delegation.data}
+        }
+      }
+      return validators
+    })
+
+    // Create submit claim message
+    const submitClaimMsg = async (validator) => {
+
+      const value = {
+        delegator_address: this.address,
+        validator_address: validator
+      }
+
+      this.store.sendingTx = true
+      this.store.showTxStatus = true
+
+      const res = await this.s.dispatch("cosmos.distribution.v1beta1/sendMsgWithdrawDelegatorReward", {
+          value: value,
+          fee: [{
+            amount: "200000",
+            denom: "ufetf"
+          }],
+          memo: ""
+      })
+
+      if(res.code == 0) { 
+        this.store.sendingTx= false
+        this.store.showTxSuccess = true 
+        this.store.showTxFail = false
+        this.store.lastTxHash = res.transactionHash
+      } else {
+        this.store.sendingTx= false
+        this.store.showTxSuccess = false
+        this.store.showTxFail = true
+        this.store.lastTxHash = res.transactionHash
+        this.store.lastTxLog = res.rawLog
+      }
+
+      return res
+    }
+
     return {
       columns: [
         { name: "Moniker", prop: "description.moniker"},
@@ -140,8 +208,8 @@ export default {
       columns_rewards: [
         { name: "Moniker", prop: "description.moniker"},
         { name: "Website", prop: "description.website"},
-        { name: "Delegations", prop: "delegator_shares"},
-        { name: "Rewards", prop: "rewards.0.amount"},
+        { name: "Delegations", prop: "delegation.amount"},
+        { name: "Rewards", prop: "rewards.amount"},
         { cellTemplate: (createElement, props) => { return createElement('div', {
           style: {
             "text-align": "right",
@@ -154,14 +222,7 @@ export default {
               "border-style": "none",
               "background-color": "black"
            }, onClick() {
-                if (store.stakePopup == false) {
-                store.stakePopup = true
-                $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: false, all: false})
-                var validators_raw = $s["getters"]["cosmos.staking.v1beta1/getValidators"]()
-                store.currentValidator = props.model.validator_address
-              } else {
-                store.stakePopup = false
-              }
+              submitClaimMsg(props.model.operator_address)
            }
         }, "Claim"),
         createElement('button', {
@@ -185,15 +246,31 @@ export default {
       store: store,
       s: $s,
       page: 0,
-      total: null
+      total: null,
+      address
     };
+  },
+  watch: {
+    address(oldAddr, newAddr) {
+      if (newAddr != oldAddr) {
+        if(newAddr) {
+
+          this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
+
+          this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorDelegations", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
+
+          this.s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: newAddr }, subscribe: true, all: false })
+        
+          this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+
+        }
+      }
+    }
   },
   methods: {
     async nextPage() {
-      let $s = useStore()
-
       this.page = this.page + 1
-      var validators_raw = await $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
+      var validators_raw = await this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
       var validators = await validators_raw["validators"]
       validators = await _.orderBy(validators, [function(o) { return Number(o.tokens); }], ["desc"]);
       if (typeof(validators) != "undefined") {
@@ -206,10 +283,8 @@ export default {
       this.rows = computed(() => { return JSON.parse(JSON.stringify(validators)) })
     },
     async backPage () {
-      let $s = useStore()
-
       this.page = this.page - 1
-      var validators_raw = await $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
+      var validators_raw = await this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
       var validators = await validators_raw["validators"]
       validators = await _.orderBy(validators, [function(o) { return Number(o.tokens); }], ["desc"]);
       if (typeof(validators) != "undefined") {
