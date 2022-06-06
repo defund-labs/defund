@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Portfolio from '../views/Portfolio.vue'
 import Funds from '../views/Funds.vue'
@@ -8,7 +8,7 @@ import Gov from '../views/Gov.vue'
 import Faucet from '../views/Faucet.vue'
 import CreateFunds from '../views/CreateFunds.vue'
 
-const routerHistory = createWebHistory()
+const routerHistory = createWebHashHistory()
 const routes = [
   { path: '/', component: Portfolio },
   { path: '/portfolio', component: Portfolio },

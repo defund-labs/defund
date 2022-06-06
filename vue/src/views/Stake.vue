@@ -74,14 +74,6 @@ export default {
         return $s.getters['common/wallet/address']
     })
 
-  },
-  data() {
-    let $s = useStore()
-
-    let address = computed(() => {
-        return $s.getters['common/wallet/address']
-    })
-
     if(address) {
 
       $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: address.value }, subscribe: true, all: false })
@@ -93,6 +85,14 @@ export default {
       $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
 
     }
+
+  },
+  data() {
+    let $s = useStore()
+
+    let address = computed(() => {
+        return $s.getters['common/wallet/address']
+    })
 
     let vals = computed(() => {
       var validators_raw = $s["getters"]["cosmos.staking.v1beta1/getValidators"]()
