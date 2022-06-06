@@ -1,7 +1,7 @@
 <template>
   <div class="child-container">
     <div v-if="store.stakePopup">
-      <StakePopup/>
+      <StakePopup :manage="manageStake"/>
     </div>
     <div v-if="typeof(rows_rewards) != 'undefined' && rows_rewards.length > 0" id="your-stake-div">
       <header class="funds-header">
@@ -9,6 +9,7 @@
       </header>
       <div class="grid-div">
         <v-grid
+          id="rewards-grid"
           style="min-height: 300px;"
           theme="material"
           :source="rows_rewards"
@@ -20,6 +21,7 @@
           row-size=60
           can-focus=false
           row-headers=true
+          @beforeCellFocus="beforeFocus"
         ></v-grid>
       </div>
     </div>
@@ -65,7 +67,7 @@ import _ from 'lodash';
 import { store } from '../store/local/store.js';
 
 export default {
-  name: "Stake", 
+  name: "Stake",
   beforeMount() {
 
     let $s = useStore()
@@ -83,6 +85,32 @@ export default {
       $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: address.value }, subscribe: true, all: false })
     
       $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+
+    }
+
+  },
+  beforeUpdate() {
+
+    if(this.updateData) {
+
+      let $s = useStore()
+
+      let address = computed(() => {
+          return $s.getters['common/wallet/address']
+      })
+
+      if(address) {
+
+        $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: address.value }, subscribe: true, all: false })
+
+        $s.dispatch("cosmos.staking.v1beta1/QueryDelegatorDelegations", {params: { delegator_addr: address.value }, subscribe: true, all: false })
+
+        $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: address.value }, subscribe: true, all: false })
+      
+        $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+
+        this.updateData = false
+      }
 
     }
 
@@ -132,15 +160,15 @@ export default {
           var all_delegations = $s["getters"]["cosmos.staking.v1beta1/getDelegatorDelegations"]({params: { delegator_addr: address.value }})
           // Filter all the delegations for the current validator in the for loop
           var current_delegation = _.filter(all_delegations["delegation_responses"], function(o) { return o.delegation.validator_address == validators[i]["operator_address"] })[0]
+          // If no current rewards are found for validator, skip the current and continue the loop
+          if(typeof(current_delegation) == "undefined") { continue }
           current_delegation["data"] = {}
           current_delegation["data"]["delegation.amount"] = String(_.round(Number(current_delegation["balance"]["amount"])/1000000, 2)) + " FETF"
           current_delegation["data"]["delegation.denom"] = "fetf"
-          // If no current rewards are found for validator, skip the current and continue the loop
-          if(typeof(current_delegation) == "undefined") { continue }
           validators[i] = {...validators[i], ...rewards, ...current_delegation.data}
         }
       }
-      return validators
+      return typeof(validators) != "undefined" ? validators : []
     })
 
     // Create submit claim message
@@ -199,6 +227,7 @@ export default {
                 if (store.stakePopup == false) {
                 store.stakePopup = true
                 store.currentValidator = props.model
+                store.manageStake = false
               } else {
                 store.stakePopup = false
               }
@@ -234,6 +263,7 @@ export default {
                 if (store.stakePopup == false) {
                 store.stakePopup = true
                 store.currentValidator = props.model
+                store.manageStake = true
               } else {
                 store.stakePopup = false
               }
@@ -247,25 +277,9 @@ export default {
       s: $s,
       page: 0,
       total: null,
-      address
+      address,
+      updateData: true
     };
-  },
-  watch: {
-    address(oldAddr, newAddr) {
-      if (newAddr != oldAddr) {
-        if(newAddr) {
-
-          this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
-
-          this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorDelegations", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
-
-          this.s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: newAddr }, subscribe: true, all: false })
-        
-          this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
-
-        }
-      }
-    }
   },
   methods: {
     async nextPage() {
@@ -295,6 +309,26 @@ export default {
         }
       }
       this.rows = computed(() => { return JSON.parse(JSON.stringify(validators)) })
+    },
+    beforeFocus(e) {
+      e.preventDefault();
+    },
+  },
+  watch: {
+    address(newAddr, oldAddr) {
+      this.updateData = true
+      if(newAddr) {
+
+        this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorValidators", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
+
+        this.s.dispatch("cosmos.staking.v1beta1/QueryDelegatorDelegations", {params: { delegator_addr: newAddr }, subscribe: true, all: false })
+
+        this.s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: newAddr }, subscribe: true, all: false })
+      
+        this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+
+        this.updateData = false
+      }
     }
   },
   components: {

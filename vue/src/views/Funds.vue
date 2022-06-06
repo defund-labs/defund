@@ -41,7 +41,6 @@ export default {
       columns: [
         { name: "Name", prop: "name", sortable: true },
         { name: "Symbol", prop: "symbol", sortable: true }, 
-        { name: "Broker", prop: "broker", sortable: true }, 
         { name: "Price", cellTemplate: (createElement, props) => { return createElement('span', {}, "1 ATOM" )} },
         { name: "Market Cap", cellTemplate: (createElement, props) => { return createElement('span', {}, "0 ATOM" )} },
         { name: "1 Day", cellTemplate: (createElement, props) => { return createElement('span', { style: { color: "green" } }, "0%")} },

@@ -25,7 +25,7 @@ import _ from 'lodash';
 export default {
     name: "DelegateForm",
     components: { SpButton },
-    props: ["validator", "delegations"],
+    props: ["validator", "delegation_amount"],
     setup(props, { emit }) {
         let $s = useStore()
 
@@ -161,7 +161,7 @@ export default {
             if (!store.undelegate) {
                 amtInput.value = this.balance.amount/1000000
             } else {
-                amtInput.value = this.$props.delegations.balance.amount/1000000
+                amtInput.value = store.currentValidator['delegation.amount'].split(" FETF")[0]
             }
             if (amtInput.value != "" && Number(amtInput.value) > 0) {
                 store.valueDelegate = false

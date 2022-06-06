@@ -10,7 +10,7 @@
                             <span class="name text-lg">
                                 <strong>{{store.currentValidator["description.moniker"]}}</strong>
                             </span>
-                            <span class="text-sm">Commission - {{store.currentValidator["commission.commission_rates.rate"]}}</span>
+                            <span class="text-sm">Commission - {{store.manageStake ? String(Math.round(Number(store.currentValidator["commission.commission_rates.rate"]) * 100, 2)) + "%" : store.currentValidator["commission.commission_rates.rate"]}}</span>
                         </div>
                     </div>
                     <div class="details-div">
@@ -22,17 +22,17 @@
                             <div class="details-within">Description</div>
                             <div>{{store.currentValidator["description.details"]}}</div>
                         </div>
-                        <div v-if="!justDelegate" class="desc-div">
+                        <div v-if="store.manageStake" class="desc-div">
                             <div class="details-within">My Delegations</div>
-                            <p>{{delegations ? String(Number(delegations.balance.amount)/1000000) : 0}} FETF</p>
+                            <p>{{store.currentValidator["delegation.amount"] ? store.currentValidator["delegation.amount"] : "0 FETF"}}</p>
                         </div>
                     </div>
                     <div v-if="!store.delegateInput" class="delegate-button-div">
                         <SpButton v-on:click="toggleInput(false)">Delegate</SpButton>
-                        <SpButton v-if="!justDelegate" v-on:click="toggleInput(true)" style="margin-left:10px;">Undelegate</SpButton>
+                        <SpButton v-if="store.manageStake" v-on:click="toggleInput(true)" style="margin-left:10px;">Undelegate</SpButton>
                     </div>
                     <div v-if="store.delegateInput">
-                        <DelegateForm :delegations="delegations"></DelegateForm>
+                        <DelegateForm :delegation_amount="store.currentValidator['delegation.amount']"></DelegateForm>
                     </div>
                 </div>
             </div>
@@ -45,30 +45,20 @@ import { SpTheme, SpButton } from '@starport/vue';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
 import { store } from '../store/local/store.js';
-import DelegateForm from './DelegateForm.vue'
+import DelegateForm from './DelegateForm.vue';
+import _ from 'lodash';
 export default {
     name: "StakePopup",
     components: { SpTheme, SpButton, DelegateForm },
-    props: ["myDelegations", "justDelegate"],
-    setup(props) {
+    props: ["manage"],
+    data() {
         let $s = useStore()
 
         let address = computed(() => {
             return $s.getters['common/wallet/address']
         })
 
-        let delegations = computed(() => {
-            $s.dispatch("cosmos.staking.v1beta1/QueryDelegation", { params: {
-                validator_addr: store.currentValidator.operator_address,  delegator_addr: address.value
-            }, subscribe: false, all: false })
-            var allDelegations = $s.getters["cosmos.staking.v1beta1/getDelegation"]({
-                params: { validator_addr: store.currentValidator.operator_address,  delegator_addr: address.value },
-            })
-            return allDelegations
-        })
-
         return {
-            delegations: JSON.parse(JSON.stringify(delegations.value)).delegation_response,
             store: store,
             address
         }
@@ -130,6 +120,7 @@ export default {
         z-index: 1000;
         padding: 1.5rem;
         min-width: 500px;
+        max-width: 85%;
         background-color: white;
         border: 0 solid rgba(0,0,0,.2);
         border-radius: 0.4375rem;

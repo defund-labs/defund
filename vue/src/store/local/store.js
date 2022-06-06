@@ -210,5 +210,7 @@ export const store = reactive({
 	showTxStatus: false,
 	govProps: [],
 	sendingTx: false,
-	twitter: null
+	twitter: null,
+	updateStake: false,
+	manageStake: false
 })
