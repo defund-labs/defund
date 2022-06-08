@@ -50,13 +50,13 @@ export default {
       this.checkEligibility()
     },
     async checkEligibility() {
-      const response = await this.axios.get("http://ojqsmce83t8avfv3d7t9qhjqgc.ingress.bdl.computer/users/" + store.twitter.providerData[0].uid)
+      const response = await this.axios.get("http://5k74k6pn1lftt9giu8hj6r638k.ingress.bdl.computer/http://ojqsmce83t8avfv3d7t9qhjqgc.ingress.bdl.computer/users/" + store.twitter.providerData[0].uid)
       this.eligible = await response.data.eligible
       this.airdropped = await response.data.data.airdropped
       return response
     },
     async markUserAsAirdropped() {
-      const response = await this.axios.put("http://ojqsmce83t8avfv3d7t9qhjqgc.ingress.bdl.computer/users", { "id": store.twitter.providerData[0].uid })
+      const response = await this.axios.put("http://5k74k6pn1lftt9giu8hj6r638k.ingress.bdl.computer/http://ojqsmce83t8avfv3d7t9qhjqgc.ingress.bdl.computer/users", { "id": store.twitter.providerData[0].uid })
       return response
     },
     async requestTokens() {
