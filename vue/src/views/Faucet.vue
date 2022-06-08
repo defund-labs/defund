@@ -6,7 +6,7 @@
     <div v-else class="faucet-div" style="height:60vh;" align="center">
       <h4 v-if="eligible" style="font-size:x-large; font-weight: bold; margin-bottom: 25px;">You are eligible for the private testnet!</h4>
       <h4 v-if="!eligible" style="font-size:x-large; font-weight: bold; margin-bottom: 25px;">You are not eligible for the private testnet.</h4>
-      <button v-if="eligible" :disabled="!eligible ||	airdropped" @click="requestTokens" style="background-color:#6CE5E8; border-color:#6CE5E8" class="sp-button">{{airdropped ? "Already Airdropped" : "Request Tokens"}}</button>
+      <button v-if="eligible" :disabled="!eligible ||	airdropped || clicked" @click="requestTokens" style="background-color:#6CE5E8; border-color:#6CE5E8" class="sp-button">{{airdropped ? "Already Airdropped" : "Request Tokens"}}</button>
     </div>
   </div>
 </template>
@@ -40,6 +40,7 @@ export default {
       eligible: false,
       airdropped: false,
       address,
+      clicked: false
     }
   },
   methods:{
@@ -60,18 +61,18 @@ export default {
       return response
     },
     async requestTokens() {
+      this.clicked = true
       const res = await this.checkEligibility()
       const eligible = await res.data.eligible
       if(eligible) {
-        const ret = await this.axios.post('https://cors.defund.app/https://faucet.defund.app', {
+        const ret = this.axios.post('https://cors.defund.app/https://faucet.defund.app', {
           address: this.address,
           coins: [
             "100000000ufetf"
           ]
         })
-        console.log(ret)
         this.markUserAsAirdropped()
-        return ret
+        return
       }
       return
     }
