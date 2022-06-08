@@ -13,6 +13,7 @@ export const store = reactive({
 	valueUndelegate: true,
 	currentValidator: null,
 	undelegate: false,
+	redelegate: false,
 	pools: [
 		{
 		  "id": "1",
@@ -212,5 +213,6 @@ export const store = reactive({
 	sendingTx: false,
 	twitter: null,
 	updateStake: false,
-	manageStake: false
+	manageStake: false,
+	validators: []
 })

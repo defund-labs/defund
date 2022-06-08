@@ -4,14 +4,18 @@
             <div class="input-group">
                 <div class="amt-input">
                     <input v-on:input="onInputDelegateChange" v-on:change="onInputDelegateChange" id="amt-input" name="amount" type="number" class="input input-cust" aria-invalid="false">
-                    <SpButton v-on:click="setMaxValue" type="button" class="button max-button">{{store.undelegate ? "ALL" : "MAX"}}</SpButton>
+                    <SpButton v-on:click="setMaxValue" type="button" class="button max-button">{{store.undelegate || store.redelegate ? "ALL" : "MAX"}}</SpButton>
                 </div>
+                <select id="redelegate-input" v-if="store.redelegate" v-on:input="onInputDelegateChange" v-on:change="onInputDelegateChange" class="input input-cust" aria-invalid="false">
+                    <option v-for="val in store.validators" :value="val.operator_address">{{val["description.moniker"]}}</option>
+                </select>
             </div>
         </div>
         <div class="button-actions-div">
             <SpButton v-on:click="toggleInput" type="button">Back</SpButton>
-            <SpButton v-if="!store.undelegate" v-on:click="submitDelegate" :disabled="store.valueDelegate" style="margin-left:10px;">{{store.undelegate ? "Undelegate" : "Delegate"}}</SpButton>
-            <SpButton v-if="store.undelegate" v-on:click="submitUndelegate" :disabled="store.valueDelegate" style="margin-left:10px;">{{store.undelegate ? "Undelegate" : "Delegate"}}</SpButton>
+            <SpButton v-if="!store.undelegate && !store.redelegate" v-on:click="submitDelegate" :disabled="store.valueDelegate" style="margin-left:10px;">{{"Delegate"}}</SpButton>
+            <SpButton v-if="store.undelegate" v-on:click="submitUndelegate" :disabled="store.valueDelegate" style="margin-left:10px;">{{"Undelegate"}}</SpButton>
+            <SpButton v-if="store.redelegate" v-on:click="submitRedelegate" :disabled="store.valueDelegate" style="margin-left:10px;">{{"Redelegate"}}</SpButton>
         </div>
     </form>
 </template>
@@ -140,11 +144,56 @@ export default {
             return res
         }
 
+        //Create send redelegate msg function
+        let submitRedelegate = async () => {
+            let address = computed(() => {
+                return $s.getters['common/wallet/address']
+            })
+            const amtInput = document.getElementById('amt-input')
+            const redelegateInput = document.getElementById('redelegate-input')
+            const amount = amtInput.value * 1000000
+            console.log(redelegateInput.value)
+            store.showTxStatus = true
+            store.sendingTx = true
+            const res = await $s.dispatch("cosmos.staking.v1beta1/sendMsgBeginRedelegate", {
+                value: { 
+                    delegator_address: address.value,
+                    validator_src_address: store.currentValidator.operator_address,
+                    validator_dst_address: redelegateInput.value,
+                    amount: {
+                        denom: "ufetf",
+                        amount: String(amount)
+                    },
+                },
+                fee: [{
+                    amount: "350000",
+                    denom: "ufetf"
+                }],
+                memo: ""
+            })
+
+            if(res.code == 0) { 
+                store.sendingTx= false
+                store.showTxSuccess = true 
+                store.showTxFail = false
+                store.lastTxHash = res.transactionHash
+            } else {
+                store.sendingTx= false
+                store.showTxSuccess = false
+                store.showTxFail = true
+                store.lastTxHash = res.transactionHash
+                store.lastTxLog = res.rawLog
+            }
+
+            return res
+        }
+
         return {
             balance: balance,
             store: store,
             submitDelegate,
-            submitUndelegate
+            submitUndelegate,
+            submitRedelegate
         }
     },
     methods: {
@@ -158,7 +207,7 @@ export default {
         },
         setMaxValue: function() {
             const amtInput = document.getElementById('amt-input')
-            if (!store.undelegate) {
+            if (!store.undelegate && !store.redelegate) {
                 amtInput.value = this.balance.amount/1000000
             } else {
                 amtInput.value = store.currentValidator['delegation.amount'].split(" FETF")[0]

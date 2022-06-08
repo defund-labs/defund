@@ -21,7 +21,7 @@
           row-size=60
           can-focus=false
           row-headers=true
-          @beforeCellFocus="beforeFocus"
+          @beforecellfocus="e => onRowClick(e, true)"
         ></v-grid>
       </div>
     </div>
@@ -32,7 +32,7 @@
       <div class="grid-div">
         <v-grid
           theme="material"
-          :source="rows"
+          :source="store.validators"
           :columns="columns"
           filter=true
           readonly=true
@@ -41,15 +41,8 @@
           row-size=60
           can-focus=false
           row-headers=true
+          @beforecellfocus="e => onRowClick(e, false)"
         ></v-grid>
-        <div class="two-col-grid">
-          <div align="left">
-            <button :disabled="page == 0" @click="backPage" class="sp-button">Back</button>
-          </div>
-          <div align="right">
-            <button :disabled="page == (Math.ceil(Number(total)/100) - 1)" @click="nextPage" class="sp-button">Next</button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -84,8 +77,6 @@ export default {
 
       $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: address.value }, subscribe: true, all: false })
     
-      $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
-
     }
 
   },
@@ -107,8 +98,6 @@ export default {
 
         $s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: address.value }, subscribe: true, all: false })
       
-        $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
-
         this.updateData = false
       }
 
@@ -171,105 +160,18 @@ export default {
       return typeof(validators) != "undefined" ? validators : []
     })
 
-    // Create submit claim message
-    const submitClaimMsg = async (validator) => {
-
-      const value = {
-        delegator_address: this.address,
-        validator_address: validator
-      }
-
-      this.store.sendingTx = true
-      this.store.showTxStatus = true
-
-      const res = await this.s.dispatch("cosmos.distribution.v1beta1/sendMsgWithdrawDelegatorReward", {
-          value: value,
-          fee: [{
-            amount: "200000",
-            denom: "ufetf"
-          }],
-          memo: ""
-      })
-
-      if(res.code == 0) { 
-        this.store.sendingTx= false
-        this.store.showTxSuccess = true 
-        this.store.showTxFail = false
-        this.store.lastTxHash = res.transactionHash
-      } else {
-        this.store.sendingTx= false
-        this.store.showTxSuccess = false
-        this.store.showTxFail = true
-        this.store.lastTxHash = res.transactionHash
-        this.store.lastTxLog = res.rawLog
-      }
-
-      return res
-    }
-
     return {
       columns: [
         { name: "Moniker", prop: "description.moniker"},
         { name: "Website", prop: "description.website"},
-        { name: "Staked", prop: "tokens"},
-        { name: "Commission", prop: "commission.commission_rates.rate" },
-        { cellTemplate: (createElement, props) => { return createElement('div', {
-          style: {
-            "text-align": "right"
-          }
-        }, createElement('button', {
-          class: "sp-button sp-button-button", style: {
-              "margin-right": "32px",
-              "color": "white",
-              "border-style": "none",
-              "background-color": "black"
-           }, onClick() {
-                if (store.stakePopup == false) {
-                store.stakePopup = true
-                store.currentValidator = props.model
-                store.manageStake = false
-              } else {
-                store.stakePopup = false
-              }
-           }
-        }, "Manage"))}}
+        { name: "Voting Power", prop: "tokens_string"},
+        { name: "Commission", prop: "commission.commission_rates.rate_string" }
       ],
       columns_rewards: [
         { name: "Moniker", prop: "description.moniker"},
         { name: "Website", prop: "description.website"},
         { name: "Delegations", prop: "delegation.amount"},
-        { name: "Rewards", prop: "rewards.amount"},
-        { cellTemplate: (createElement, props) => { return createElement('div', {
-          style: {
-            "text-align": "right",
-            "margin-right": "25px"
-          }
-        }, createElement('button', {
-          class: "sp-button sp-button-button", style: {
-              "margin-right": "10px",
-              "color": "white",
-              "border-style": "none",
-              "background-color": "black"
-           }, onClick() {
-              submitClaimMsg(props.model.operator_address)
-           }
-        }, "Claim"),
-        createElement('button', {
-          class: "sp-button sp-button-button", style: {
-              "color": "white",
-              "border-style": "none",
-              "background-color": "black"
-           }, onClick() {
-                if (store.stakePopup == false) {
-                store.stakePopup = true
-                store.currentValidator = props.model
-                store.manageStake = true
-              } else {
-                store.stakePopup = false
-              }
-           }
-        }, "Manage"))
-        }},
+        { name: "Rewards", prop: "rewards.amount"}
       ],
       rows_rewards: rewards,
       rows: vals,
@@ -282,37 +184,21 @@ export default {
     };
   },
   methods: {
-    async nextPage() {
-      this.page = this.page + 1
-      var validators_raw = await this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
-      var validators = await validators_raw["validators"]
-      validators = await _.orderBy(validators, [function(o) { return Number(o.tokens); }], ["desc"]);
-      if (typeof(validators) != "undefined") {
-        for (let i = 0; i < validators.length; i++) {
-          validators[i]["tokens"] = String(Number(validators[i]["tokens"])/1000000) + " FETF"
-          validators[i] = flatten(validators[i]);
-          validators[i]["commission.commission_rates.rate"] = String(_.round(Number(validators[i]["commission.commission_rates.rate"]) * 100, 2)) + "%"
-        }
-      }
-      this.rows = computed(() => { return JSON.parse(JSON.stringify(validators)) })
-    },
-    async backPage () {
-      this.page = this.page - 1
-      var validators_raw = await this.s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": this.page * 100 }, subscribe: false, all: false})
-      var validators = await validators_raw["validators"]
-      validators = await _.orderBy(validators, [function(o) { return Number(o.tokens); }], ["desc"]);
-      if (typeof(validators) != "undefined") {
-        for (let i = 0; i < validators.length; i++) {
-          validators[i]["tokens"] = String(Number(validators[i]["tokens"])/1000000) + " FETF"
-          validators[i] = flatten(validators[i]);
-          validators[i]["commission.commission_rates.rate"] = String(_.round(Number(validators[i]["commission.commission_rates.rate"]) * 100, 2)) + "%"
-        }
-      }
-      this.rows = computed(() => { return JSON.parse(JSON.stringify(validators)) })
-    },
     beforeFocus(e) {
       e.preventDefault();
     },
+    onRowClick(e, manageStake = false) {
+      this.openManagePopup(manageStake, e.detail.model)
+    },
+    openManagePopup(manageStake, currentValidator) {
+      if (store.stakePopup == false) {
+        store.stakePopup = true
+        store.currentValidator = currentValidator
+        store.manageStake = manageStake
+      } else {
+        store.stakePopup = false
+      }
+    }
   },
   watch: {
     address(newAddr, oldAddr) {

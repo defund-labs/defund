@@ -11,9 +11,10 @@
       filter=true
       readonly=true
       resize=true
-      col-size=165
+      col-size=175
       row-size=60
       can-focus=false
+      @beforecellfocus="onRowClick"
     ></v-grid>
   </div>
 </template>
@@ -23,7 +24,6 @@ import { VGrid, VGridVueTemplate } from "@revolist/vue3-datagrid";
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { SpTheme, SpButton } from '@starport/vue';
-import FundButton from '../components/FundButton.vue'
 import router from '../router'
 
 export default {
@@ -43,15 +43,20 @@ export default {
         { name: "Symbol", prop: "symbol", sortable: true }, 
         { name: "Price", cellTemplate: (createElement, props) => { return createElement('span', {}, "1 ATOM" )} },
         { name: "Market Cap", cellTemplate: (createElement, props) => { return createElement('span', {}, "0 ATOM" )} },
-        { name: "1 Day", cellTemplate: (createElement, props) => { return createElement('span', { style: { color: "green" } }, "0%")} },
-        { prop: "symbol", cellTemplate: VGridVueTemplate(FundButton) },
+        { name: "1 Day", cellTemplate: (createElement, props) => { return createElement('span', { style: { color: "green" } }, "0%")} }
       ],
       rows: funds,
       router: router
     };
   },
+  methods: {
+    onRowClick(e) {
+      var fund = e.detail.model
+      router.push("/funds/" + fund.symbol)
+    }
+  },
   components: {
-    VGrid, SpTheme, SpButton, FundButton
+    VGrid, SpTheme, SpButton
   },
 };
 </script>

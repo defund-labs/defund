@@ -31,6 +31,8 @@ import Warning from './components/Warning.vue'
 import Sending from './components/Sending.vue'
 import { store } from './store/local/store.js'
 import { initializeApp } from "firebase/app";
+import flatten from 'flat';
+import _ from 'lodash';
 export default {
   components: { SpTheme, Navbar, Success, Warning, Sending },
 
@@ -73,6 +75,48 @@ export default {
     // lh
     onBeforeMount(async () => {
       await $s.dispatch('common/env/init')
+
+      // create list of where we will store validators
+      var validators = []
+      // init the stores we need
+      var validators_init = await $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {subscribe: true, all: false})
+      // calculate the number of pages of validators
+      var numberValPages = Math.ceil(Number(validators_init.pagination.total)/100)
+      // dispatch calls for all validators
+      var validators_raw = [...Array(numberValPages).keys()].map(async (page) => {
+        var new_validators = await $s.dispatch("cosmos.staking.v1beta1/QueryValidators", {query: { "pagination.offset": page * 100 }, subscribe: false, all: false})
+        return new_validators
+      })
+      // resolve all pages of validators
+      var valsPromises = await Promise.all(validators_raw)
+      // map the validators to a full list of all vals from a list of pages
+      var vals = valsPromises.map(async (val) => {
+        var new_val = JSON.parse(JSON.stringify(val["validators"]))
+        validators = [...validators, ...new_val]
+        return JSON.parse(JSON.stringify(val["validators"]))
+      })
+      // map each validator to flatten object
+      var flatVals = validators.map(async (val) => {
+          // convert each percentage into a number % (* 100)
+          val["commission"]["commission_rates"]["max_change_rate"] = _.round(Number(val["commission"]["commission_rates"]["max_change_rate"]) * 100, 2)
+          val["commission"]["commission_rates"]["max_rate"] = _.round(Number(val["commission"]["commission_rates"]["max_rate"]) * 100, 2)
+          val["commission"]["commission_rates"]["rate"] = _.round(Number(val["commission"]["commission_rates"]["rate"]) * 100, 2)
+          val["commission"]["commission_rates"]["rate_string"] = String(val["commission"]["commission_rates"]["rate"]) + "%"
+          // convert all tokens to FETF from ufetf
+          val["min_self_delegation"] = _.round(Number(val["min_self_delegation"])/1000000, 2)
+          val["tokens"] = _.round(Number(val["tokens"])/1000000, 2)
+          val["tokens_string"] = String(val["tokens"]) + " FETF"
+          return flatten(val)
+      })
+
+      var finalValsResolved = await Promise.all(flatVals)
+
+      var finalVals= _.orderBy(finalValsResolved, (o) => {
+        return +o.tokens
+      }, ["desc"])
+
+      // resolve all promises for all the flattened validators
+      store.validators = finalVals
     })
 
     return {
@@ -81,7 +125,8 @@ export default {
       router,
       // computed
       address,
-      store
+      store,
+      validators: {}
     }
   }
 }

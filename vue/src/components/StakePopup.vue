@@ -10,7 +10,7 @@
                             <span class="name text-lg">
                                 <strong>{{store.currentValidator["description.moniker"]}}</strong>
                             </span>
-                            <span class="text-sm">Commission - {{store.manageStake ? String(Math.round(Number(store.currentValidator["commission.commission_rates.rate"]) * 100, 2)) + "%" : store.currentValidator["commission.commission_rates.rate"]}}</span>
+                            <span class="text-sm">Commission - {{store.manageStake ? String(Math.round(Number(store.currentValidator["commission.commission_rates.rate"]) * 100, 2)) + "%" : store.currentValidator["commission.commission_rates.rate_string"]}}</span>
                         </div>
                     </div>
                     <div class="details-div">
@@ -29,7 +29,9 @@
                     </div>
                     <div v-if="!store.delegateInput" class="delegate-button-div">
                         <SpButton v-on:click="toggleInput(false)">Delegate</SpButton>
-                        <SpButton v-if="store.manageStake" v-on:click="toggleInput(true)" style="margin-left:10px;">Undelegate</SpButton>
+                        <SpButton v-if="store.manageStake" v-on:click="toggleInput(false, true)" style="margin-left:10px;">Redelegate</SpButton>
+                        <SpButton v-if="store.manageStake" v-on:click="toggleInput(true, false)" style="margin-left:10px;">Undelegate</SpButton>
+                        <SpButton v-if="store.manageStake" v-on:click="submitClaimMsg(store.currentValidator.operator_address)" style="margin-left:10px; background-color: #6CE5E8; border-color: #6CE5E8; color: white; font-weight: 500;">Claim</SpButton>
                     </div>
                     <div v-if="store.delegateInput">
                         <DelegateForm :delegation_amount="store.currentValidator['delegation.amount']"></DelegateForm>
@@ -60,7 +62,8 @@ export default {
 
         return {
             store: store,
-            address
+            address,
+            s: $s
         }
     },
     methods: {
@@ -72,14 +75,25 @@ export default {
                 store.valueDelegate = true
                 store.valueUndelegate = true
                 store.currentValidator = null
+                store.delegateInput = null
+                store.manageStake = false
+                store.redelegate = false
+                store.delegateInput = false
+                store.undelegate = false
+                store.undelegateInput = false
             }
         },
-        toggleInput: function(undelegate = false) {
+        toggleInput: function(undelegate = false, redelegate = false) {
             // If undelegate button flag is set, set input status store as undelegate
             if (undelegate) {
                 store.undelegate = true
             } else {
                 store.undelegate = false
+            }
+            if (redelegate) {
+                store.redelegate = true
+            } else {
+                store.redelegate = false
             }
             if (store.delegateInput == true) {
                 store.delegateInput = false
@@ -90,6 +104,43 @@ export default {
                 store.delegateInput = false
             }
         },
+        async submitClaimMsg(validator) {
+
+            const value = {
+                delegator_address: this.address,
+                validator_address: validator
+            }
+
+            this.store.sendingTx = true
+            this.store.showTxStatus = true
+
+            const res = await this.s.dispatch("cosmos.distribution.v1beta1/sendMsgWithdrawDelegatorReward", {
+                value: value,
+                fee: [{
+                    amount: "200000",
+                    denom: "ufetf"
+                }],
+                memo: ""
+            })
+
+            if(res.code == 0) { 
+                this.store.sendingTx= false
+                this.store.showTxSuccess = true 
+                this.store.showTxFail = false
+                this.store.lastTxHash = res.transactionHash
+            } else {
+                this.store.sendingTx= false
+                this.store.showTxSuccess = false
+                this.store.showTxFail = true
+                this.store.lastTxHash = res.transactionHash
+                this.store.lastTxLog = res.rawLog
+            }
+
+            // update the rewards store
+            this.s.dispatch("cosmos.distribution.v1beta1/QueryDelegationTotalRewards", {params: { delegator_address: this.address }, subscribe: true, all: false })
+
+            return res
+        }
     },
 }
 </script>

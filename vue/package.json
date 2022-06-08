@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@cosmjs/launchpad": "0.27.0",
@@ -17,15 +18,20 @@
     "@starport/vue": "^0.3.5",
     "@starport/vuex": "^0.3.5",
     "apexcharts": "^3.35.0",
+    "axios": "^0.27.2",
     "buffer": "^6.0.3",
     "core-js": "^3.18.2",
+    "dotenv": "^16.0.1",
     "firebase": "^9.8.2",
     "flat": "^5.0.2",
     "hellojs": "^1.19.5",
     "lodash": "^4.17.21",
+    "lowdb": "^3.0.0",
     "passport": "^0.6.0",
     "passport-twitter": "^1.0.4",
+    "patch-package": "^6.4.7",
     "vue": "^3.2.6",
+    "vue-axios": "^3.4.1",
     "vue-router": "^4.0.3",
     "vue3-apexcharts": "^1.4.1",
     "vuetify": "^3.0.0-beta.1",
