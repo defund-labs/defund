@@ -50,20 +50,20 @@ export default {
       this.checkEligibility()
     },
     async checkEligibility() {
-      const response = await this.axios.get("http://0u8e8hurclf2935mlnfl1t770g.akashi.derateknoloji.com/users/" + store.twitter.providerData[0].uid)
+      const response = await this.axios.get("https://users.defund.app/users/" + store.twitter.providerData[0].uid)
       this.eligible = await response.data.eligible
       this.airdropped = await response.data.data.airdropped
       return response
     },
     async markUserAsAirdropped() {
-      const response = await this.axios.put("http://0u8e8hurclf2935mlnfl1t770g.akashi.derateknoloji.com/users", { "id": store.twitter.providerData[0].uid })
+      const response = await this.axios.put("https://users.defund.app/users", { "id": store.twitter.providerData[0].uid })
       return response
     },
     async requestTokens() {
       const res = await this.checkEligibility()
       const eligible = await res.data.eligible
       if(eligible) {
-        const ret = await this.axios.post('http://5k74k6pn1lftt9giu8hj6r638k.ingress.bdl.computer/http://5t2e9or7jdcfpelef01sji8dj4.ingress.akash.virtualhosting.hk', {
+        const ret = await this.axios.post('https://cors.defund.app/https://faucet.defund.app', {
           address: this.address,
           coins: [
             "100000000ufetf"
