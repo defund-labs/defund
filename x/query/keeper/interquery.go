@@ -201,9 +201,8 @@ func contains(list []string, str string) bool {
 	return false
 }
 
-// Helper function to get all interqueries and then compare to
-// submitted & timed out queries based on key and id (key-id should always be unique)
-func (k Keeper) GetAllPendingInterqueriesFiltered(ctx sdk.Context) (list []types.Interquery) {
+//
+func (k Keeper) TimeoutInterqueries(ctx sdk.Context) (list []types.Interquery) {
 	// Get all interqueries from store
 	interqueries := k.GetAllInterquery(ctx)
 	// Get all interquery results from store
@@ -238,9 +237,9 @@ func (k Keeper) GetAllPendingInterqueriesFiltered(ctx sdk.Context) (list []types
 	return pendingqueries
 }
 
-func (k Keeper) EmitInterqueryEvents(ctx sdk.Context) {
+func (k Keeper) ModuleEndBlocker(ctx sdk.Context) {
 	//Get all interqueries that have not been submitted yet
-	pendingqueries := k.GetAllPendingInterqueriesFiltered(ctx)
+	pendingqueries := k.GetAllInterquery(ctx)
 
 	// Create holder for all events
 	events := sdk.Events{}

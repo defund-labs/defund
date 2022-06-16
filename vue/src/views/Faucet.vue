@@ -14,7 +14,7 @@
 <script>
 import { getAuth, signInWithPopup, TwitterAuthProvider } from "firebase/auth";
 import { store } from '../store/local/store.js';
-import { computed, onRenderTriggered } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 export default {
   name: 'Faucet',
@@ -26,6 +26,8 @@ export default {
   },
   data() {
     const $s = useStore()
+    var eligible
+    var airdropped
 
     const provider = new TwitterAuthProvider();
     const auth = getAuth();
@@ -33,12 +35,20 @@ export default {
         return $s.getters['common/wallet/address']
     })
 
+    if (store.twitter) {
+      const response = this.axios.get(process.env.VUE_APP_DEFUND_USERS_API + store.twitter.providerData[0].uid)
+      if(response.data) {
+        eligible = response.data.eligible
+        airdropped = response.data.data.airdropped
+      }
+    }
+
     return {
       auth,
       provider,
       store,
-      eligible: false,
-      airdropped: false,
+      eligible: eligible ? eligible : false,
+      airdropped: airdropped ? airdropped : false,
       address,
       clicked: false
     }
@@ -51,13 +61,16 @@ export default {
       this.checkEligibility()
     },
     async checkEligibility() {
-      const response = await this.axios.get("https://users.defund.app/users/" + store.twitter.providerData[0].uid)
-      this.eligible = await response.data.eligible
-      this.airdropped = await response.data.data.airdropped
-      return response
+      if (store.twitter) {
+        const response = await this.axios.get(process.env.VUE_APP_DEFUND_USERS_API + store.twitter.providerData[0].uid)
+        this.eligible = await response.data.eligible
+        this.airdropped = await response.data.data.airdropped
+        return response
+      }
+      return null
     },
     async markUserAsAirdropped() {
-      const response = await this.axios.put("https://users.defund.app/users", { "id": store.twitter.providerData[0].uid })
+      const response = await this.axios.put(process.env.VUE_APP_DEFUND_USERS_API, { "id": store.twitter.providerData[0].uid })
       return response
     },
     async requestTokens() {
@@ -65,13 +78,15 @@ export default {
       const res = await this.checkEligibility()
       const eligible = await res.data.eligible
       if(eligible) {
-        const ret = this.axios.post('https://cors.defund.app/https://faucet.defund.app', {
+        const ret = await this.axios.post('https://cors.defund.app/' + process.env.VUE_APP_DEFUND_FAUCET_API, {
           address: this.address,
           coins: [
             "100000000ufetf"
           ]
         })
-        this.markUserAsAirdropped()
+        if (ret.statusCode == 200) {
+          this.markUserAsAirdropped()
+        }
         return
       }
       return

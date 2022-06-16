@@ -266,8 +266,8 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, broker string, holdings []etftype
 	return nil
 }
 
-// EndBlockerRun creates all the repeated interqueries
-func (k Keeper) EndBlockerRun(ctx sdk.Context) error {
+// CreateDefundQueries creates all the repeated interqueries for defund
+func (k Keeper) CreateDefundQueries(ctx sdk.Context) error {
 	// Run every 10th block
 	if ctx.BlockHeight()%50 == 0 {
 		// Add gravity dex interquery
