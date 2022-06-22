@@ -62,7 +62,11 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		Proof:    msg.Proof,
 	}
 
+	// Create the interquery result in the store
 	k.SetInterqueryResult(ctx, interqueryresult)
+
+	// Remove/cleanup the pending interquery from the store
+	k.RemoveInterquery(ctx, interqueryresult.Storeid)
 
 	return &types.MsgCreateInterqueryResultResponse{}, nil
 }

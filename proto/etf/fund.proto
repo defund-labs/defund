@@ -2,7 +2,7 @@ syntax = "proto3";
 package defundlabs.defund.etf;
 
 import "gogoproto/gogo.proto";
-
+import "broker/broker.proto"
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
@@ -30,7 +30,7 @@ message Fund {
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = false
   ];
-  string broker = 6;
+  broker broker = 6;
   repeated Holding holdings = 7 [
     (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
     (gogoproto.nullable) = false

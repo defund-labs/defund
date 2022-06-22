@@ -20,7 +20,7 @@ chains:
       value:
         key: rly2
         chain-id: theta-testnet-001
-        rpc-addr: http://sentry-01.theta-testnet.polypore.xyz:26657
+        rpc-addr: http://rpc.sentry-01.theta-testnet.polypore.xyz:26657
         account-prefix: cosmos
         keyring-backend: test
         gas-adjustment: 1.2

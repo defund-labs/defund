@@ -6,6 +6,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	querytypes "github.com/defund-labs/defund/x/query/types"
 )
 
 type AccountKeeper interface {
@@ -67,7 +68,7 @@ type ChannelKeeper interface {
 
 type InterqueryKeeper interface {
 	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error
-	GetInterqueryResultFromStore(ctx sdk.Context, storeid string) ([]byte, error)
+	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
 	CheckHoldings(ctx sdk.Context, broker string, holdings []Holding) error
 	GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error)
 }

@@ -68,6 +68,18 @@ func (k Keeper) GetInterquery(
 	return val, true
 }
 
+// RemoveInterquery removes an interquery from the store
+func (k Keeper) RemoveInterquery(
+	ctx sdk.Context,
+	storeid string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
+	store.Delete(types.InterqueryKey(
+		storeid,
+	))
+}
+
 // GetAllInterquery returns all interquery
 func (k Keeper) GetAllInterquery(ctx sdk.Context) (list []types.Interquery) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
@@ -117,6 +129,18 @@ func (k Keeper) GetInterqueryResult(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+// RemoveInterqueryResult removes an interquery result from the store
+func (k Keeper) RemoveInterqueryResult(
+	ctx sdk.Context,
+	storeid string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryResultKeyPrefix)
+	store.Delete(types.InterqueryResultKey(
+		storeid,
+	))
 }
 
 // GetAllInterqueryResult returns all interquery results from the store
@@ -172,6 +196,18 @@ func (k Keeper) GetInterqueryTimeoutResult(
 	return val, true
 }
 
+// RemoveInterqueryTimeoutResult removes an interquery timeout result from the store
+func (k Keeper) RemoveInterqueryTimeoutResult(
+	ctx sdk.Context,
+	storeid string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryTimeoutResultKeyPrefix)
+	store.Delete(types.InterqueryTimeoutResultKey(
+		storeid,
+	))
+}
+
 // GetAllInterquery returns all interquery
 func (k Keeper) GetAllInterqueryTimeoutResult(ctx sdk.Context) (list []types.InterqueryTimeoutResult) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryTimeoutResultKeyPrefix)
@@ -186,77 +222,4 @@ func (k Keeper) GetAllInterqueryTimeoutResult(ctx sdk.Context) (list []types.Int
 	}
 
 	return
-}
-
-/////////////////////////////// Interquery Endblock Helpers ///////////////////////////////////////////
-
-// Function to check if a string is within a slice
-func contains(list []string, str string) bool {
-	for _, value := range list {
-		if value == str {
-			return true
-		}
-	}
-
-	return false
-}
-
-//
-func (k Keeper) TimeoutInterqueries(ctx sdk.Context) (list []types.Interquery) {
-	// Get all interqueries from store
-	interqueries := k.GetAllInterquery(ctx)
-	// Get all interquery results from store
-	interqueriesresults := k.GetAllInterqueryResult(ctx)
-	// Get all interquery timeouts from store
-	interqueriestimeouts := k.GetAllInterqueryTimeoutResult(ctx)
-
-	// Set up blank list to store all the completed ids below
-	completeids := []string{}
-	// Set up blank list to store all the pending queries that need to be emitted
-	pendingqueries := []types.Interquery{}
-
-	// Add to list of complete ids for interquery results
-	for _, queryresult := range interqueriesresults {
-		if !contains(completeids, queryresult.Storeid) {
-			completeids = append(completeids, queryresult.Storeid)
-		}
-	}
-	// Add to list of timedout ids for interquery timeout results
-	for _, querytimeout := range interqueriestimeouts {
-		if !contains(completeids, querytimeout.Storeid) {
-			completeids = append(completeids, querytimeout.Storeid)
-		}
-	}
-
-	for _, query := range interqueries {
-		if !contains(completeids, query.Storeid) {
-			pendingqueries = append(pendingqueries, query)
-		}
-	}
-
-	return pendingqueries
-}
-
-func (k Keeper) ModuleEndBlocker(ctx sdk.Context) {
-	//Get all interqueries that have not been submitted yet
-	pendingqueries := k.GetAllInterquery(ctx)
-
-	// Create holder for all events
-	events := sdk.Events{}
-
-	for _, query := range pendingqueries {
-
-		event := sdk.NewEvent(
-			types.EventTypeQuery,
-			sdk.NewAttribute(types.AttributeKeyQueryClientId, query.ClientId),
-			sdk.NewAttribute(types.AttributeKeyQueryPath, query.Path),
-			sdk.NewAttribute(types.AttributeKeyQueryStoreid, query.Storeid),
-		)
-
-		events = append(events, event)
-
-	}
-
-	//Emit the query event
-	ctx.EventManager().EmitEvents(events)
 }

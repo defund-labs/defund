@@ -3,11 +3,8 @@ package inter_tx
 import (
 	"fmt"
 
-	proto "github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/defund-labs/defund/x/broker/keeper"
 
@@ -101,7 +98,8 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// Disallow user-initiated channel closing for broker channels
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -149,21 +147,4 @@ func (im IBCModule) NegotiateAppVersion(
 	proposedVersion string,
 ) (string, error) {
 	return "", nil
-}
-
-func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	switch msgData.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
-		}
-
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
-	default:
-		return "", nil
-	}
 }

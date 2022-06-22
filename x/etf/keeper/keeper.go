@@ -179,7 +179,7 @@ func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.F
 func (k Keeper) EndBlocker(ctx sdk.Context) error {
 	err := k.CreateAllFundPriceEndBlock(ctx)
 	if err != nil {
-		ctx.Logger().Error("Error Creating Fund Price Log:", err.Error())
+		ctx.Logger().Debug("Error Creating Fund Price Log:", err.Error())
 	}
 	return nil
 }
