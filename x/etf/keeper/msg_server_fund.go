@@ -41,7 +41,7 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings 
 		})
 	}
 	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
-	err := k.queryKeeper.CheckHoldings(ctx, broker, holdingsList)
+	err := k.CheckHoldings(ctx, broker, holdingsList)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,13 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
+	broker, found := k.brokerKeeper.GetBroker(ctx, msg.Broker)
+	if !found {
+		return nil, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", msg.Broker))
+	}
+
 	// Create and save the broker fund ICA account on the broker chain
-	err := k.brokerKeeper.RegisterBrokerAccount(ctx, msg.ConnectionId, acc.GetAddress().String())
+	err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc.GetAddress().String())
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +100,11 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Name:         msg.Name,
 		Description:  msg.Description,
 		Shares:       sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
-		Broker:       msg.Broker,
+		Broker:       &broker,
 		Holdings:     holdings,
 		BaseDenom:    msg.BaseDenom,
 		Rebalance:    msg.Rebalance,
-		ConnectionId: msg.ConnectionId,
+		ConnectionId: broker.ConnectionId,
 	}
 
 	k.SetFund(

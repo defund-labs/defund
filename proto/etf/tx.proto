@@ -29,7 +29,6 @@ message MsgCreateFund {
   string holdings = 6;
   int64 rebalance = 7;
   string baseDenom = 8;
-  string connectionId = 9;
 }
 message MsgCreateFundResponse {}
 

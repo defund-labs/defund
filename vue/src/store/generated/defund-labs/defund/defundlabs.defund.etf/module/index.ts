@@ -4,14 +4,14 @@ import { StdFee } from "@cosmjs/launchpad";
 import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
-import { MsgInvest } from "./types/etf/tx";
 import { MsgCreateFund } from "./types/etf/tx";
+import { MsgInvest } from "./types/etf/tx";
 import { MsgUninvest } from "./types/etf/tx";
 
 
 const types = [
-  ["/defundlabs.defund.etf.MsgInvest", MsgInvest],
   ["/defundlabs.defund.etf.MsgCreateFund", MsgCreateFund],
+  ["/defundlabs.defund.etf.MsgInvest", MsgInvest],
   ["/defundlabs.defund.etf.MsgUninvest", MsgUninvest],
   
 ];
@@ -45,8 +45,8 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
 
   return {
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
-    msgInvest: (data: MsgInvest): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgInvest", value: MsgInvest.fromPartial( data ) }),
     msgCreateFund: (data: MsgCreateFund): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgCreateFund", value: MsgCreateFund.fromPartial( data ) }),
+    msgInvest: (data: MsgInvest): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgInvest", value: MsgInvest.fromPartial( data ) }),
     msgUninvest: (data: MsgUninvest): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgUninvest", value: MsgUninvest.fromPartial( data ) }),
     
   };

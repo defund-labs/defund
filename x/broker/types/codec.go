@@ -15,17 +15,17 @@ var (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(MsgRegisterBrokerAccount{}, "broker/MsgRegisterBrokerAccount", nil)
-	cdc.RegisterConcrete(MsgCosmosSwap{}, "broker/MsgCosmosSwap", nil)
+	cdc.RegisterConcrete(&MsgAddLiquiditySource{}, "broker/AddLiquiditySource", nil)
+	cdc.RegisterConcrete(&MsgAddConnectionBroker{}, "broker/AddConnectionBroker", nil)
 	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgRegisterBrokerAccount{},
+		&MsgAddLiquiditySource{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCosmosSwap{},
+		&MsgAddConnectionBroker{},
 	)
 	// this line is used by starport scaffolding # 3
 

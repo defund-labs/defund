@@ -33,7 +33,6 @@ func QueryKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		nil,
 		nil,
-		nil,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

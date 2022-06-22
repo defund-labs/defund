@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	"github.com/defund-labs/defund/x/etf/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/defund-labs/defund/x/etf/types"
 )
 
 func (k msgServer) Invest(goCtx context.Context, msg *types.MsgInvest) (*types.MsgInvestResponse, error) {

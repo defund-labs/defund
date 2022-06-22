@@ -1,10 +1,12 @@
 import { txClient, queryClient, MissingWalletError , registry} from './module'
 
+import { Pool } from "./module/types/broker/broker"
+import { Broker } from "./module/types/broker/broker"
 import { BrokerPacketData } from "./module/types/broker/packet"
 import { NoData } from "./module/types/broker/packet"
 
 
-export { BrokerPacketData, NoData };
+export { Pool, Broker, BrokerPacketData, NoData };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -44,6 +46,8 @@ const getDefaultState = () => {
 	return {
 				
 				_Structure: {
+						Pool: getStructure(Pool.fromPartial({})),
+						Broker: getStructure(Broker.fromPartial({})),
 						BrokerPacketData: getStructure(BrokerPacketData.fromPartial({})),
 						NoData: getStructure(NoData.fromPartial({})),
 						
@@ -108,7 +112,63 @@ export default {
 			})
 		},
 		
+		async sendMsgAddLiquiditySource({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgAddLiquiditySource(value)
+				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
+	gas: "200000" }, memo})
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgAddLiquiditySource:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
+		async sendMsgAddConnectionBroker({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgAddConnectionBroker(value)
+				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
+	gas: "200000" }, memo})
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgAddConnectionBroker:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
 		
+		async MsgAddLiquiditySource({ rootGetters }, { value }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgAddLiquiditySource(value)
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgAddLiquiditySource:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgAddConnectionBroker({ rootGetters }, { value }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgAddConnectionBroker(value)
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgAddConnectionBroker:Create Could not create message: ' + e.message)
+				}
+			}
+		},
 		
 	}
 }

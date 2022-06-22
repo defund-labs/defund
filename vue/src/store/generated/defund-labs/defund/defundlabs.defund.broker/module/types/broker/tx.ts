@@ -1,198 +1,62 @@
 /* eslint-disable */
 import { Reader, Writer } from "protobufjs/minimal";
-import { Any } from "../google/protobuf/any";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
-/** MsgRegisterBrokerAccount defines the payload for Msg/RegisterBrokerAccount */
-export interface MsgRegisterBrokerAccount {
-  owner: string;
-  connection_id: string;
+export interface MsgAddLiquiditySource {
+  creator: string;
+  brokerId: string;
+  poolId: string;
 }
 
-/** MsgRegisterBrokerAccountResponse defines the response for Msg/RegisterBrokerAccount */
-export interface MsgRegisterBrokerAccountResponse {}
+export interface MsgAddLiquiditySourceResponse {}
 
-/** MsgCosmosSwap defines the payload for Msg/CosmosSwap */
-export interface MsgCosmosSwap {
-  owner: string;
-  connection_id: string;
-  msg: Any | undefined;
+export interface MsgAddConnectionBroker {
+  creator: string;
+  brokerId: string;
+  connectionId: string;
 }
 
-/** MsgCosmosSwapResponse defines the response for Msg/CosmosSwap */
-export interface MsgCosmosSwapResponse {}
+export interface MsgAddConnectionBrokerResponse {}
 
-const baseMsgRegisterBrokerAccount: object = { owner: "", connection_id: "" };
+const baseMsgAddLiquiditySource: object = {
+  creator: "",
+  brokerId: "",
+  poolId: "",
+};
 
-export const MsgRegisterBrokerAccount = {
+export const MsgAddLiquiditySource = {
   encode(
-    message: MsgRegisterBrokerAccount,
+    message: MsgAddLiquiditySource,
     writer: Writer = Writer.create()
   ): Writer {
-    if (message.owner !== "") {
-      writer.uint32(10).string(message.owner);
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
     }
-    if (message.connection_id !== "") {
-      writer.uint32(18).string(message.connection_id);
+    if (message.brokerId !== "") {
+      writer.uint32(18).string(message.brokerId);
+    }
+    if (message.poolId !== "") {
+      writer.uint32(26).string(message.poolId);
     }
     return writer;
   },
 
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): MsgRegisterBrokerAccount {
+  decode(input: Reader | Uint8Array, length?: number): MsgAddLiquiditySource {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgRegisterBrokerAccount,
-    } as MsgRegisterBrokerAccount;
+    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.owner = reader.string();
+          message.creator = reader.string();
           break;
         case 2:
-          message.connection_id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): MsgRegisterBrokerAccount {
-    const message = {
-      ...baseMsgRegisterBrokerAccount,
-    } as MsgRegisterBrokerAccount;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = String(object.owner);
-    } else {
-      message.owner = "";
-    }
-    if (object.connection_id !== undefined && object.connection_id !== null) {
-      message.connection_id = String(object.connection_id);
-    } else {
-      message.connection_id = "";
-    }
-    return message;
-  },
-
-  toJSON(message: MsgRegisterBrokerAccount): unknown {
-    const obj: any = {};
-    message.owner !== undefined && (obj.owner = message.owner);
-    message.connection_id !== undefined &&
-      (obj.connection_id = message.connection_id);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<MsgRegisterBrokerAccount>
-  ): MsgRegisterBrokerAccount {
-    const message = {
-      ...baseMsgRegisterBrokerAccount,
-    } as MsgRegisterBrokerAccount;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = object.owner;
-    } else {
-      message.owner = "";
-    }
-    if (object.connection_id !== undefined && object.connection_id !== null) {
-      message.connection_id = object.connection_id;
-    } else {
-      message.connection_id = "";
-    }
-    return message;
-  },
-};
-
-const baseMsgRegisterBrokerAccountResponse: object = {};
-
-export const MsgRegisterBrokerAccountResponse = {
-  encode(
-    _: MsgRegisterBrokerAccountResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): MsgRegisterBrokerAccountResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgRegisterBrokerAccountResponse,
-    } as MsgRegisterBrokerAccountResponse;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(_: any): MsgRegisterBrokerAccountResponse {
-    const message = {
-      ...baseMsgRegisterBrokerAccountResponse,
-    } as MsgRegisterBrokerAccountResponse;
-    return message;
-  },
-
-  toJSON(_: MsgRegisterBrokerAccountResponse): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  fromPartial(
-    _: DeepPartial<MsgRegisterBrokerAccountResponse>
-  ): MsgRegisterBrokerAccountResponse {
-    const message = {
-      ...baseMsgRegisterBrokerAccountResponse,
-    } as MsgRegisterBrokerAccountResponse;
-    return message;
-  },
-};
-
-const baseMsgCosmosSwap: object = { owner: "", connection_id: "" };
-
-export const MsgCosmosSwap = {
-  encode(message: MsgCosmosSwap, writer: Writer = Writer.create()): Writer {
-    if (message.owner !== "") {
-      writer.uint32(10).string(message.owner);
-    }
-    if (message.connection_id !== "") {
-      writer.uint32(18).string(message.connection_id);
-    }
-    if (message.msg !== undefined) {
-      Any.encode(message.msg, writer.uint32(26).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): MsgCosmosSwap {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgCosmosSwap } as MsgCosmosSwap;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.owner = reader.string();
-          break;
-        case 2:
-          message.connection_id = reader.string();
+          message.brokerId = reader.string();
           break;
         case 3:
-          message.msg = Any.decode(reader, reader.uint32());
+          message.poolId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -202,68 +66,76 @@ export const MsgCosmosSwap = {
     return message;
   },
 
-  fromJSON(object: any): MsgCosmosSwap {
-    const message = { ...baseMsgCosmosSwap } as MsgCosmosSwap;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = String(object.owner);
+  fromJSON(object: any): MsgAddLiquiditySource {
+    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = String(object.creator);
     } else {
-      message.owner = "";
+      message.creator = "";
     }
-    if (object.connection_id !== undefined && object.connection_id !== null) {
-      message.connection_id = String(object.connection_id);
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = String(object.brokerId);
     } else {
-      message.connection_id = "";
+      message.brokerId = "";
     }
-    if (object.msg !== undefined && object.msg !== null) {
-      message.msg = Any.fromJSON(object.msg);
+    if (object.poolId !== undefined && object.poolId !== null) {
+      message.poolId = String(object.poolId);
     } else {
-      message.msg = undefined;
+      message.poolId = "";
     }
     return message;
   },
 
-  toJSON(message: MsgCosmosSwap): unknown {
+  toJSON(message: MsgAddLiquiditySource): unknown {
     const obj: any = {};
-    message.owner !== undefined && (obj.owner = message.owner);
-    message.connection_id !== undefined &&
-      (obj.connection_id = message.connection_id);
-    message.msg !== undefined &&
-      (obj.msg = message.msg ? Any.toJSON(message.msg) : undefined);
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.brokerId !== undefined && (obj.brokerId = message.brokerId);
+    message.poolId !== undefined && (obj.poolId = message.poolId);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgCosmosSwap>): MsgCosmosSwap {
-    const message = { ...baseMsgCosmosSwap } as MsgCosmosSwap;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = object.owner;
+  fromPartial(
+    object: DeepPartial<MsgAddLiquiditySource>
+  ): MsgAddLiquiditySource {
+    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = object.creator;
     } else {
-      message.owner = "";
+      message.creator = "";
     }
-    if (object.connection_id !== undefined && object.connection_id !== null) {
-      message.connection_id = object.connection_id;
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = object.brokerId;
     } else {
-      message.connection_id = "";
+      message.brokerId = "";
     }
-    if (object.msg !== undefined && object.msg !== null) {
-      message.msg = Any.fromPartial(object.msg);
+    if (object.poolId !== undefined && object.poolId !== null) {
+      message.poolId = object.poolId;
     } else {
-      message.msg = undefined;
+      message.poolId = "";
     }
     return message;
   },
 };
 
-const baseMsgCosmosSwapResponse: object = {};
+const baseMsgAddLiquiditySourceResponse: object = {};
 
-export const MsgCosmosSwapResponse = {
-  encode(_: MsgCosmosSwapResponse, writer: Writer = Writer.create()): Writer {
+export const MsgAddLiquiditySourceResponse = {
+  encode(
+    _: MsgAddLiquiditySourceResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgCosmosSwapResponse {
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): MsgAddLiquiditySourceResponse {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgCosmosSwapResponse } as MsgCosmosSwapResponse;
+    const message = {
+      ...baseMsgAddLiquiditySourceResponse,
+    } as MsgAddLiquiditySourceResponse;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -275,30 +147,189 @@ export const MsgCosmosSwapResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgCosmosSwapResponse {
-    const message = { ...baseMsgCosmosSwapResponse } as MsgCosmosSwapResponse;
+  fromJSON(_: any): MsgAddLiquiditySourceResponse {
+    const message = {
+      ...baseMsgAddLiquiditySourceResponse,
+    } as MsgAddLiquiditySourceResponse;
     return message;
   },
 
-  toJSON(_: MsgCosmosSwapResponse): unknown {
+  toJSON(_: MsgAddLiquiditySourceResponse): unknown {
     const obj: any = {};
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgCosmosSwapResponse>): MsgCosmosSwapResponse {
-    const message = { ...baseMsgCosmosSwapResponse } as MsgCosmosSwapResponse;
+  fromPartial(
+    _: DeepPartial<MsgAddLiquiditySourceResponse>
+  ): MsgAddLiquiditySourceResponse {
+    const message = {
+      ...baseMsgAddLiquiditySourceResponse,
+    } as MsgAddLiquiditySourceResponse;
+    return message;
+  },
+};
+
+const baseMsgAddConnectionBroker: object = {
+  creator: "",
+  brokerId: "",
+  connectionId: "",
+};
+
+export const MsgAddConnectionBroker = {
+  encode(
+    message: MsgAddConnectionBroker,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.brokerId !== "") {
+      writer.uint32(18).string(message.brokerId);
+    }
+    if (message.connectionId !== "") {
+      writer.uint32(26).string(message.connectionId);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): MsgAddConnectionBroker {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.brokerId = reader.string();
+          break;
+        case 3:
+          message.connectionId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgAddConnectionBroker {
+    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = String(object.creator);
+    } else {
+      message.creator = "";
+    }
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = String(object.brokerId);
+    } else {
+      message.brokerId = "";
+    }
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = String(object.connectionId);
+    } else {
+      message.connectionId = "";
+    }
+    return message;
+  },
+
+  toJSON(message: MsgAddConnectionBroker): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.brokerId !== undefined && (obj.brokerId = message.brokerId);
+    message.connectionId !== undefined &&
+      (obj.connectionId = message.connectionId);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<MsgAddConnectionBroker>
+  ): MsgAddConnectionBroker {
+    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = object.creator;
+    } else {
+      message.creator = "";
+    }
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = object.brokerId;
+    } else {
+      message.brokerId = "";
+    }
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = object.connectionId;
+    } else {
+      message.connectionId = "";
+    }
+    return message;
+  },
+};
+
+const baseMsgAddConnectionBrokerResponse: object = {};
+
+export const MsgAddConnectionBrokerResponse = {
+  encode(
+    _: MsgAddConnectionBrokerResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): MsgAddConnectionBrokerResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseMsgAddConnectionBrokerResponse,
+    } as MsgAddConnectionBrokerResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgAddConnectionBrokerResponse {
+    const message = {
+      ...baseMsgAddConnectionBrokerResponse,
+    } as MsgAddConnectionBrokerResponse;
+    return message;
+  },
+
+  toJSON(_: MsgAddConnectionBrokerResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(
+    _: DeepPartial<MsgAddConnectionBrokerResponse>
+  ): MsgAddConnectionBrokerResponse {
+    const message = {
+      ...baseMsgAddConnectionBrokerResponse,
+    } as MsgAddConnectionBrokerResponse;
     return message;
   },
 };
 
 /** Msg defines the Msg service. */
 export interface Msg {
-  /** Register defines a rpc handler for MsgRegisterBrokerAccount */
-  RegisterBrokerAccount(
-    request: MsgRegisterBrokerAccount
-  ): Promise<MsgRegisterBrokerAccountResponse>;
-  /** CosmosSwap defines a rpc handler for MsgCosmosSwap */
-  CosmosSwap(request: MsgCosmosSwap): Promise<MsgCosmosSwapResponse>;
+  /** Register defines a rpc handler for MsgAddLiquiditySource */
+  AddLiquiditySource(
+    request: MsgAddLiquiditySource
+  ): Promise<MsgAddLiquiditySourceResponse>;
+  /** this line is used by starport scaffolding # proto/tx/rpc */
+  AddConnectionBroker(
+    request: MsgAddConnectionBroker
+  ): Promise<MsgAddConnectionBrokerResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -306,29 +337,31 @@ export class MsgClientImpl implements Msg {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
   }
-  RegisterBrokerAccount(
-    request: MsgRegisterBrokerAccount
-  ): Promise<MsgRegisterBrokerAccountResponse> {
-    const data = MsgRegisterBrokerAccount.encode(request).finish();
+  AddLiquiditySource(
+    request: MsgAddLiquiditySource
+  ): Promise<MsgAddLiquiditySourceResponse> {
+    const data = MsgAddLiquiditySource.encode(request).finish();
     const promise = this.rpc.request(
       "defundlabs.defund.broker.Msg",
-      "RegisterBrokerAccount",
+      "AddLiquiditySource",
       data
     );
     return promise.then((data) =>
-      MsgRegisterBrokerAccountResponse.decode(new Reader(data))
+      MsgAddLiquiditySourceResponse.decode(new Reader(data))
     );
   }
 
-  CosmosSwap(request: MsgCosmosSwap): Promise<MsgCosmosSwapResponse> {
-    const data = MsgCosmosSwap.encode(request).finish();
+  AddConnectionBroker(
+    request: MsgAddConnectionBroker
+  ): Promise<MsgAddConnectionBrokerResponse> {
+    const data = MsgAddConnectionBroker.encode(request).finish();
     const promise = this.rpc.request(
       "defundlabs.defund.broker.Msg",
-      "CosmosSwap",
+      "AddConnectionBroker",
       data
     );
     return promise.then((data) =>
-      MsgCosmosSwapResponse.decode(new Reader(data))
+      MsgAddConnectionBrokerResponse.decode(new Reader(data))
     );
   }
 }

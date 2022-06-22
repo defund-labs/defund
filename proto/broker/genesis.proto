@@ -3,10 +3,12 @@ package defundlabs.defund.broker;
 
 // this line is used by starport scaffolding # genesis/proto/import
 import "gogoproto/gogo.proto";
+import "broker/broker.proto";
 
 option go_package = "github.com/defund-labs/defund/x/broker/types";
 
 // GenesisState defines the broker module's genesis state.
 message GenesisState {
+  repeated Broker brokers = 1 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

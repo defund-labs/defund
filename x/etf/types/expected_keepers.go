@@ -6,6 +6,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 )
 
@@ -56,6 +57,7 @@ type BankKeeper interface {
 }
 
 type BrokerKeeper interface {
+	GetBroker(ctx sdk.Context, id string) (val brokertypes.Broker, found bool)
 	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
 	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
 	SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
@@ -69,6 +71,4 @@ type ChannelKeeper interface {
 type InterqueryKeeper interface {
 	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
-	CheckHoldings(ctx sdk.Context, broker string, holdings []Holding) error
-	GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]sdk.Coin, error)
 }

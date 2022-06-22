@@ -2,6 +2,7 @@
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Coin } from "../cosmos/base/v1beta1/coin";
+import { Broker } from "../broker/broker";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
@@ -25,7 +26,7 @@ export interface Fund {
   name: string;
   description: string;
   shares: Coin | undefined;
-  broker: string;
+  broker: Broker | undefined;
   holdings: Holding[];
   rebalance: number;
   baseDenom: string;
@@ -254,7 +255,6 @@ const baseFund: object = {
   address: "",
   name: "",
   description: "",
-  broker: "",
   rebalance: 0,
   baseDenom: "",
   connectionId: "",
@@ -278,8 +278,8 @@ export const Fund = {
     if (message.shares !== undefined) {
       Coin.encode(message.shares, writer.uint32(42).fork()).ldelim();
     }
-    if (message.broker !== "") {
-      writer.uint32(50).string(message.broker);
+    if (message.broker !== undefined) {
+      Broker.encode(message.broker, writer.uint32(50).fork()).ldelim();
     }
     for (const v of message.holdings) {
       Holding.encode(v!, writer.uint32(58).fork()).ldelim();
@@ -323,7 +323,7 @@ export const Fund = {
           message.shares = Coin.decode(reader, reader.uint32());
           break;
         case 6:
-          message.broker = reader.string();
+          message.broker = Broker.decode(reader, reader.uint32());
           break;
         case 7:
           message.holdings.push(Holding.decode(reader, reader.uint32()));
@@ -377,9 +377,9 @@ export const Fund = {
       message.shares = undefined;
     }
     if (object.broker !== undefined && object.broker !== null) {
-      message.broker = String(object.broker);
+      message.broker = Broker.fromJSON(object.broker);
     } else {
-      message.broker = "";
+      message.broker = undefined;
     }
     if (object.holdings !== undefined && object.holdings !== null) {
       for (const e of object.holdings) {
@@ -418,7 +418,8 @@ export const Fund = {
       (obj.description = message.description);
     message.shares !== undefined &&
       (obj.shares = message.shares ? Coin.toJSON(message.shares) : undefined);
-    message.broker !== undefined && (obj.broker = message.broker);
+    message.broker !== undefined &&
+      (obj.broker = message.broker ? Broker.toJSON(message.broker) : undefined);
     if (message.holdings) {
       obj.holdings = message.holdings.map((e) =>
         e ? Holding.toJSON(e) : undefined
@@ -463,9 +464,9 @@ export const Fund = {
       message.shares = undefined;
     }
     if (object.broker !== undefined && object.broker !== null) {
-      message.broker = object.broker;
+      message.broker = Broker.fromPartial(object.broker);
     } else {
-      message.broker = "";
+      message.broker = undefined;
     }
     if (object.holdings !== undefined && object.holdings !== null) {
       for (const e of object.holdings) {

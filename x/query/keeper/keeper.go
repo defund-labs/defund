@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
 	"github.com/defund-labs/defund/x/query/types"
 
 	json "github.com/tendermint/tendermint/libs/json"
@@ -28,7 +27,6 @@ type (
 		memKey   sdk.StoreKey
 
 		accountKeeper types.AccountKeeper
-		etfKeeper     types.EtfKeeper
 		brokerKeeper  types.BrokerKeeper
 	}
 )
@@ -46,7 +44,6 @@ func NewKeeper(
 	memKey sdk.StoreKey,
 
 	accountkeeper types.AccountKeeper,
-	etfkeeper types.EtfKeeper,
 	brokerkeeper types.BrokerKeeper,
 
 ) *Keeper {
@@ -56,7 +53,6 @@ func NewKeeper(
 		memKey:   memKey,
 
 		accountKeeper: accountkeeper,
-		etfKeeper:     etfkeeper,
 		brokerKeeper:  brokerkeeper,
 	}
 }
@@ -238,28 +234,6 @@ func (k Keeper) GetHighestHeightPoolBalance(ctx sdk.Context, poolid string) ([]s
 		return []sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidPools, "No pools interqueried. Need pools interqueried to proceed")
 	}
 	return balances, nil
-}
-
-// CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
-// by checking the interchain queried pools for the broker specified
-func (k Keeper) CheckHoldings(ctx sdk.Context, broker string, holdings []etftypes.Holding) error {
-	percentCheck := uint64(0)
-	for _, holding := range holdings {
-		percentCheck = percentCheck + uint64(holding.Percent)
-		pool, err := k.GetHighestHeightPoolDetails(ctx, holding.PoolId)
-		if err != nil {
-			return err
-		}
-		// Checks to see if the holding pool contains the holding token specified and if not returns error
-		if !contains(pool.ReserveCoinDenoms, holding.Token) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid denom (%s)", holding.Token)
-		}
-	}
-	// Make sure all fund holdings add up to 100%
-	if percentCheck != uint64(100) {
-		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up to 100%")
-	}
-	return nil
 }
 
 // CreateDefundQueries creates all the repeated interqueries for defund

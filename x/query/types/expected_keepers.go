@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
 )
 
 type AccountKeeper interface {
@@ -26,10 +25,6 @@ type AccountKeeper interface {
 	SetModuleAccount(ctx sdk.Context, macc authtypes.ModuleAccountI)
 
 	UnmarshalAccount(bz []byte) (authtypes.AccountI, error)
-}
-
-type EtfKeeper interface {
-	GetAllFund(ctx sdk.Context) (list []etftypes.Fund)
 }
 
 type BrokerKeeper interface {

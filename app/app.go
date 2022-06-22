@@ -382,7 +382,7 @@ func New(
 	)
 	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
-	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper)
+	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper)
 	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
 	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper)
 
@@ -415,7 +415,6 @@ func New(
 		keys[querymoduletypes.MemStoreKey],
 
 		app.AccountKeeper,
-		app.EtfKeeper,
 		app.BrokerKeeper,
 	)
 	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)

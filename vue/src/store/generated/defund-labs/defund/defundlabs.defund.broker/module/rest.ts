@@ -9,9 +9,9 @@
  * ---------------------------------------------------------------
  */
 
-export type BrokerMsgCosmosSwapResponse = object;
+export type BrokerMsgAddConnectionBrokerResponse = object;
 
-export type BrokerMsgRegisterBrokerAccountResponse = object;
+export type BrokerMsgAddLiquiditySourceResponse = object;
 
 export interface BrokerQueryInterchainAccountFromAddressResponse {
   interchain_account_address?: string;
@@ -333,7 +333,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title broker/genesis.proto
+ * @title broker/broker.proto
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {}

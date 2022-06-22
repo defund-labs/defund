@@ -20,15 +20,14 @@ func NewMsgCreateFund(
 
 ) *MsgCreateFund {
 	return &MsgCreateFund{
-		Creator:      creator,
-		Symbol:       symbol,
-		Name:         name,
-		Description:  description,
-		Broker:       broker,
-		Holdings:     holdings,
-		Rebalance:    rebalance,
-		BaseDenom:    basedenom,
-		ConnectionId: connectionid,
+		Creator:     creator,
+		Symbol:      symbol,
+		Name:        name,
+		Description: description,
+		Broker:      broker,
+		Holdings:    holdings,
+		Rebalance:   rebalance,
+		BaseDenom:   basedenom,
 	}
 }
 

@@ -24,11 +24,11 @@ var _ sdk.Msg = &MsgInvest{}
 
 func NewMsgInvest(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgInvest {
 	return &MsgInvest{
-		Creator: creator,
-		Fund:    fund,
-		Amount:  amount,
-		Channel: channel,
-		TimeoutHeight: timeoutheight,
+		Creator:          creator,
+		Fund:             fund,
+		Amount:           amount,
+		Channel:          channel,
+		TimeoutHeight:    timeoutheight,
 		TimeoutTimestamp: timeouttimestamp,
 	}
 }

@@ -9,6 +9,20 @@
  * ---------------------------------------------------------------
  */
 
+export interface BrokerBroker {
+  id?: string;
+  connection_id?: string;
+  pools?: BrokerPool[];
+  baseDenom?: string;
+  status?: string;
+}
+
+export interface BrokerPool {
+  pool_id?: string;
+  interquery_id?: string;
+  status?: string;
+}
+
 export interface EtfFund {
   symbol?: string;
   address?: string;
@@ -22,7 +36,7 @@ export interface EtfFund {
    * signatures required by gogoproto.
    */
   shares?: V1Beta1Coin;
-  broker?: string;
+  broker?: BrokerBroker;
   holdings?: EtfHolding[];
 
   /** @format int64 */
