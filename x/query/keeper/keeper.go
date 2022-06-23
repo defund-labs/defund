@@ -58,17 +58,6 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-// Helper Function to check if a string is within a slice
-func contains(list []string, str string) bool {
-	for _, value := range list {
-		if value == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error {
 	var queryModuleAddress authtypes.ModuleAccountI
 	if k.accountKeeper.GetModuleAccount(ctx, "query") == nil {

@@ -17,7 +17,8 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v9/x/gamm/pool-models/balancer"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 type (
@@ -64,7 +65,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // helper function to check if a osmosis pool contains denom specified
-func containsAssets(assets []osmosisbalancertypes.PoolAsset, denom string) bool {
+func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	for _, pool := range assets {
 		if pool.Token.Denom == denom {
 			return true
@@ -74,8 +75,8 @@ func containsAssets(assets []osmosisbalancertypes.PoolAsset, denom string) bool 
 	return false
 }
 
-func sum(items []sdk.Dec) sdk.Dec {
-	sum := sdk.NewDec(0)
+func sum(items []sdk.Int) sdk.Int {
+	sum := sdk.NewInt(0)
 	for _, item := range items {
 		sum = sum.Add(item)
 	}

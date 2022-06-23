@@ -63,31 +63,31 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Coin, error
 	if !found {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrFundNotFound, "Could not find fund (%s)", symbol)
 	}
-	comp := []sdk.Dec{}
+	comp := []sdk.Int{}
 	for _, holding := range fund.Holdings {
 		balances, err := k.brokerKeeper.GetOsmosisPoolAssets(ctx, holding.PoolId)
 		if err != nil {
 			return sdk.Coin{}, err
 		}
 		if balances[0].Token.Denom == holding.Token && fund.BaseDenom != holding.Token {
-			baseAmount := balances[0].Token.Amount.ToDec()
-			tokenAmount := balances[1].Token.Amount.ToDec()
+			baseAmount := balances[0].Token.Amount
+			tokenAmount := balances[1].Token.Amount
 			priceInBaseDenom := tokenAmount.Quo(baseAmount)
-			percentDec := sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100))
+			percentDec := sdk.NewInt(holding.Percent).Quo(sdk.NewInt(100))
 			comp = append(comp, priceInBaseDenom.Mul(percentDec))
 		}
 		if balances[1].Token.Denom == holding.Token && fund.BaseDenom != holding.Token {
-			baseAmount := balances[1].Token.Amount.ToDec()
-			tokenAmount := balances[0].Token.Amount.ToDec()
+			baseAmount := balances[1].Token.Amount
+			tokenAmount := balances[0].Token.Amount
 			priceInBaseDenom := tokenAmount.Quo(baseAmount)
-			percentDec := sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100))
+			percentDec := sdk.NewInt(holding.Percent).Quo(sdk.NewInt(100))
 			comp = append(comp, priceInBaseDenom.Mul(percentDec))
 		}
 		// If the holding token is the baseDenom, just multiply it by the % it represents since we already know its price relative
 		// to itself. Aka -> 1/1
 		if fund.BaseDenom == holding.Token {
-			percentDec := sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100))
-			comp = append(comp, sdk.NewDec(1).Mul(percentDec))
+			percentDec := sdk.NewInt(holding.Percent).Quo(sdk.NewInt(100))
+			comp = append(comp, sdk.NewInt(1).Mul(percentDec))
 		}
 		if len(comp) == 0 {
 			return sdk.Coin{}, sdkerrors.Wrapf(types.ErrFundNotFound, "No price details found for symbol (%s)", symbol)
@@ -103,7 +103,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Coin, error
 
 	if len(invests) > 0 {
 		total := sum(comp)
-		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.RoundInt64()))
+		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.Int64()))
 	}
 
 	return price, nil

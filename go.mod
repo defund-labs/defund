@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/osmosis-labs/osmosis/v7 v7.0.0
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.4.0
@@ -22,7 +23,8 @@ require (
 )
 
 require (
-	github.com/osmosis-labs/osmosis/v9 v9.0.0
+	github.com/google/go-cmp v0.5.8 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

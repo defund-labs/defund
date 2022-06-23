@@ -16,8 +16,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v9/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v9/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 type PoolsKey struct {
@@ -59,15 +59,15 @@ func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 }
 
 // GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
-func (k Keeper) GetOsmosisPoolAssets(ctx sdk.Context, poolId string) ([]osmosisbalancertypes.PoolAsset, error) {
+func (k Keeper) GetOsmosisPoolAssets(ctx sdk.Context, poolId string) ([]osmosisgammtypes.PoolAsset, error) {
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
 	if !found {
-		return []osmosisbalancertypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+		return []osmosisgammtypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
 	}
 	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)
 	if err != nil {
-		return []osmosisbalancertypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
+		return []osmosisgammtypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
 	}
 	assets := pool.PoolAssets
 	return assets, nil
