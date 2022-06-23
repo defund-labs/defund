@@ -11,7 +11,7 @@ func (k Keeper) CreateDefundQueries(ctx sdk.Context) error {
 	// Run every 10th block (1 minute)
 	if ctx.BlockHeight()%10 == 0 {
 		// Add Osmosis broker interquery for all pools
-		k.QueryOsmosisPools(ctx)
+		k.CreateQueryOsmosisPools(ctx)
 	}
 	return nil
 }

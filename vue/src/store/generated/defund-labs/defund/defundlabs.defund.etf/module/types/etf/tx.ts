@@ -14,7 +14,6 @@ export interface MsgCreateFund {
   holdings: string;
   rebalance: number;
   baseDenom: string;
-  connectionId: string;
 }
 
 export interface MsgCreateFundResponse {}
@@ -66,7 +65,6 @@ const baseMsgCreateFund: object = {
   holdings: "",
   rebalance: 0,
   baseDenom: "",
-  connectionId: "",
 };
 
 export const MsgCreateFund = {
@@ -94,9 +92,6 @@ export const MsgCreateFund = {
     }
     if (message.baseDenom !== "") {
       writer.uint32(66).string(message.baseDenom);
-    }
-    if (message.connectionId !== "") {
-      writer.uint32(74).string(message.connectionId);
     }
     return writer;
   },
@@ -131,9 +126,6 @@ export const MsgCreateFund = {
           break;
         case 8:
           message.baseDenom = reader.string();
-          break;
-        case 9:
-          message.connectionId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -185,11 +177,6 @@ export const MsgCreateFund = {
     } else {
       message.baseDenom = "";
     }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = String(object.connectionId);
-    } else {
-      message.connectionId = "";
-    }
     return message;
   },
 
@@ -204,8 +191,6 @@ export const MsgCreateFund = {
     message.holdings !== undefined && (obj.holdings = message.holdings);
     message.rebalance !== undefined && (obj.rebalance = message.rebalance);
     message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
     return obj;
   },
 
@@ -250,11 +235,6 @@ export const MsgCreateFund = {
       message.baseDenom = object.baseDenom;
     } else {
       message.baseDenom = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = object.connectionId;
-    } else {
-      message.connectionId = "";
     }
     return message;
   },

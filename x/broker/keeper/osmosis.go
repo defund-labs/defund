@@ -16,7 +16,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v9/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v9/x/gamm/types"
 )
 
 type PoolsKey struct {
@@ -27,7 +28,7 @@ type BalanceKey struct {
 }
 
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
-func (k Keeper) QueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
+func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	path := "/store/gamm/key/"
 	clientid := "07-tendermint-0"
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
@@ -42,13 +43,13 @@ func (k Keeper) QueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 }
 
 // QueryOsmosisPools queries all pools specified in the Osmosis broker
-func (k Keeper) QueryOsmosisPools(ctx sdk.Context) {
+func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 	broker, found := k.GetBroker(ctx, "osmosis")
 	if !found {
 		return
 	}
 	for _, pool := range broker.Pools {
-		err := k.QueryOsmosisPool(ctx, pool.PoolId)
+		err := k.CreateQueryOsmosisPool(ctx, pool.PoolId)
 		if err != nil {
 			ctx.Logger().Debug(fmt.Sprintf("error creating osmosis pool query (%d): %s", pool.PoolId, err.Error()))
 			continue
@@ -57,13 +58,28 @@ func (k Keeper) QueryOsmosisPools(ctx sdk.Context) {
 	return
 }
 
+// GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
+func (k Keeper) GetOsmosisPoolAssets(ctx sdk.Context, poolId string) ([]osmosisbalancertypes.PoolAsset, error) {
+	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
+	if !found {
+		return []osmosisbalancertypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+	}
+	var pool = osmosisbalancertypes.Pool{}
+	err := json.Unmarshal(query.Data, &pool)
+	if err != nil {
+		return []osmosisbalancertypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
+	}
+	assets := pool.PoolAssets
+	return assets, nil
+}
+
 // GetPriceOfAssetFromQuery gets a pool from an interquery result and computes the price of that pool pair
 func (k Keeper) GetPriceOfAssetFromQuery(ctx sdk.Context, poolId string, tokenIn string) (sdk.Int, error) {
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
 	if !found {
 		return sdk.Int{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
 	}
-	var pool = osmosisgammtypes.Pool{}
+	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)
 	if err != nil {
 		return sdk.Int{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])

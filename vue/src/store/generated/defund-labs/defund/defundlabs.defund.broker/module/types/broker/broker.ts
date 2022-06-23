@@ -1,10 +1,11 @@
 /* eslint-disable */
-import { Writer, Reader } from "protobufjs/minimal";
+import * as Long from "long";
+import { util, configure, Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
 export interface Pool {
-  pool_id: string;
+  pool_id: number;
   interquery_id: string;
   status: string;
 }
@@ -17,12 +18,12 @@ export interface Broker {
   status: string;
 }
 
-const basePool: object = { pool_id: "", interquery_id: "", status: "" };
+const basePool: object = { pool_id: 0, interquery_id: "", status: "" };
 
 export const Pool = {
   encode(message: Pool, writer: Writer = Writer.create()): Writer {
-    if (message.pool_id !== "") {
-      writer.uint32(10).string(message.pool_id);
+    if (message.pool_id !== 0) {
+      writer.uint32(8).uint64(message.pool_id);
     }
     if (message.interquery_id !== "") {
       writer.uint32(18).string(message.interquery_id);
@@ -41,7 +42,7 @@ export const Pool = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pool_id = reader.string();
+          message.pool_id = longToNumber(reader.uint64() as Long);
           break;
         case 2:
           message.interquery_id = reader.string();
@@ -60,9 +61,9 @@ export const Pool = {
   fromJSON(object: any): Pool {
     const message = { ...basePool } as Pool;
     if (object.pool_id !== undefined && object.pool_id !== null) {
-      message.pool_id = String(object.pool_id);
+      message.pool_id = Number(object.pool_id);
     } else {
-      message.pool_id = "";
+      message.pool_id = 0;
     }
     if (object.interquery_id !== undefined && object.interquery_id !== null) {
       message.interquery_id = String(object.interquery_id);
@@ -91,7 +92,7 @@ export const Pool = {
     if (object.pool_id !== undefined && object.pool_id !== null) {
       message.pool_id = object.pool_id;
     } else {
-      message.pool_id = "";
+      message.pool_id = 0;
     }
     if (object.interquery_id !== undefined && object.interquery_id !== null) {
       message.interquery_id = object.interquery_id;
@@ -243,6 +244,16 @@ export const Broker = {
   },
 };
 
+declare var self: any | undefined;
+declare var window: any | undefined;
+var globalThis: any = (() => {
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof self !== "undefined") return self;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  throw "Unable to locate global object";
+})();
+
 type Builtin = Date | Function | Uint8Array | string | number | undefined;
 export type DeepPartial<T> = T extends Builtin
   ? T
@@ -253,3 +264,15 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (util.Long !== Long) {
+  util.Long = Long as any;
+  configure();
+}

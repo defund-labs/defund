@@ -65,20 +65,20 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Coin, error
 	}
 	comp := []sdk.Dec{}
 	for _, holding := range fund.Holdings {
-		balances, err := k.GetHighestHeightPoolBalance(ctx, holding.PoolId)
+		balances, err := k.brokerKeeper.GetOsmosisPoolAssets(ctx, holding.PoolId)
 		if err != nil {
 			return sdk.Coin{}, err
 		}
-		if balances[0].Denom == holding.Token && fund.BaseDenom != holding.Token {
-			baseAmount := balances[0].Amount.ToDec()
-			tokenAmount := balances[1].Amount.ToDec()
+		if balances[0].Token.Denom == holding.Token && fund.BaseDenom != holding.Token {
+			baseAmount := balances[0].Token.Amount.ToDec()
+			tokenAmount := balances[1].Token.Amount.ToDec()
 			priceInBaseDenom := tokenAmount.Quo(baseAmount)
 			percentDec := sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100))
 			comp = append(comp, priceInBaseDenom.Mul(percentDec))
 		}
-		if balances[1].Denom == holding.Token && fund.BaseDenom != holding.Token {
-			baseAmount := balances[1].Amount.ToDec()
-			tokenAmount := balances[0].Amount.ToDec()
+		if balances[1].Token.Denom == holding.Token && fund.BaseDenom != holding.Token {
+			baseAmount := balances[1].Token.Amount.ToDec()
+			tokenAmount := balances[0].Token.Amount.ToDec()
 			priceInBaseDenom := tokenAmount.Quo(baseAmount)
 			percentDec := sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100))
 			comp = append(comp, priceInBaseDenom.Mul(percentDec))

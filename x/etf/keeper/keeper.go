@@ -17,7 +17,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v9/x/gamm/pool-models/balancer"
 )
 
 type (
@@ -64,7 +64,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // helper function to check if a osmosis pool contains denom specified
-func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
+func containsAssets(assets []osmosisbalancertypes.PoolAsset, denom string) bool {
 	for _, pool := range assets {
 		if pool.Token.Denom == denom {
 			return true
@@ -109,17 +109,17 @@ func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.F
 
 // DecodeLiquiditySourceQuery decodes a query based on if/what broker the query is for
 // returns error if not supported/cannot unmarshall
-func (k Keeper) DecodeLiquiditySourceQuery(ctx sdk.Context, query querytypes.InterqueryResult) (osmosisgammtypes.Pool, error) {
+func (k Keeper) DecodeLiquiditySourceQuery(ctx sdk.Context, query querytypes.InterqueryResult) (osmosisbalancertypes.Pool, error) {
 	switch strings.Split(query.Storeid, "-")[0] {
 	case "osmosis":
-		var pool = osmosisgammtypes.Pool{}
-		err := json.Unmarshal(query.Data, pool)
+		var pool = osmosisbalancertypes.Pool{}
+		err := json.Unmarshal(query.Data, &pool)
 		if err != nil {
 			return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
 		}
 		return pool, nil
 	default:
-		var pool = osmosisgammtypes.Pool{}
+		var pool = osmosisbalancertypes.Pool{}
 		return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode liquidity source query. not supported (%s)", strings.Split(query.Storeid, "-")[0])
 	}
 }

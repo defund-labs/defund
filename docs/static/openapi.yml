@@ -18969,6 +18969,7 @@ paths:
                             properties:
                               pool_id:
                                 type: string
+                                format: uint64
                               interquery_id:
                                 type: string
                               status:
@@ -19153,6 +19154,7 @@ paths:
                           properties:
                             pool_id:
                               type: string
+                              format: uint64
                             interquery_id:
                               type: string
                             status:
@@ -46074,6 +46076,7 @@ definitions:
           properties:
             pool_id:
               type: string
+              format: uint64
             interquery_id:
               type: string
             status:
@@ -46087,6 +46090,7 @@ definitions:
     properties:
       pool_id:
         type: string
+        format: uint64
       interquery_id:
         type: string
       status:
@@ -46128,6 +46132,7 @@ definitions:
               properties:
                 pool_id:
                   type: string
+                  format: uint64
                 interquery_id:
                   type: string
                 status:
@@ -46297,6 +46302,7 @@ definitions:
                     properties:
                       pool_id:
                         type: string
+                        format: uint64
                       interquery_id:
                         type: string
                       status:
@@ -46423,6 +46429,7 @@ definitions:
                   properties:
                     pool_id:
                       type: string
+                      format: uint64
                     interquery_id:
                       type: string
                     status:

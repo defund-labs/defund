@@ -18,6 +18,7 @@ export interface BrokerBroker {
 }
 
 export interface BrokerPool {
+  /** @format uint64 */
   pool_id?: string;
   interquery_id?: string;
   status?: string;

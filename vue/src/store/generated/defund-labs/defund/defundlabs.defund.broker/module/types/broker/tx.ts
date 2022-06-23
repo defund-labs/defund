@@ -1,12 +1,13 @@
 /* eslint-disable */
-import { Reader, Writer } from "protobufjs/minimal";
+import { Reader, util, configure, Writer } from "protobufjs/minimal";
+import * as Long from "long";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
 export interface MsgAddLiquiditySource {
   creator: string;
   brokerId: string;
-  poolId: string;
+  poolId: number;
 }
 
 export interface MsgAddLiquiditySourceResponse {}
@@ -22,7 +23,7 @@ export interface MsgAddConnectionBrokerResponse {}
 const baseMsgAddLiquiditySource: object = {
   creator: "",
   brokerId: "",
-  poolId: "",
+  poolId: 0,
 };
 
 export const MsgAddLiquiditySource = {
@@ -36,8 +37,8 @@ export const MsgAddLiquiditySource = {
     if (message.brokerId !== "") {
       writer.uint32(18).string(message.brokerId);
     }
-    if (message.poolId !== "") {
-      writer.uint32(26).string(message.poolId);
+    if (message.poolId !== 0) {
+      writer.uint32(24).uint64(message.poolId);
     }
     return writer;
   },
@@ -56,7 +57,7 @@ export const MsgAddLiquiditySource = {
           message.brokerId = reader.string();
           break;
         case 3:
-          message.poolId = reader.string();
+          message.poolId = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -79,9 +80,9 @@ export const MsgAddLiquiditySource = {
       message.brokerId = "";
     }
     if (object.poolId !== undefined && object.poolId !== null) {
-      message.poolId = String(object.poolId);
+      message.poolId = Number(object.poolId);
     } else {
-      message.poolId = "";
+      message.poolId = 0;
     }
     return message;
   },
@@ -111,7 +112,7 @@ export const MsgAddLiquiditySource = {
     if (object.poolId !== undefined && object.poolId !== null) {
       message.poolId = object.poolId;
     } else {
-      message.poolId = "";
+      message.poolId = 0;
     }
     return message;
   },
@@ -374,6 +375,16 @@ interface Rpc {
   ): Promise<Uint8Array>;
 }
 
+declare var self: any | undefined;
+declare var window: any | undefined;
+var globalThis: any = (() => {
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof self !== "undefined") return self;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  throw "Unable to locate global object";
+})();
+
 type Builtin = Date | Function | Uint8Array | string | number | undefined;
 export type DeepPartial<T> = T extends Builtin
   ? T
@@ -384,3 +395,15 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (util.Long !== Long) {
+  util.Long = Long as any;
+  configure();
+}
