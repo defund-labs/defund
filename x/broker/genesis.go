@@ -9,8 +9,8 @@ import (
 )
 
 // Create a list of all pool ids supported on osmosis at init/genesis
-var poolsOsmosis = []string{
-	"pool-1",
+var poolsOsmosis = []uint64{
+	1,
 }
 
 // AddOsmosisToBrokers adds Osmosis as a broker to state manually
@@ -20,7 +20,7 @@ func AddOsmosisToBrokers(ctx sdk.Context, k keeper.Keeper) error {
 	for _, pool := range poolsOsmosis {
 		addPool := types.Pool{
 			PoolId:       pool,
-			InterqueryId: fmt.Sprintf("%s-%s", "osmosis", pool),
+			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", pool),
 			Status:       "active",
 		}
 		pools = append(pools, &addPool)

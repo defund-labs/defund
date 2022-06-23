@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -14,6 +16,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	querytypes "github.com/defund-labs/defund/x/query/types"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/x/gamm/types"
 )
 
 type (
@@ -59,10 +63,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// helper function to check if a string is within a slice
-func contains(list []string, str string) bool {
-	for _, value := range list {
-		if value == str {
+// helper function to check if a osmosis pool contains denom specified
+func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
+	for _, pool := range assets {
+		if pool.Token.Denom == denom {
 			return true
 		}
 	}
@@ -103,19 +107,41 @@ func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.F
 	return nil
 }
 
+// DecodeLiquiditySourceQuery decodes a query based on if/what broker the query is for
+// returns error if not supported/cannot unmarshall
+func (k Keeper) DecodeLiquiditySourceQuery(ctx sdk.Context, query querytypes.InterqueryResult) (osmosisgammtypes.Pool, error) {
+	switch strings.Split(query.Storeid, "-")[0] {
+	case "osmosis":
+		var pool = osmosisgammtypes.Pool{}
+		err := json.Unmarshal(query.Data, pool)
+		if err != nil {
+			return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
+		}
+		return pool, nil
+	default:
+		var pool = osmosisgammtypes.Pool{}
+		return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode liquidity source query. not supported (%s)", strings.Split(query.Storeid, "-")[0])
+	}
+}
+
 // CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
 // by checking the interchain queried pools for the broker specified
-func (k Keeper) CheckHoldings(ctx sdk.Context, broker string, holdings []etftypes.Holding) error {
+func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types.Holding) error {
 	percentCheck := uint64(0)
 	for _, holding := range holdings {
+		// Add percent composition to percentCheck to later confirm adds to 100%
 		percentCheck = percentCheck + uint64(holding.Percent)
-		pool, err := k.GetHighestHeightPoolDetails(ctx, holding.PoolId)
+		poolQuery, found := k.queryKeeper.GetInterqueryResult(ctx, holding.PoolId)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool details for (broker: %s, pool: %s)", brokerId, holding.PoolId)
+		}
+		pool, err := k.DecodeLiquiditySourceQuery(ctx, poolQuery)
 		if err != nil {
 			return err
 		}
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
-		if !contains(pool.ReserveCoinDenoms, holding.Token) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid denom (%s)", holding.Token)
+		if !containsAssets(pool.PoolAssets, holding.Token) {
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s)", holding.Token)
 		}
 	}
 	// Make sure all fund holdings add up to 100%

@@ -164,8 +164,6 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, eb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// Run the function to create all Defund queries
-	am.keeper.CreateDefundQueries(ctx)
 	// Run the query module endblocker
 	am.keeper.ModuleEndBlocker(ctx)
 	return []abci.ValidatorUpdate{}

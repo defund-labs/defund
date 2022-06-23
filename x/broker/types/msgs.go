@@ -22,7 +22,7 @@ func contains(list []string, str string) bool {
 	return false
 }
 
-func NewMsgAddLiquiditySource(creator string, brokerId string, poolId string) *MsgAddLiquiditySource {
+func NewMsgAddLiquiditySource(creator string, brokerId string, poolId uint64) *MsgAddLiquiditySource {
 	return &MsgAddLiquiditySource{
 		Creator:  creator,
 		BrokerId: brokerId,

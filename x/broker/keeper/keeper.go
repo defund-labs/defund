@@ -18,6 +18,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	querykeeper "github.com/defund-labs/defund/x/query/keeper"
 )
 
 type Keeper struct {
@@ -31,9 +32,10 @@ type Keeper struct {
 	channelKeeper       channelkeeper.Keeper
 	connectionKeeper    connectionkeeper.Keeper
 	clientKeeper        clientkeeper.Keeper
+	queryKeeper         querykeeper.Keeper
 }
 
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
@@ -44,6 +46,7 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkee
 		channelKeeper:       channelKeeper,
 		connectionKeeper:    connectionkeeper,
 		clientKeeper:        clientkeeper,
+		queryKeeper:         querykeeper,
 	}
 }
 

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -38,6 +39,11 @@ func CmdAddLiquiditySource() *cobra.Command {
 			argBrokerId := args[0]
 			argPoolId := args[1]
 
+			poolid, err := strconv.ParseUint(argPoolId, 10, 64)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -46,7 +52,7 @@ func CmdAddLiquiditySource() *cobra.Command {
 			msg := types.NewMsgAddLiquiditySource(
 				clientCtx.GetFromAddress().String(),
 				argBrokerId,
-				argPoolId,
+				poolid,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

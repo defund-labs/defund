@@ -19,7 +19,7 @@ service Msg {
 message MsgAddLiquiditySource {
   string creator = 1;
   string brokerId = 2;
-  string poolId = 3;
+  uint64 poolId = 3;
 }
 
 message MsgAddLiquiditySourceResponse {
