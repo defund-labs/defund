@@ -28,6 +28,6 @@ type ClientKeeper interface {
 }
 
 type InterqueryKeeper interface {
-	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error
+	CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
 }

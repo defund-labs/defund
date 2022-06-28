@@ -8,7 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 )
 
 type AccountKeeper interface {
@@ -62,7 +62,8 @@ type BrokerKeeper interface {
 	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
 	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
 	SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
-	GetOsmosisPoolAssets(ctx sdk.Context, poolId string) ([]osmosisgammtypes.PoolAsset, error)
+	GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error)
+	CalculateSpotPrice(ctx sdk.Context, poolId string, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 }
 
 type ChannelKeeper interface {

@@ -63,7 +63,7 @@ func (k *Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capabilit
 // Get a ICA account address on a host chain
 func (k Keeper) GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId string) (string, bool) {
 	acc, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, ConnectionId, portId)
-	if found != true {
+	if !found {
 		return "", false
 	}
 	return acc, true

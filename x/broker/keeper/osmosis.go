@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/defund-labs/defund/x/etf/types"
+	"github.com/defund-labs/defund/x/broker/types"
 
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -27,19 +27,70 @@ type BalanceKey struct {
 	Address string `json:"address"`
 }
 
+// calcSpotPrice returns the spot price of the pool
+// This is the weight-adjusted balance of the tokens in the pool.
+// so spot_price = (B_in / W_in) / (B_out / W_out)
+func calcSpotPrice(
+	tokenBalanceIn,
+	tokenWeightIn,
+	tokenBalanceOut,
+	tokenWeightOut sdk.Dec,
+) sdk.Dec {
+	number := tokenBalanceIn.Quo(tokenWeightIn)
+	denom := tokenBalanceOut.Quo(tokenWeightOut)
+	ratio := number.Quo(denom)
+
+	return ratio
+}
+
+// calcSpotPriceWithSwapFee returns the spot price of the pool accounting for
+// the input taken by the swap fee.
+// This is the weight-adjusted balance of the tokens in the pool.
+// so spot_price = (B_in / W_in) / (B_out / W_out)
+// and spot_price_with_fee = spot_price / (1 - swapfee)
+func calcSpotPriceWithSwapFee(
+	tokenBalanceIn,
+	tokenWeightIn,
+	tokenBalanceOut,
+	tokenWeightOut,
+	swapFee sdk.Dec,
+) sdk.Dec {
+	spotPrice := calcSpotPrice(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut)
+	// Q: Why is this not just (1 - swapfee)
+	// A: Its because its being applied to the other asset.
+	// TODO: write this up more coherently
+	// 1 / (1 - swapfee)
+	scale := sdk.OneDec().Quo(sdk.OneDec().Sub(swapFee))
+
+	return spotPrice.Mul(scale)
+}
+
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	path := "/store/gamm/key/"
-	clientid := "07-tendermint-0"
+	connectionid := "connection-0"
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
 	timeoutHeight := uint64(ctx.BlockHeight() + 10)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
 
-	err := k.queryKeeper.CreateInterqueryRequest(ctx, storeid, path, key, timeoutHeight, clientid)
+	err := k.queryKeeper.CreateInterqueryRequest(ctx, storeid, path, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// ChangeBrokerPoolStatus finds the pool via poolid for broker specifed and changes the status
+// of the pool to the status provided
+func (k Keeper) ChangeBrokerPoolStatus(ctx sdk.Context, broker types.Broker, poolId uint64, status string) error {
+	for i, item := range broker.Pools {
+		if item.PoolId == poolId {
+			broker.Pools[i].Status = status
+			k.SetBroker(ctx, broker)
+			return nil
+		}
+	}
+	return sdkerrors.Wrapf(types.ErrInvalidPool, "pool (%s) not found", poolId)
 }
 
 // QueryOsmosisPools queries all pools specified in the Osmosis broker
@@ -51,49 +102,54 @@ func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 	for _, pool := range broker.Pools {
 		err := k.CreateQueryOsmosisPool(ctx, pool.PoolId)
 		if err != nil {
-			ctx.Logger().Debug(fmt.Sprintf("error creating osmosis pool query (%d): %s", pool.PoolId, err.Error()))
+			ctx.Logger().Debug(fmt.Sprintf("error creating osmosis pool query (%d): %s. setting pool as inactive", pool.PoolId, err.Error()))
+			k.ChangeBrokerPoolStatus(ctx, broker, pool.PoolId, "inactive")
 			continue
 		}
 	}
-	return
 }
 
 // GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
-func (k Keeper) GetOsmosisPoolAssets(ctx sdk.Context, poolId string) ([]osmosisgammtypes.PoolAsset, error) {
+func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error) {
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
 	if !found {
-		return []osmosisgammtypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+		return osmosisbalancertypes.Pool{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
 	}
 	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)
 	if err != nil {
-		return []osmosisgammtypes.PoolAsset{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
+		return osmosisbalancertypes.Pool{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
 	}
-	assets := pool.PoolAssets
-	return assets, nil
+	return pool, nil
 }
 
 // GetPriceOfAssetFromQuery gets a pool from an interquery result and computes the price of that pool pair
-func (k Keeper) GetPriceOfAssetFromQuery(ctx sdk.Context, poolId string, tokenIn string) (sdk.Int, error) {
+func (k Keeper) CalculateSpotPrice(ctx sdk.Context, poolId string, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error) {
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
 	if !found {
-		return sdk.Int{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
 	}
 	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)
 	if err != nil {
-		return sdk.Int{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
+		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
 	}
-	assets := pool.PoolAssets
-	firstAsset := assets[0]
-	secondAsset := assets[1]
-	if firstAsset.Token.Denom == tokenIn {
-		return firstAsset.Token.Amount.Quo(secondAsset.Token.Amount), nil
+	inPoolAsset, err := pool.GetPoolAsset(tokenInDenom)
+	if err != nil {
+		return sdk.Dec{}, err
 	}
-	if secondAsset.Token.Denom == tokenIn {
-		return secondAsset.Token.Amount.Quo(firstAsset.Token.Amount), nil
+	outPoolAsset, err := pool.GetPoolAsset(tokenOutDenom)
+	if err != nil {
+		return sdk.Dec{}, err
 	}
-	return sdk.Int{}, sdkerrors.Wrap(types.ErrInvalidDenom, "denom could not be found in pool query")
+	// calcSpotPriceWithSwapFee, but with fee = 0
+	return calcSpotPriceWithSwapFee(
+		inPoolAsset.Token.Amount.ToDec(),
+		inPoolAsset.Weight.ToDec(),
+		outPoolAsset.Token.Amount.ToDec(),
+		outPoolAsset.Weight.ToDec(),
+		sdk.ZeroDec(),
+	), nil
 }
 
 // Helper function that creates and returns a MsgSwapExactAmountIn msg type to be run on Osmosis via ICA

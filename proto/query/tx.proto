@@ -18,12 +18,12 @@ service Msg {
 message MsgCreateInterquery {
   string creator = 1;
 
-  string id = 2; 
-  string name = 3; 
+  string storeid = 2; 
+  string chainid = 3; 
   string path = 4; 
   bytes key = 5; 
   uint64 timeoutHeight = 6; 
-  string clientId = 7;
+  string connectionId = 7;
 }
 message MsgCreateInterqueryResponse {}
 
@@ -31,11 +31,9 @@ message MsgCreateInterqueryResult {
   string creator = 1;
 
   string storeid = 2; 
-  bytes  data = 3; 
+  bytes  data = 3;
   uint64 height = 4; 
-  string clientId = 5; 
-  bool   success = 6;
-  tendermint.crypto.ProofOps proof = 7;
+  tendermint.crypto.ProofOps proof = 5;
 }
 message MsgCreateInterqueryResultResponse {}
 
@@ -44,7 +42,6 @@ message MsgCreateInterqueryTimeout {
 
   string storeid = 2;
   uint64 timeoutHeight = 3; 
-  string clientId = 4; 
 }
 message MsgCreateInterqueryTimeoutResponse {}
 

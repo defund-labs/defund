@@ -8,5 +8,6 @@ import (
 
 // x/query module sentinel errors
 var (
-	ErrMarshallingError = sdkerrors.Register(ModuleName, 1101, "Marshalling error")
+	ErrMarshallingError = sdkerrors.Register(ModuleName, 1101, "marshalling error")
+	ErInvalidProof      = sdkerrors.Register(ModuleName, 1102, "invalid proof")
 )

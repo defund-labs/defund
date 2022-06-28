@@ -142,7 +142,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 		}
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
 		if !containsAssets(pool.PoolAssets, holding.Token) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s)", holding.Token)
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%s)", holding.Token, holding.PoolId)
 		}
 	}
 	// Make sure all fund holdings add up to 100%
@@ -153,7 +153,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 }
 
 func (k Keeper) EndBlocker(ctx sdk.Context) error {
-	err := k.CreateAllFundPriceEndBlock(ctx)
+	err := k.CreatePriceEndBlock(ctx)
 	if err != nil {
 		ctx.Logger().Debug("Error Creating Fund Price Log:", err.Error())
 	}

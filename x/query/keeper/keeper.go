@@ -18,8 +18,10 @@ type (
 		storeKey sdk.StoreKey
 		memKey   sdk.StoreKey
 
-		accountKeeper types.AccountKeeper
-		brokerKeeper  types.BrokerKeeper
+		accountKeeper    types.AccountKeeper
+		brokerKeeper     types.BrokerKeeper
+		connectionKeeper types.ConnectionKeeper
+		clientKeeper     types.ClientKeeper
 	}
 )
 
@@ -37,6 +39,8 @@ func NewKeeper(
 
 	accountkeeper types.AccountKeeper,
 	brokerkeeper types.BrokerKeeper,
+	connectionkeeper types.ConnectionKeeper,
+	clientkeeper types.ClientKeeper,
 
 ) *Keeper {
 	return &Keeper{
@@ -44,8 +48,10 @@ func NewKeeper(
 		storeKey: storeKey,
 		memKey:   memKey,
 
-		accountKeeper: accountkeeper,
-		brokerKeeper:  brokerkeeper,
+		accountKeeper:    accountkeeper,
+		brokerKeeper:     brokerkeeper,
+		connectionKeeper: connectionkeeper,
+		clientKeeper:     clientkeeper,
 	}
 }
 
@@ -58,7 +64,7 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, clientid string) error {
+func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
 	var queryModuleAddress authtypes.ModuleAccountI
 	if k.accountKeeper.GetModuleAccount(ctx, "query") == nil {
 		queryAddress := k.NewQueryAddress(1)
@@ -78,11 +84,11 @@ func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path st
 		Path:          path,
 		Key:           key,
 		TimeoutHeight: timeoutheight,
-		ClientId:      clientid,
+		ConnectionId:  connectionid,
 	}
 	k.SetInterquery(ctx, interquery)
 
-	k.Logger(ctx).Info(fmt.Sprintf("Interquery request for path %s on clientid of %s has been initiated", path, clientid))
+	k.Logger(ctx).Info(fmt.Sprintf("Interquery request for path %s on connection %s has been initiated", path, connectionid))
 
 	return nil
 }
@@ -98,7 +104,6 @@ func (k Keeper) TimeoutInterqueries(ctx sdk.Context) {
 				Creator:       query.Creator,
 				Storeid:       query.Storeid,
 				TimeoutHeight: query.TimeoutHeight,
-				ClientId:      query.ClientId,
 			}
 			// Set the query as a timed out interquery in store
 			k.SetInterqueryTimeoutResult(ctx, queryTimeout)
@@ -123,7 +128,7 @@ func (k Keeper) ModuleEndBlocker(ctx sdk.Context) {
 
 		event := sdk.NewEvent(
 			types.EventTypeQuery,
-			sdk.NewAttribute(types.AttributeKeyQueryClientId, query.ClientId),
+			sdk.NewAttribute(types.AttributeKeyQueryClientId, query.ConnectionId),
 			sdk.NewAttribute(types.AttributeKeyQueryPath, query.Path),
 			sdk.NewAttribute(types.AttributeKeyQueryStoreid, query.Storeid),
 		)

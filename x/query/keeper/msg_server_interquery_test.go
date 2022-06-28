@@ -23,12 +23,12 @@ func TestInterqueryMsgServerCreate(t *testing.T) {
 	creator := "A"
 	for i := 0; i < 5; i++ {
 		expected := &types.MsgCreateInterquery{Creator: creator,
-			Id: strconv.Itoa(i),
+			Storeid: strconv.Itoa(i),
 		}
 		_, err := srv.CreateInterquery(wctx, expected)
 		require.NoError(t, err)
 		rst, found := k.GetInterquery(ctx,
-			expected.Id,
+			expected.Storeid,
 		)
 		require.True(t, found)
 		require.Equal(t, expected.Creator, rst.Creator)
@@ -69,7 +69,7 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 			srv := keeper.NewMsgServerImpl(*k)
 			wctx := sdk.WrapSDKContext(ctx)
 			expected := &types.MsgCreateInterquery{Creator: creator,
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			}
 			_, err := srv.CreateInterquery(wctx, expected)
 			require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				rst, found := k.GetInterquery(ctx,
-					expected.Id,
+					expected.Storeid,
 				)
 				require.True(t, found)
 				require.Equal(t, expected.Creator, rst.Creator)
@@ -124,7 +124,7 @@ func TestInterqueryMsgServerTimeout(t *testing.T) {
 			wctx := sdk.WrapSDKContext(ctx)
 
 			_, err := srv.CreateInterquery(wctx, &types.MsgCreateInterquery{Creator: creator,
-				Id: strconv.Itoa(0),
+				Storeid: strconv.Itoa(0),
 			})
 			require.NoError(t, err)
 			_, err = srv.CreateInterqueryTimeout(wctx, tc.request)

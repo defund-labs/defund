@@ -6,7 +6,7 @@ package types
 import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	_ "github.com/tendermint/tendermint/proto/tendermint/crypto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -26,10 +26,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Interquery struct {
 	Creator       string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	Storeid       string `protobuf:"bytes,2,opt,name=storeid,proto3" json:"storeid,omitempty"`
-	Path          string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	Key           []byte `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
-	TimeoutHeight uint64 `protobuf:"varint,5,opt,name=timeoutHeight,proto3" json:"timeoutHeight,omitempty"`
-	ClientId      string `protobuf:"bytes,6,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	Chainid       string `protobuf:"bytes,3,opt,name=chainid,proto3" json:"chainid,omitempty"`
+	Path          string `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	Key           []byte `protobuf:"bytes,5,opt,name=key,proto3" json:"key,omitempty"`
+	TimeoutHeight uint64 `protobuf:"varint,6,opt,name=timeoutHeight,proto3" json:"timeoutHeight,omitempty"`
+	ConnectionId  string `protobuf:"bytes,7,opt,name=connectionId,proto3" json:"connectionId,omitempty"`
 }
 
 func (m *Interquery) Reset()         { *m = Interquery{} }
@@ -79,6 +80,13 @@ func (m *Interquery) GetStoreid() string {
 	return ""
 }
 
+func (m *Interquery) GetChainid() string {
+	if m != nil {
+		return m.Chainid
+	}
+	return ""
+}
+
 func (m *Interquery) GetPath() string {
 	if m != nil {
 		return m.Path
@@ -100,21 +108,21 @@ func (m *Interquery) GetTimeoutHeight() uint64 {
 	return 0
 }
 
-func (m *Interquery) GetClientId() string {
+func (m *Interquery) GetConnectionId() string {
 	if m != nil {
-		return m.ClientId
+		return m.ConnectionId
 	}
 	return ""
 }
 
 type InterqueryResult struct {
-	Creator  string           `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	Storeid  string           `protobuf:"bytes,2,opt,name=storeid,proto3" json:"storeid,omitempty"`
-	Data     []byte           `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
-	Height   uint64           `protobuf:"varint,4,opt,name=height,proto3" json:"height,omitempty"`
-	ClientId string           `protobuf:"bytes,5,opt,name=clientId,proto3" json:"clientId,omitempty"`
-	Success  bool             `protobuf:"varint,6,opt,name=success,proto3" json:"success,omitempty"`
-	Proof    *crypto.ProofOps `protobuf:"bytes,7,opt,name=proof,proto3" json:"proof,omitempty"`
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	Storeid string `protobuf:"bytes,2,opt,name=storeid,proto3" json:"storeid,omitempty"`
+	Chainid string `protobuf:"bytes,3,opt,name=chainid,proto3" json:"chainid,omitempty"`
+	Data    []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	Height  uint64 `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
+	Success bool   `protobuf:"varint,6,opt,name=success,proto3" json:"success,omitempty"`
+	Proved  bool   `protobuf:"varint,7,opt,name=proved,proto3" json:"proved,omitempty"`
 }
 
 func (m *InterqueryResult) Reset()         { *m = InterqueryResult{} }
@@ -164,6 +172,13 @@ func (m *InterqueryResult) GetStoreid() string {
 	return ""
 }
 
+func (m *InterqueryResult) GetChainid() string {
+	if m != nil {
+		return m.Chainid
+	}
+	return ""
+}
+
 func (m *InterqueryResult) GetData() []byte {
 	if m != nil {
 		return m.Data
@@ -178,13 +193,6 @@ func (m *InterqueryResult) GetHeight() uint64 {
 	return 0
 }
 
-func (m *InterqueryResult) GetClientId() string {
-	if m != nil {
-		return m.ClientId
-	}
-	return ""
-}
-
 func (m *InterqueryResult) GetSuccess() bool {
 	if m != nil {
 		return m.Success
@@ -192,18 +200,17 @@ func (m *InterqueryResult) GetSuccess() bool {
 	return false
 }
 
-func (m *InterqueryResult) GetProof() *crypto.ProofOps {
+func (m *InterqueryResult) GetProved() bool {
 	if m != nil {
-		return m.Proof
+		return m.Proved
 	}
-	return nil
+	return false
 }
 
 type InterqueryTimeoutResult struct {
 	Creator       string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	Storeid       string `protobuf:"bytes,2,opt,name=storeid,proto3" json:"storeid,omitempty"`
 	TimeoutHeight uint64 `protobuf:"varint,3,opt,name=timeoutHeight,proto3" json:"timeoutHeight,omitempty"`
-	ClientId      string `protobuf:"bytes,4,opt,name=clientId,proto3" json:"clientId,omitempty"`
 }
 
 func (m *InterqueryTimeoutResult) Reset()         { *m = InterqueryTimeoutResult{} }
@@ -260,13 +267,6 @@ func (m *InterqueryTimeoutResult) GetTimeoutHeight() uint64 {
 	return 0
 }
 
-func (m *InterqueryTimeoutResult) GetClientId() string {
-	if m != nil {
-		return m.ClientId
-	}
-	return ""
-}
-
 func init() {
 	proto.RegisterType((*Interquery)(nil), "defundhub.defund.query.Interquery")
 	proto.RegisterType((*InterqueryResult)(nil), "defundhub.defund.query.InterqueryResult")
@@ -276,31 +276,29 @@ func init() {
 func init() { proto.RegisterFile("query/interquery.proto", fileDescriptor_edfa9beb887ed5f4) }
 
 var fileDescriptor_edfa9beb887ed5f4 = []byte{
-	// 370 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x92, 0xcf, 0x4a, 0xeb, 0x40,
-	0x14, 0xc6, 0x3b, 0xb7, 0xe9, 0x9f, 0x3b, 0xb7, 0x17, 0xca, 0x2c, 0x7a, 0x87, 0x5e, 0x0c, 0xa1,
-	0xb8, 0x08, 0x88, 0x09, 0xea, 0x1b, 0x08, 0x82, 0x5d, 0x29, 0xc1, 0x95, 0xbb, 0x34, 0x39, 0x6d,
-	0x82, 0x6d, 0x26, 0xce, 0x9c, 0x80, 0x79, 0x0a, 0x7d, 0x0c, 0x1f, 0xc5, 0x65, 0x97, 0x82, 0x1b,
-	0x69, 0x5f, 0x44, 0x32, 0xd3, 0x3f, 0x04, 0x17, 0x82, 0xee, 0xbe, 0x6f, 0x4e, 0x32, 0xf3, 0x3b,
-	0xe7, 0x7c, 0x74, 0x70, 0x5f, 0x80, 0x2c, 0xfd, 0x34, 0x43, 0x90, 0x5a, 0x7a, 0xb9, 0x14, 0x28,
-	0xd8, 0x20, 0x86, 0x69, 0x91, 0xc5, 0x49, 0x31, 0xf1, 0x8c, 0xf2, 0x74, 0x75, 0x78, 0x80, 0x90,
-	0xc5, 0x20, 0x17, 0x69, 0x86, 0x7e, 0x24, 0xcb, 0x1c, 0x85, 0x9f, 0x4b, 0x21, 0xa6, 0xe6, 0xb7,
-	0xd1, 0x33, 0xa1, 0x74, 0xbc, 0xbb, 0x8b, 0x71, 0xda, 0x89, 0x24, 0x84, 0x28, 0x24, 0x27, 0x0e,
-	0x71, 0x7f, 0x07, 0x5b, 0x5b, 0x55, 0x14, 0x0a, 0x09, 0x69, 0xcc, 0x7f, 0x99, 0xca, 0xc6, 0x32,
-	0x46, 0xad, 0x3c, 0xc4, 0x84, 0x37, 0xf5, 0xb1, 0xd6, 0xac, 0x4f, 0x9b, 0x77, 0x50, 0x72, 0xcb,
-	0x21, 0x6e, 0x2f, 0xa8, 0x24, 0x3b, 0xa4, 0x7f, 0x31, 0x5d, 0x80, 0x28, 0xf0, 0x12, 0xd2, 0x59,
-	0x82, 0xbc, 0xe5, 0x10, 0xd7, 0x0a, 0xea, 0x87, 0x6c, 0x48, 0xbb, 0xd1, 0x3c, 0x85, 0x0c, 0xc7,
-	0x31, 0x6f, 0xeb, 0xfb, 0x76, 0x7e, 0xf4, 0x46, 0x68, 0x7f, 0x8f, 0x1a, 0x80, 0x2a, 0xe6, 0xf8,
-	0x5d, 0xe0, 0x38, 0xc4, 0x50, 0x03, 0xf7, 0x02, 0xad, 0xd9, 0x80, 0xb6, 0x13, 0xc3, 0x65, 0x69,
-	0xae, 0x8d, 0xab, 0x01, 0xb5, 0xea, 0x40, 0xfa, 0x85, 0x22, 0x8a, 0x40, 0x29, 0xcd, 0xda, 0x0d,
-	0xb6, 0x96, 0x9d, 0xd0, 0x96, 0x1e, 0x32, 0xef, 0x38, 0xc4, 0xfd, 0x73, 0xfa, 0xdf, 0xdb, 0x2f,
-	0xc1, 0x33, 0x4b, 0xf0, 0xae, 0xab, 0xfa, 0x55, 0xae, 0x02, 0xf3, 0xe5, 0xe8, 0x91, 0xd0, 0x7f,
-	0xfb, 0xee, 0x6e, 0xcc, 0x54, 0x7e, 0xd0, 0xe4, 0xa7, 0x79, 0x37, 0xbf, 0x9a, 0xb7, 0x55, 0x6f,
-	0xef, 0xfc, 0xe2, 0x65, 0x65, 0x93, 0xe5, 0xca, 0x26, 0xef, 0x2b, 0x9b, 0x3c, 0xad, 0xed, 0xc6,
-	0x72, 0x6d, 0x37, 0x5e, 0xd7, 0x76, 0xe3, 0xf6, 0x68, 0x96, 0x62, 0x15, 0xb4, 0x48, 0x2c, 0x7c,
-	0x13, 0xb6, 0xe3, 0x79, 0x38, 0x51, 0x1b, 0xed, 0x3f, 0xf8, 0x26, 0xa3, 0x58, 0xe6, 0xa0, 0x26,
-	0x6d, 0x1d, 0xb4, 0xb3, 0x8f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x61, 0x26, 0x69, 0x86, 0xb9, 0x02,
-	0x00, 0x00,
+	// 351 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0x3f, 0x4b, 0x33, 0x41,
+	0x10, 0xc6, 0xb3, 0x6f, 0xfe, 0xbe, 0x4b, 0x84, 0xb0, 0x45, 0x5c, 0x04, 0x8f, 0x70, 0x58, 0x04,
+	0xc4, 0x5c, 0xe1, 0x37, 0x10, 0x04, 0xd3, 0x1e, 0x56, 0x76, 0x97, 0xdb, 0x49, 0x6e, 0x31, 0xd9,
+	0x3d, 0x77, 0xe7, 0xc4, 0xfb, 0x16, 0x7e, 0x22, 0x6b, 0xb1, 0x4a, 0x69, 0x29, 0xc9, 0x17, 0x91,
+	0xdb, 0xbd, 0x18, 0x82, 0x76, 0xda, 0x3d, 0xcf, 0x0c, 0x33, 0xcc, 0x6f, 0x78, 0xe8, 0xf0, 0xa1,
+	0x00, 0x53, 0x46, 0x52, 0x21, 0x18, 0x27, 0x27, 0xb9, 0xd1, 0xa8, 0xd9, 0x50, 0xc0, 0xbc, 0x50,
+	0x22, 0x2b, 0x66, 0x13, 0xaf, 0x26, 0xae, 0x7b, 0x72, 0x8a, 0xa0, 0x04, 0x98, 0x95, 0x54, 0x18,
+	0xa5, 0xa6, 0xcc, 0x51, 0x47, 0xb9, 0xd1, 0x7a, 0xee, 0xc7, 0xc2, 0x37, 0x42, 0xe9, 0xf4, 0x6b,
+	0x17, 0xe3, 0xb4, 0x9b, 0x1a, 0x48, 0x50, 0x1b, 0x4e, 0x46, 0x64, 0xfc, 0x3f, 0xde, 0xd9, 0xaa,
+	0x63, 0x51, 0x1b, 0x90, 0x82, 0xff, 0xf3, 0x9d, 0xda, 0xba, 0x99, 0x2c, 0x91, 0x4a, 0x0a, 0xde,
+	0xac, 0x67, 0xbc, 0x65, 0x8c, 0xb6, 0xf2, 0x04, 0x33, 0xde, 0x72, 0x65, 0xa7, 0xd9, 0x80, 0x36,
+	0xef, 0xa1, 0xe4, 0xed, 0x11, 0x19, 0xf7, 0xe3, 0x4a, 0xb2, 0x33, 0x7a, 0x84, 0x72, 0x05, 0xba,
+	0xc0, 0x1b, 0x90, 0x8b, 0x0c, 0x79, 0x67, 0x44, 0xc6, 0xad, 0xf8, 0xb0, 0xc8, 0x42, 0xda, 0x4f,
+	0xb5, 0x52, 0x90, 0xa2, 0xd4, 0x6a, 0x2a, 0x78, 0xd7, 0xed, 0x3c, 0xa8, 0x85, 0x2f, 0x84, 0x0e,
+	0xf6, 0x30, 0x31, 0xd8, 0x62, 0x89, 0x7f, 0x8f, 0x24, 0x12, 0x4c, 0x1c, 0x52, 0x3f, 0x76, 0x9a,
+	0x0d, 0x69, 0x27, 0xf3, 0x97, 0xb7, 0xdd, 0xe5, 0xb5, 0x73, 0xfb, 0x8b, 0x34, 0x05, 0x6b, 0x1d,
+	0x52, 0x2f, 0xde, 0xd9, 0x6a, 0x22, 0x37, 0xfa, 0x11, 0x3c, 0x46, 0x2f, 0xae, 0x5d, 0x68, 0xe9,
+	0xf1, 0xfe, 0xfe, 0x5b, 0xcf, 0xff, 0x0b, 0x8c, 0x6f, 0x9f, 0x6d, 0xfe, 0xf0, 0xd9, 0xab, 0xeb,
+	0xd7, 0x4d, 0x40, 0xd6, 0x9b, 0x80, 0x7c, 0x6c, 0x02, 0xf2, 0xbc, 0x0d, 0x1a, 0xeb, 0x6d, 0xd0,
+	0x78, 0xdf, 0x06, 0x8d, 0xbb, 0xf3, 0x85, 0xc4, 0x2a, 0x50, 0xa9, 0x5e, 0x45, 0x3e, 0x54, 0x17,
+	0xcb, 0x64, 0x66, 0x6b, 0x1d, 0x3d, 0x45, 0x3e, 0x8b, 0x58, 0xe6, 0x60, 0x67, 0x1d, 0x17, 0xa8,
+	0xcb, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x68, 0xf9, 0x8c, 0x27, 0xa1, 0x02, 0x00, 0x00,
 }
 
 func (m *Interquery) Marshal() (dAtA []byte, err error) {
@@ -323,29 +321,36 @@ func (m *Interquery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintInterquery(dAtA, i, uint64(len(m.ClientId)))
+	if len(m.ConnectionId) > 0 {
+		i -= len(m.ConnectionId)
+		copy(dAtA[i:], m.ConnectionId)
+		i = encodeVarintInterquery(dAtA, i, uint64(len(m.ConnectionId)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x3a
 	}
 	if m.TimeoutHeight != 0 {
 		i = encodeVarintInterquery(dAtA, i, uint64(m.TimeoutHeight))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x30
 	}
 	if len(m.Key) > 0 {
 		i -= len(m.Key)
 		copy(dAtA[i:], m.Key)
 		i = encodeVarintInterquery(dAtA, i, uint64(len(m.Key)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if len(m.Path) > 0 {
 		i -= len(m.Path)
 		copy(dAtA[i:], m.Path)
 		i = encodeVarintInterquery(dAtA, i, uint64(len(m.Path)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Chainid) > 0 {
+		i -= len(m.Chainid)
+		copy(dAtA[i:], m.Chainid)
+		i = encodeVarintInterquery(dAtA, i, uint64(len(m.Chainid)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -386,17 +391,15 @@ func (m *InterqueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Proof != nil {
-		{
-			size, err := m.Proof.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintInterquery(dAtA, i, uint64(size))
+	if m.Proved {
+		i--
+		if m.Proved {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x38
 	}
 	if m.Success {
 		i--
@@ -408,22 +411,22 @@ func (m *InterqueryResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x30
 	}
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintInterquery(dAtA, i, uint64(len(m.ClientId)))
-		i--
-		dAtA[i] = 0x2a
-	}
 	if m.Height != 0 {
 		i = encodeVarintInterquery(dAtA, i, uint64(m.Height))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x28
 	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
 		copy(dAtA[i:], m.Data)
 		i = encodeVarintInterquery(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Chainid) > 0 {
+		i -= len(m.Chainid)
+		copy(dAtA[i:], m.Chainid)
+		i = encodeVarintInterquery(dAtA, i, uint64(len(m.Chainid)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -464,13 +467,6 @@ func (m *InterqueryTimeoutResult) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintInterquery(dAtA, i, uint64(len(m.ClientId)))
-		i--
-		dAtA[i] = 0x22
-	}
 	if m.TimeoutHeight != 0 {
 		i = encodeVarintInterquery(dAtA, i, uint64(m.TimeoutHeight))
 		i--
@@ -518,6 +514,10 @@ func (m *Interquery) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovInterquery(uint64(l))
 	}
+	l = len(m.Chainid)
+	if l > 0 {
+		n += 1 + l + sovInterquery(uint64(l))
+	}
 	l = len(m.Path)
 	if l > 0 {
 		n += 1 + l + sovInterquery(uint64(l))
@@ -529,7 +529,7 @@ func (m *Interquery) Size() (n int) {
 	if m.TimeoutHeight != 0 {
 		n += 1 + sovInterquery(uint64(m.TimeoutHeight))
 	}
-	l = len(m.ClientId)
+	l = len(m.ConnectionId)
 	if l > 0 {
 		n += 1 + l + sovInterquery(uint64(l))
 	}
@@ -550,6 +550,10 @@ func (m *InterqueryResult) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovInterquery(uint64(l))
 	}
+	l = len(m.Chainid)
+	if l > 0 {
+		n += 1 + l + sovInterquery(uint64(l))
+	}
 	l = len(m.Data)
 	if l > 0 {
 		n += 1 + l + sovInterquery(uint64(l))
@@ -557,16 +561,11 @@ func (m *InterqueryResult) Size() (n int) {
 	if m.Height != 0 {
 		n += 1 + sovInterquery(uint64(m.Height))
 	}
-	l = len(m.ClientId)
-	if l > 0 {
-		n += 1 + l + sovInterquery(uint64(l))
-	}
 	if m.Success {
 		n += 2
 	}
-	if m.Proof != nil {
-		l = m.Proof.Size()
-		n += 1 + l + sovInterquery(uint64(l))
+	if m.Proved {
+		n += 2
 	}
 	return n
 }
@@ -587,10 +586,6 @@ func (m *InterqueryTimeoutResult) Size() (n int) {
 	}
 	if m.TimeoutHeight != 0 {
 		n += 1 + sovInterquery(uint64(m.TimeoutHeight))
-	}
-	l = len(m.ClientId)
-	if l > 0 {
-		n += 1 + l + sovInterquery(uint64(l))
 	}
 	return n
 }
@@ -696,6 +691,38 @@ func (m *Interquery) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Chainid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowInterquery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthInterquery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthInterquery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Chainid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
 			}
 			var stringLen uint64
@@ -726,7 +753,7 @@ func (m *Interquery) Unmarshal(dAtA []byte) error {
 			}
 			m.Path = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
 			}
@@ -760,7 +787,7 @@ func (m *Interquery) Unmarshal(dAtA []byte) error {
 				m.Key = []byte{}
 			}
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutHeight", wireType)
 			}
@@ -779,9 +806,9 @@ func (m *Interquery) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 7:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -809,7 +836,7 @@ func (m *Interquery) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
+			m.ConnectionId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -927,6 +954,38 @@ func (m *InterqueryResult) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Chainid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowInterquery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthInterquery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthInterquery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Chainid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
 			}
 			var byteLen int
@@ -959,7 +1018,7 @@ func (m *InterqueryResult) Unmarshal(dAtA []byte) error {
 				m.Data = []byte{}
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 			}
@@ -978,38 +1037,6 @@ func (m *InterqueryResult) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowInterquery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Success", wireType)
@@ -1031,10 +1058,10 @@ func (m *InterqueryResult) Unmarshal(dAtA []byte) error {
 			}
 			m.Success = bool(v != 0)
 		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proved", wireType)
 			}
-			var msglen int
+			var v int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowInterquery
@@ -1044,28 +1071,12 @@ func (m *InterqueryResult) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Proof == nil {
-				m.Proof = &crypto.ProofOps{}
-			}
-			if err := m.Proof.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
+			m.Proved = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipInterquery(dAtA[iNdEx:])
@@ -1199,38 +1210,6 @@ func (m *InterqueryTimeoutResult) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowInterquery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthInterquery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipInterquery(dAtA[iNdEx:])
