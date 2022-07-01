@@ -63,7 +63,8 @@ type BrokerKeeper interface {
 	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
 	SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
 	GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error)
-	CalculateSpotPrice(ctx sdk.Context, poolId string, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
+	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
+	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Pool, found bool)
 }
 
 type ChannelKeeper interface {

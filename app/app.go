@@ -416,6 +416,8 @@ func New(
 
 		app.AccountKeeper,
 		app.BrokerKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
 	)
 	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
 

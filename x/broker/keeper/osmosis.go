@@ -72,8 +72,9 @@ func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
 	timeoutHeight := uint64(ctx.BlockHeight() + 10)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
+	chainid := "osmosis-1"
 
-	err := k.queryKeeper.CreateInterqueryRequest(ctx, storeid, path, key, timeoutHeight, connectionid)
+	err := k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
@@ -123,11 +124,11 @@ func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancert
 	return pool, nil
 }
 
-// GetPriceOfAssetFromQuery gets a pool from an interquery result and computes the price of that pool pair
-func (k Keeper) CalculateSpotPrice(ctx sdk.Context, poolId string, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error) {
-	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
+// CalculateOsmosisSpotPrice gets a pool from an interquery result and computes the price of that pool pair
+func (k Keeper) CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error) {
+	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%d", poolId))
 	if !found {
-		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
 	}
 	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)

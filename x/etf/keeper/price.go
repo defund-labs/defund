@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -37,7 +38,7 @@ func (k Keeper) GetFundPrice(
 	return val, true
 }
 
-// GetAllFund returns all funds in store
+// GetAllFundPrice returns all funds prices in store
 func (k Keeper) GetAllFundPrice(ctx sdk.Context) (list []types.FundPrice) {
 	store := ctx.KVStore(k.storeKey)
 	fundPriceResultStore := prefix.NewStore(store, []byte(types.FundPriceKeyPrefix))
@@ -56,12 +57,37 @@ func (k Keeper) GetAllFundPrice(ctx sdk.Context) (list []types.FundPrice) {
 }
 
 // CreateFundPrice creates a current fund price for a fund symbol
-func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (sdk.Coin, error) {
+func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin, err error) {
+	comp := []sdk.Dec{}
 	fund, found := k.GetFund(ctx, symbol)
+	if !found {
+		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
+	}
+	for _, holding := range fund.Holdings {
+		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, fund.Broker.Id, holding.PoolId)
+		if !found {
+			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %s not found on broker %s", holding.PoolId, fund.Broker.Id)
+		}
+		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.Broker.BaseDenom)
+		if err != nil {
+			return price, err
+		}
+		priceWeighted := priceUnweighted.Mul(sdk.NewDec(holding.Percent))
+		comp = append(comp, priceWeighted)
+	}
+	// If the fund is brand new, the price starts at price specifed BaseDenom (5,000,000 uatom for example)
+	if len(comp) == 0 {
+		price = sdk.NewCoin(fund.Broker.BaseDenom, sdk.NewInt(5000000))
+	}
+	if len(comp) > 0 {
+		total := sum(comp)
+		price = sdk.NewCoin(fund.Broker.BaseDenom, sdk.NewInt(total.RoundInt64()))
+	}
 	return price, nil
 }
 
-// CreateAllFundPriceEndBlock is a function that runs at each end block that logs the fund price for each fund at current height
+// CreateAllFundPriceEndBlock is a function that runs at each end block that logs the fund price for each fund
+// and purges unneeded fund prices from the store
 func (k Keeper) CreatePriceEndBlock(ctx sdk.Context) error {
 	funds := k.GetAllFund(ctx)
 	for _, fund := range funds {
@@ -73,6 +99,7 @@ func (k Keeper) CreatePriceEndBlock(ctx sdk.Context) error {
 		fundPrice := types.FundPrice{
 			Height: uint64(ctx.BlockHeight()),
 			Amount: &price,
+			Time:   ctx.BlockTime(),
 			Symbol: fund.Symbol,
 			Id:     fmt.Sprintf("%s-%s", fund.Symbol, strconv.FormatInt(ctx.BlockHeight(), 10)),
 		}

@@ -75,8 +75,8 @@ func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	return false
 }
 
-func sum(items []sdk.Int) sdk.Int {
-	sum := sdk.NewInt(0)
+func sum(items []sdk.Dec) sdk.Dec {
+	sum := sdk.NewDec(0)
 	for _, item := range items {
 		sum = sum.Add(item)
 	}
@@ -132,7 +132,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 	for _, holding := range holdings {
 		// Add percent composition to percentCheck to later confirm adds to 100%
 		percentCheck = percentCheck + uint64(holding.Percent)
-		poolQuery, found := k.queryKeeper.GetInterqueryResult(ctx, holding.PoolId)
+		poolQuery, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprint(holding.PoolId))
 		if !found {
 			return sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool details for (broker: %s, pool: %s)", brokerId, holding.PoolId)
 		}

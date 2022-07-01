@@ -31,6 +31,7 @@ type AccountKeeper interface {
 
 type BrokerKeeper interface {
 	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId string) (string, bool)
+	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 }
 
 type ConnectionKeeper interface {

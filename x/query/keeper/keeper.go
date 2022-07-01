@@ -64,7 +64,7 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
+func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
 	var queryModuleAddress authtypes.ModuleAccountI
 	if k.accountKeeper.GetModuleAccount(ctx, "query") == nil {
 		queryAddress := k.NewQueryAddress(1)
@@ -81,6 +81,7 @@ func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, storeid string, path st
 	interquery := types.Interquery{
 		Creator:       queryModuleAddress.GetAddress().String(),
 		Storeid:       storeid,
+		Chainid:       chainid,
 		Path:          path,
 		Key:           key,
 		TimeoutHeight: timeoutheight,

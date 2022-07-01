@@ -30,7 +30,7 @@ message Holding {
   string token = 1;
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
-  string poolId = 3;
+  uint64 poolId = 3;
 }
 
 message Fund {

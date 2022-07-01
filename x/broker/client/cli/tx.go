@@ -68,8 +68,8 @@ func CmdAddLiquiditySource() *cobra.Command {
 
 func CmdAddConnectionBroker() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-connection-broker [broker-id] [connection-id]",
-		Short: "Add a created IBC connection to a broker. Can only add a connection to inactive brokers.",
+		Use:   "activate-broker [broker-id] [connection-id]",
+		Short: "Activates a broker chain by adding the Connection ID to the broker. Can only activate inactive brokers.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBrokerId := args[0]

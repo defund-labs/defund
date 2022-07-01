@@ -34,10 +34,14 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings 
 		if err != nil {
 			return nil, err
 		}
+		poolid, err := strconv.ParseUint(sepHoldings[2], 10, 64)
+		if err != nil {
+			return nil, err
+		}
 		holdingsList = append(holdingsList, types.Holding{
 			Token:   sepHoldings[0],
 			Percent: perc,
-			PoolId:  sepHoldings[2],
+			PoolId:  poolid,
 		})
 	}
 	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
