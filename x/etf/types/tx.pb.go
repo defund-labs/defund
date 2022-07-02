@@ -166,7 +166,7 @@ func (m *MsgCreateFundResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateFundResponse proto.InternalMessageInfo
 
-type MsgInvest struct {
+type MsgCreate struct {
 	Creator string      `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	Fund    string      `protobuf:"bytes,2,opt,name=fund,proto3" json:"fund,omitempty"`
 	Amount  *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
@@ -179,18 +179,18 @@ type MsgInvest struct {
 	TimeoutTimestamp uint64 `protobuf:"varint,6,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty"`
 }
 
-func (m *MsgInvest) Reset()         { *m = MsgInvest{} }
-func (m *MsgInvest) String() string { return proto.CompactTextString(m) }
-func (*MsgInvest) ProtoMessage()    {}
-func (*MsgInvest) Descriptor() ([]byte, []int) {
+func (m *MsgCreate) Reset()         { *m = MsgCreate{} }
+func (m *MsgCreate) String() string { return proto.CompactTextString(m) }
+func (*MsgCreate) ProtoMessage()    {}
+func (*MsgCreate) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0bf9c1ce3edbd88c, []int{2}
 }
-func (m *MsgInvest) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgInvest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgInvest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -200,75 +200,75 @@ func (m *MsgInvest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *MsgInvest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgInvest.Merge(m, src)
+func (m *MsgCreate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreate.Merge(m, src)
 }
-func (m *MsgInvest) XXX_Size() int {
+func (m *MsgCreate) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgInvest) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgInvest.DiscardUnknown(m)
+func (m *MsgCreate) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgInvest proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreate proto.InternalMessageInfo
 
-func (m *MsgInvest) GetCreator() string {
+func (m *MsgCreate) GetCreator() string {
 	if m != nil {
 		return m.Creator
 	}
 	return ""
 }
 
-func (m *MsgInvest) GetFund() string {
+func (m *MsgCreate) GetFund() string {
 	if m != nil {
 		return m.Fund
 	}
 	return ""
 }
 
-func (m *MsgInvest) GetAmount() *types.Coin {
+func (m *MsgCreate) GetAmount() *types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return nil
 }
 
-func (m *MsgInvest) GetChannel() string {
+func (m *MsgCreate) GetChannel() string {
 	if m != nil {
 		return m.Channel
 	}
 	return ""
 }
 
-func (m *MsgInvest) GetTimeoutHeight() string {
+func (m *MsgCreate) GetTimeoutHeight() string {
 	if m != nil {
 		return m.TimeoutHeight
 	}
 	return ""
 }
 
-func (m *MsgInvest) GetTimeoutTimestamp() uint64 {
+func (m *MsgCreate) GetTimeoutTimestamp() uint64 {
 	if m != nil {
 		return m.TimeoutTimestamp
 	}
 	return 0
 }
 
-type MsgInvestResponse struct {
+type MsgCreateResponse struct {
 }
 
-func (m *MsgInvestResponse) Reset()         { *m = MsgInvestResponse{} }
-func (m *MsgInvestResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgInvestResponse) ProtoMessage()    {}
-func (*MsgInvestResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCreateResponse) Reset()         { *m = MsgCreateResponse{} }
+func (m *MsgCreateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateResponse) ProtoMessage()    {}
+func (*MsgCreateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0bf9c1ce3edbd88c, []int{3}
 }
-func (m *MsgInvestResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgInvestResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgInvestResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -278,19 +278,19 @@ func (m *MsgInvestResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *MsgInvestResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgInvestResponse.Merge(m, src)
+func (m *MsgCreateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateResponse.Merge(m, src)
 }
-func (m *MsgInvestResponse) XXX_Size() int {
+func (m *MsgCreateResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgInvestResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgInvestResponse.DiscardUnknown(m)
+func (m *MsgCreateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgInvestResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateResponse proto.InternalMessageInfo
 
-type MsgUninvest struct {
+type MsgRedeem struct {
 	Creator string      `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	Fund    string      `protobuf:"bytes,2,opt,name=fund,proto3" json:"fund,omitempty"`
 	Amount  *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
@@ -303,18 +303,18 @@ type MsgUninvest struct {
 	TimeoutTimestamp uint64 `protobuf:"varint,6,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty"`
 }
 
-func (m *MsgUninvest) Reset()         { *m = MsgUninvest{} }
-func (m *MsgUninvest) String() string { return proto.CompactTextString(m) }
-func (*MsgUninvest) ProtoMessage()    {}
-func (*MsgUninvest) Descriptor() ([]byte, []int) {
+func (m *MsgRedeem) Reset()         { *m = MsgRedeem{} }
+func (m *MsgRedeem) String() string { return proto.CompactTextString(m) }
+func (*MsgRedeem) ProtoMessage()    {}
+func (*MsgRedeem) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0bf9c1ce3edbd88c, []int{4}
 }
-func (m *MsgUninvest) XXX_Unmarshal(b []byte) error {
+func (m *MsgRedeem) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUninvest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRedeem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUninvest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRedeem.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -324,75 +324,75 @@ func (m *MsgUninvest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *MsgUninvest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUninvest.Merge(m, src)
+func (m *MsgRedeem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRedeem.Merge(m, src)
 }
-func (m *MsgUninvest) XXX_Size() int {
+func (m *MsgRedeem) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUninvest) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUninvest.DiscardUnknown(m)
+func (m *MsgRedeem) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRedeem.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUninvest proto.InternalMessageInfo
+var xxx_messageInfo_MsgRedeem proto.InternalMessageInfo
 
-func (m *MsgUninvest) GetCreator() string {
+func (m *MsgRedeem) GetCreator() string {
 	if m != nil {
 		return m.Creator
 	}
 	return ""
 }
 
-func (m *MsgUninvest) GetFund() string {
+func (m *MsgRedeem) GetFund() string {
 	if m != nil {
 		return m.Fund
 	}
 	return ""
 }
 
-func (m *MsgUninvest) GetAmount() *types.Coin {
+func (m *MsgRedeem) GetAmount() *types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return nil
 }
 
-func (m *MsgUninvest) GetChannel() string {
+func (m *MsgRedeem) GetChannel() string {
 	if m != nil {
 		return m.Channel
 	}
 	return ""
 }
 
-func (m *MsgUninvest) GetTimeoutHeight() string {
+func (m *MsgRedeem) GetTimeoutHeight() string {
 	if m != nil {
 		return m.TimeoutHeight
 	}
 	return ""
 }
 
-func (m *MsgUninvest) GetTimeoutTimestamp() uint64 {
+func (m *MsgRedeem) GetTimeoutTimestamp() uint64 {
 	if m != nil {
 		return m.TimeoutTimestamp
 	}
 	return 0
 }
 
-type MsgUninvestResponse struct {
+type MsgRedeemResponse struct {
 }
 
-func (m *MsgUninvestResponse) Reset()         { *m = MsgUninvestResponse{} }
-func (m *MsgUninvestResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUninvestResponse) ProtoMessage()    {}
-func (*MsgUninvestResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRedeemResponse) Reset()         { *m = MsgRedeemResponse{} }
+func (m *MsgRedeemResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRedeemResponse) ProtoMessage()    {}
+func (*MsgRedeemResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0bf9c1ce3edbd88c, []int{5}
 }
-func (m *MsgUninvestResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRedeemResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUninvestResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRedeemResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUninvestResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRedeemResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -402,64 +402,63 @@ func (m *MsgUninvestResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *MsgUninvestResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUninvestResponse.Merge(m, src)
+func (m *MsgRedeemResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRedeemResponse.Merge(m, src)
 }
-func (m *MsgUninvestResponse) XXX_Size() int {
+func (m *MsgRedeemResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUninvestResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUninvestResponse.DiscardUnknown(m)
+func (m *MsgRedeemResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRedeemResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUninvestResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRedeemResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateFund)(nil), "defundlabs.defund.etf.MsgCreateFund")
 	proto.RegisterType((*MsgCreateFundResponse)(nil), "defundlabs.defund.etf.MsgCreateFundResponse")
-	proto.RegisterType((*MsgInvest)(nil), "defundlabs.defund.etf.MsgInvest")
-	proto.RegisterType((*MsgInvestResponse)(nil), "defundlabs.defund.etf.MsgInvestResponse")
-	proto.RegisterType((*MsgUninvest)(nil), "defundlabs.defund.etf.MsgUninvest")
-	proto.RegisterType((*MsgUninvestResponse)(nil), "defundlabs.defund.etf.MsgUninvestResponse")
+	proto.RegisterType((*MsgCreate)(nil), "defundlabs.defund.etf.MsgCreate")
+	proto.RegisterType((*MsgCreateResponse)(nil), "defundlabs.defund.etf.MsgCreateResponse")
+	proto.RegisterType((*MsgRedeem)(nil), "defundlabs.defund.etf.MsgRedeem")
+	proto.RegisterType((*MsgRedeemResponse)(nil), "defundlabs.defund.etf.MsgRedeemResponse")
 }
 
 func init() { proto.RegisterFile("etf/tx.proto", fileDescriptor_0bf9c1ce3edbd88c) }
 
 var fileDescriptor_0bf9c1ce3edbd88c = []byte{
-	// 520 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x54, 0x4f, 0x6f, 0xd3, 0x30,
-	0x14, 0x5f, 0xd6, 0xd2, 0xb5, 0xaf, 0x6c, 0x62, 0x1e, 0x85, 0x2c, 0x42, 0x51, 0x55, 0x81, 0x54,
-	0xfe, 0x25, 0xea, 0xf8, 0x06, 0x14, 0x21, 0x38, 0xf4, 0x52, 0x8d, 0xcb, 0x2e, 0xc3, 0x49, 0x5f,
-	0x93, 0x88, 0xc4, 0x8e, 0x62, 0x67, 0xda, 0xbe, 0x05, 0x57, 0xbe, 0x11, 0xc7, 0x1d, 0x11, 0xe2,
-	0x80, 0xda, 0x03, 0x5f, 0x03, 0xd9, 0x71, 0xb2, 0x4e, 0x62, 0x8c, 0x33, 0xa7, 0xbc, 0xdf, 0x1f,
-	0x3f, 0xeb, 0xf7, 0xec, 0x18, 0xee, 0xa2, 0x5c, 0xfa, 0xf2, 0xdc, 0xcb, 0x0b, 0x2e, 0x39, 0x19,
-	0x2c, 0x70, 0x59, 0xb2, 0x45, 0x4a, 0x03, 0xe1, 0x55, 0xa5, 0x87, 0x72, 0xe9, 0xec, 0x29, 0x93,
-	0x46, 0xda, 0xe6, 0x1c, 0x86, 0x5c, 0x64, 0x5c, 0x9c, 0x6a, 0xe4, 0x57, 0xc0, 0x48, 0xf7, 0x23,
-	0x1e, 0xf1, 0x8a, 0x57, 0x95, 0x61, 0xdd, 0xca, 0xe3, 0x07, 0x54, 0xa0, 0x7f, 0x36, 0x09, 0x50,
-	0xd2, 0x89, 0x1f, 0xf2, 0x84, 0x55, 0xfa, 0xe8, 0x97, 0x05, 0xbb, 0x33, 0x11, 0x4d, 0x0b, 0xa4,
-	0x12, 0xdf, 0x96, 0x6c, 0x41, 0x6c, 0xd8, 0x09, 0x15, 0xe2, 0x85, 0x6d, 0x0d, 0xad, 0x71, 0x6f,
-	0x5e, 0x43, 0xf2, 0x00, 0x3a, 0xe2, 0x22, 0x0b, 0x78, 0x6a, 0x6f, 0x6b, 0xc1, 0x20, 0x42, 0xa0,
-	0xcd, 0x68, 0x86, 0x76, 0x4b, 0xb3, 0xba, 0x26, 0x43, 0xe8, 0x2f, 0x50, 0x84, 0x45, 0x92, 0xcb,
-	0x84, 0x33, 0xbb, 0xad, 0xa5, 0x4d, 0x4a, 0x75, 0x0b, 0x0a, 0xfe, 0x09, 0x0b, 0xfb, 0x4e, 0xd5,
-	0xad, 0x42, 0xc4, 0x81, 0x6e, 0xcc, 0xd3, 0x45, 0xc2, 0x22, 0x61, 0x77, 0xb4, 0xd2, 0x60, 0xf2,
-	0x08, 0x7a, 0x05, 0x06, 0x34, 0xa5, 0x2c, 0x44, 0x7b, 0x67, 0x68, 0x8d, 0x5b, 0xf3, 0x2b, 0x42,
-	0xa9, 0x2a, 0xe6, 0x1b, 0x64, 0x3c, 0xb3, 0xbb, 0x7a, 0xe9, 0x15, 0x31, 0x7a, 0x08, 0x83, 0x6b,
-	0x41, 0xe7, 0x28, 0x72, 0xce, 0x04, 0x8e, 0xbe, 0x5b, 0xd0, 0x9b, 0x89, 0xe8, 0x3d, 0x3b, 0x43,
-	0x21, 0xff, 0x12, 0x9f, 0x40, 0x5b, 0x9d, 0x84, 0x09, 0xaf, 0x6b, 0x32, 0x81, 0x0e, 0xcd, 0x78,
-	0xc9, 0xa4, 0x0e, 0xdf, 0x3f, 0x3a, 0xf4, 0xcc, 0x99, 0xa8, 0x7d, 0x3d, 0x33, 0x6f, 0x6f, 0xca,
-	0x13, 0x36, 0x37, 0x46, 0xbd, 0x41, 0x4c, 0x19, 0xc3, 0xd4, 0x4c, 0xa5, 0x86, 0xe4, 0x09, 0xec,
-	0xc9, 0x24, 0x43, 0x5e, 0xca, 0xd3, 0x18, 0x93, 0x28, 0x96, 0x66, 0x32, 0xbb, 0x86, 0x7d, 0xa7,
-	0x49, 0xf2, 0x1c, 0xf6, 0x6b, 0x9b, 0xfa, 0x0a, 0x49, 0xb3, 0x5c, 0x4f, 0xaa, 0x3d, 0xbf, 0x67,
-	0x84, 0xe3, 0x9a, 0x1f, 0x1d, 0xc0, 0x7e, 0x93, 0xad, 0x49, 0xfc, 0xc3, 0x82, 0xfe, 0x4c, 0x44,
-	0x1f, 0x58, 0xf2, 0x5f, 0x66, 0x1e, 0xc0, 0xc1, 0x46, 0xba, 0x3a, 0xf5, 0xd1, 0x97, 0x6d, 0x68,
-	0xcd, 0x44, 0x44, 0x3e, 0x02, 0x6c, 0x5c, 0xf7, 0xc7, 0xde, 0x1f, 0xff, 0x3c, 0xef, 0xda, 0x5d,
-	0x71, 0x5e, 0xfc, 0x8b, 0xab, 0xde, 0x89, 0x1c, 0x43, 0xc7, 0xdc, 0xa6, 0xe1, 0xcd, 0xeb, 0x2a,
-	0x87, 0x33, 0xbe, 0xcd, 0xd1, 0x74, 0x3d, 0x81, 0x6e, 0x73, 0x62, 0xa3, 0x9b, 0x57, 0xd5, 0x1e,
-	0xe7, 0xd9, 0xed, 0x9e, 0xba, 0xf7, 0xeb, 0xe9, 0xd7, 0x95, 0x6b, 0x5d, 0xae, 0x5c, 0xeb, 0xe7,
-	0xca, 0xb5, 0x3e, 0xaf, 0xdd, 0xad, 0xcb, 0xb5, 0xbb, 0xf5, 0x6d, 0xed, 0x6e, 0x9d, 0x3c, 0x8d,
-	0x12, 0x19, 0x97, 0x81, 0x17, 0xf2, 0xcc, 0xaf, 0x9a, 0xbc, 0x54, 0x0d, 0x4d, 0xed, 0x9f, 0xfb,
-	0xfa, 0x19, 0xbb, 0xc8, 0x51, 0x04, 0x1d, 0xfd, 0xa4, 0xbc, 0xfa, 0x1d, 0x00, 0x00, 0xff, 0xff,
-	0x8e, 0xef, 0x14, 0xc7, 0xda, 0x04, 0x00, 0x00,
+	// 500 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0x8e, 0x9b, 0x90, 0x36, 0x53, 0x5a, 0xd1, 0x85, 0x82, 0x1b, 0x21, 0x2b, 0x8a, 0x40, 0x0a,
+	0x02, 0x6c, 0xa5, 0xbc, 0x01, 0x41, 0x88, 0x4b, 0x2f, 0x56, 0x4f, 0x5c, 0xca, 0xda, 0x9e, 0xd8,
+	0x16, 0xf6, 0xae, 0xe5, 0x5d, 0xa3, 0xf6, 0x2d, 0x90, 0x78, 0x29, 0x8e, 0x3d, 0x22, 0x4e, 0x28,
+	0x39, 0xf0, 0x1a, 0x68, 0x7f, 0x9c, 0x26, 0x08, 0xa5, 0x9c, 0x7b, 0xf2, 0x7c, 0x3f, 0x3b, 0xab,
+	0x6f, 0x76, 0xbd, 0x70, 0x1f, 0xe5, 0x3c, 0x90, 0x97, 0x7e, 0x55, 0x73, 0xc9, 0xc9, 0x71, 0x82,
+	0xf3, 0x86, 0x25, 0x05, 0x8d, 0x84, 0x6f, 0x4a, 0x1f, 0xe5, 0x7c, 0x78, 0xa8, 0x4c, 0x1a, 0x69,
+	0xdb, 0xf0, 0x24, 0xe6, 0xa2, 0xe4, 0xe2, 0x42, 0xa3, 0xc0, 0x00, 0x2b, 0x3d, 0x4a, 0x79, 0xca,
+	0x0d, 0xaf, 0x2a, 0xcb, 0x7a, 0xc6, 0x13, 0x44, 0x54, 0x60, 0xf0, 0x65, 0x1a, 0xa1, 0xa4, 0xd3,
+	0x20, 0xe6, 0x39, 0x33, 0xfa, 0xf8, 0xb7, 0x03, 0x07, 0x67, 0x22, 0x9d, 0xd5, 0x48, 0x25, 0xbe,
+	0x6f, 0x58, 0x42, 0x5c, 0xd8, 0x8d, 0x15, 0xe2, 0xb5, 0xeb, 0x8c, 0x9c, 0xc9, 0x20, 0x6c, 0x21,
+	0x79, 0x0c, 0x7d, 0x71, 0x55, 0x46, 0xbc, 0x70, 0x77, 0xb4, 0x60, 0x11, 0x21, 0xd0, 0x63, 0xb4,
+	0x44, 0xb7, 0xab, 0x59, 0x5d, 0x93, 0x11, 0xec, 0x27, 0x28, 0xe2, 0x3a, 0xaf, 0x64, 0xce, 0x99,
+	0xdb, 0xd3, 0xd2, 0x3a, 0xa5, 0xba, 0x45, 0x35, 0xff, 0x8c, 0xb5, 0x7b, 0xcf, 0x74, 0x33, 0x88,
+	0x0c, 0x61, 0x2f, 0xe3, 0x45, 0x92, 0xb3, 0x54, 0xb8, 0x7d, 0xad, 0xac, 0x30, 0x79, 0x0a, 0x83,
+	0x1a, 0x23, 0x5a, 0x50, 0x16, 0xa3, 0xbb, 0x3b, 0x72, 0x26, 0xdd, 0xf0, 0x86, 0x50, 0xaa, 0x8a,
+	0xf9, 0x0e, 0x19, 0x2f, 0xdd, 0x3d, 0xbd, 0xf4, 0x86, 0x18, 0x3f, 0x81, 0xe3, 0x8d, 0xa0, 0x21,
+	0x8a, 0x8a, 0x33, 0x81, 0xe3, 0x9f, 0x0e, 0x0c, 0x56, 0xca, 0x96, 0xf8, 0x04, 0x7a, 0xea, 0x24,
+	0x6c, 0x78, 0x5d, 0x93, 0x29, 0xf4, 0x69, 0xc9, 0x1b, 0x26, 0x75, 0xf8, 0xfd, 0xd3, 0x13, 0xdf,
+	0x9e, 0x89, 0xda, 0xd7, 0xb7, 0xf3, 0xf6, 0x67, 0x3c, 0x67, 0xa1, 0x35, 0xea, 0x0d, 0x32, 0xca,
+	0x18, 0x16, 0x76, 0x2a, 0x2d, 0x24, 0xcf, 0xe1, 0x50, 0xe6, 0x25, 0xf2, 0x46, 0x5e, 0x64, 0x98,
+	0xa7, 0x99, 0xb4, 0x93, 0x39, 0xb0, 0xec, 0x07, 0x4d, 0x92, 0x97, 0x70, 0xd4, 0xda, 0xd4, 0x57,
+	0x48, 0x5a, 0x56, 0x7a, 0x52, 0xbd, 0xf0, 0x81, 0x15, 0xce, 0x5b, 0x7e, 0xfc, 0x10, 0x8e, 0x56,
+	0xd9, 0xfe, 0x4e, 0x1c, 0x62, 0x82, 0x58, 0xde, 0xcd, 0xc4, 0x26, 0x5b, 0x9b, 0xf8, 0xf4, 0xdb,
+	0x0e, 0x74, 0xcf, 0x44, 0x4a, 0x3e, 0x01, 0xac, 0x5d, 0xf5, 0x67, 0xfe, 0x3f, 0xff, 0x3a, 0x7f,
+	0xe3, 0x9e, 0x0c, 0x5f, 0xfd, 0x8f, 0xab, 0xdd, 0x89, 0x9c, 0x43, 0xdf, 0xde, 0xa4, 0xd1, 0x6d,
+	0xeb, 0x86, 0x93, 0xdb, 0x1c, 0xeb, 0x5d, 0xed, 0x69, 0x6d, 0xe9, 0x6a, 0x1c, 0xdb, 0xba, 0x6e,
+	0x4e, 0xe5, 0xed, 0xec, 0xfb, 0xc2, 0x73, 0xae, 0x17, 0x9e, 0xf3, 0x6b, 0xe1, 0x39, 0x5f, 0x97,
+	0x5e, 0xe7, 0x7a, 0xe9, 0x75, 0x7e, 0x2c, 0xbd, 0xce, 0xc7, 0x17, 0x69, 0x2e, 0xb3, 0x26, 0xf2,
+	0x63, 0x5e, 0x06, 0xa6, 0xc5, 0x6b, 0xd5, 0xce, 0xd6, 0xc1, 0x65, 0xa0, 0x1f, 0xaf, 0xab, 0x0a,
+	0x45, 0xd4, 0xd7, 0x0f, 0xc9, 0x9b, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xc3, 0x65, 0xf6, 0x56,
+	0xd0, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -475,8 +474,8 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	CreateFund(ctx context.Context, in *MsgCreateFund, opts ...grpc.CallOption) (*MsgCreateFundResponse, error)
-	Invest(ctx context.Context, in *MsgInvest, opts ...grpc.CallOption) (*MsgInvestResponse, error)
-	Uninvest(ctx context.Context, in *MsgUninvest, opts ...grpc.CallOption) (*MsgUninvestResponse, error)
+	Create(ctx context.Context, in *MsgCreate, opts ...grpc.CallOption) (*MsgCreateResponse, error)
+	Redeem(ctx context.Context, in *MsgRedeem, opts ...grpc.CallOption) (*MsgRedeemResponse, error)
 }
 
 type msgClient struct {
@@ -496,18 +495,18 @@ func (c *msgClient) CreateFund(ctx context.Context, in *MsgCreateFund, opts ...g
 	return out, nil
 }
 
-func (c *msgClient) Invest(ctx context.Context, in *MsgInvest, opts ...grpc.CallOption) (*MsgInvestResponse, error) {
-	out := new(MsgInvestResponse)
-	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Msg/Invest", in, out, opts...)
+func (c *msgClient) Create(ctx context.Context, in *MsgCreate, opts ...grpc.CallOption) (*MsgCreateResponse, error) {
+	out := new(MsgCreateResponse)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Msg/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) Uninvest(ctx context.Context, in *MsgUninvest, opts ...grpc.CallOption) (*MsgUninvestResponse, error) {
-	out := new(MsgUninvestResponse)
-	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Msg/Uninvest", in, out, opts...)
+func (c *msgClient) Redeem(ctx context.Context, in *MsgRedeem, opts ...grpc.CallOption) (*MsgRedeemResponse, error) {
+	out := new(MsgRedeemResponse)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.etf.Msg/Redeem", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -517,8 +516,8 @@ func (c *msgClient) Uninvest(ctx context.Context, in *MsgUninvest, opts ...grpc.
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateFund(context.Context, *MsgCreateFund) (*MsgCreateFundResponse, error)
-	Invest(context.Context, *MsgInvest) (*MsgInvestResponse, error)
-	Uninvest(context.Context, *MsgUninvest) (*MsgUninvestResponse, error)
+	Create(context.Context, *MsgCreate) (*MsgCreateResponse, error)
+	Redeem(context.Context, *MsgRedeem) (*MsgRedeemResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -528,11 +527,11 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) CreateFund(ctx context.Context, req *MsgCreateFund) (*MsgCreateFundResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFund not implemented")
 }
-func (*UnimplementedMsgServer) Invest(ctx context.Context, req *MsgInvest) (*MsgInvestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Invest not implemented")
+func (*UnimplementedMsgServer) Create(ctx context.Context, req *MsgCreate) (*MsgCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (*UnimplementedMsgServer) Uninvest(ctx context.Context, req *MsgUninvest) (*MsgUninvestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Uninvest not implemented")
+func (*UnimplementedMsgServer) Redeem(ctx context.Context, req *MsgRedeem) (*MsgRedeemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Redeem not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -557,38 +556,38 @@ func _Msg_CreateFund_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_Invest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgInvest)
+func _Msg_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Invest(ctx, in)
+		return srv.(MsgServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundlabs.defund.etf.Msg/Invest",
+		FullMethod: "/defundlabs.defund.etf.Msg/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Invest(ctx, req.(*MsgInvest))
+		return srv.(MsgServer).Create(ctx, req.(*MsgCreate))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_Uninvest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUninvest)
+func _Msg_Redeem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRedeem)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Uninvest(ctx, in)
+		return srv.(MsgServer).Redeem(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundlabs.defund.etf.Msg/Uninvest",
+		FullMethod: "/defundlabs.defund.etf.Msg/Redeem",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Uninvest(ctx, req.(*MsgUninvest))
+		return srv.(MsgServer).Redeem(ctx, req.(*MsgRedeem))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -602,12 +601,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_CreateFund_Handler,
 		},
 		{
-			MethodName: "Invest",
-			Handler:    _Msg_Invest_Handler,
+			MethodName: "Create",
+			Handler:    _Msg_Create_Handler,
 		},
 		{
-			MethodName: "Uninvest",
-			Handler:    _Msg_Uninvest_Handler,
+			MethodName: "Redeem",
+			Handler:    _Msg_Redeem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -714,7 +713,7 @@ func (m *MsgCreateFundResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgInvest) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -724,12 +723,12 @@ func (m *MsgInvest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgInvest) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreate) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgInvest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -782,7 +781,7 @@ func (m *MsgInvest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgInvestResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -792,12 +791,12 @@ func (m *MsgInvestResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgInvestResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgInvestResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -805,7 +804,7 @@ func (m *MsgInvestResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUninvest) Marshal() (dAtA []byte, err error) {
+func (m *MsgRedeem) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -815,12 +814,12 @@ func (m *MsgUninvest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUninvest) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRedeem) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUninvest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRedeem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -873,7 +872,7 @@ func (m *MsgUninvest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUninvestResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRedeemResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -883,12 +882,12 @@ func (m *MsgUninvestResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUninvestResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRedeemResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUninvestResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRedeemResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -956,7 +955,7 @@ func (m *MsgCreateFundResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgInvest) Size() (n int) {
+func (m *MsgCreate) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -988,7 +987,7 @@ func (m *MsgInvest) Size() (n int) {
 	return n
 }
 
-func (m *MsgInvestResponse) Size() (n int) {
+func (m *MsgCreateResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -997,7 +996,7 @@ func (m *MsgInvestResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUninvest) Size() (n int) {
+func (m *MsgRedeem) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1029,7 +1028,7 @@ func (m *MsgUninvest) Size() (n int) {
 	return n
 }
 
-func (m *MsgUninvestResponse) Size() (n int) {
+func (m *MsgRedeemResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1387,7 +1386,7 @@ func (m *MsgCreateFundResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgInvest) Unmarshal(dAtA []byte) error {
+func (m *MsgCreate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1410,10 +1409,10 @@ func (m *MsgInvest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgInvest: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgInvest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1620,7 +1619,7 @@ func (m *MsgInvest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgInvestResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1643,10 +1642,10 @@ func (m *MsgInvestResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgInvestResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgInvestResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1670,7 +1669,7 @@ func (m *MsgInvestResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUninvest) Unmarshal(dAtA []byte) error {
+func (m *MsgRedeem) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1693,10 +1692,10 @@ func (m *MsgUninvest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUninvest: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRedeem: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUninvest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRedeem: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1903,7 +1902,7 @@ func (m *MsgUninvest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUninvestResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRedeemResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1926,10 +1925,10 @@ func (m *MsgUninvestResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUninvestResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRedeemResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUninvestResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRedeemResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -4,6 +4,7 @@ package defundlabs.defund.broker;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "broker/broker.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/defund-labs/defund/x/broker/types";
@@ -12,6 +13,8 @@ option go_package = "github.com/defund-labs/defund/x/broker/types";
 service Query {
   // QueryInterchainAccountFromAddress returns the interchain account for given owner address on a given connection pair
   rpc InterchainAccountFromAddress(QueryInterchainAccountFromAddressRequest) returns (QueryInterchainAccountFromAddressResponse);
+  // QueryBrokerRequest returns the broker based on the broker id requested
+  rpc Broker(QueryBrokerRequest) returns (QueryBrokerResponse);
   // this line is used by starport scaffolding # 2
 }
 
@@ -24,6 +27,16 @@ message QueryInterchainAccountFromAddressRequest {
 // QueryInterchainAccountFromAddressResponse the response type for the Query/InterchainAccountAddress RPC
 message QueryInterchainAccountFromAddressResponse {
   string interchain_account_address = 1 [(gogoproto.moretags) = "yaml:\"interchain_account_address\""];
+}
+
+// QueryBrokerRequest is the request type for the Query/Broker RPC
+message QueryBrokerRequest {
+  string broker                      = 1;
+}
+
+// QueryBrokerResponse the response type for the Query/Broker RPC
+message QueryBrokerResponse {
+  Broker broker = 1 [(gogoproto.moretags) = "yaml:\"broker\""];
 }
 
 // this line is used by starport scaffolding # 3

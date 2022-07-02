@@ -28,3 +28,15 @@ func (k Keeper) InterchainAccountFromAddress(goCtx context.Context, req *types.Q
 
 	return types.NewQueryInterchainAccountResponse(addr), nil
 }
+
+// Broker implements the Query/Broker gRPC method
+func (k Keeper) Broker(goCtx context.Context, req *types.QueryBrokerRequest) (*types.QueryBrokerResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	broker, found := k.GetBroker(ctx, req.Broker)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "broker %s not found", req.Broker)
+	}
+
+	return types.NewQueryBrokerResponse(broker), nil
+}

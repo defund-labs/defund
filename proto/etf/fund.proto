@@ -53,7 +53,7 @@ message Fund {
   string creator = 11;
 }
 
-message Invest {
+message Create {
   string id = 1;
   string creator = 2;
   Fund fund = 3;
@@ -63,7 +63,7 @@ message Invest {
   string status = 7;
 }
 
-message Uninvest {
+message Redeem {
   string id = 1;
   string creator = 2;
   Fund fund = 3;

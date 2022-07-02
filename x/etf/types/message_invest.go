@@ -20,10 +20,10 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ sdk.Msg = &MsgInvest{}
+var _ sdk.Msg = &MsgCreate{}
 
-func NewMsgInvest(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgInvest {
-	return &MsgInvest{
+func NewMsgInvest(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgCreate {
+	return &MsgCreate{
 		Creator:          creator,
 		Fund:             fund,
 		Amount:           amount,
@@ -33,15 +33,15 @@ func NewMsgInvest(creator string, fund string, amount *sdk.Coin, channel string,
 	}
 }
 
-func (msg *MsgInvest) Route() string {
+func (msg *MsgCreate) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgInvest) Type() string {
+func (msg *MsgCreate) Type() string {
 	return "Invest"
 }
 
-func (msg *MsgInvest) GetSigners() []sdk.AccAddress {
+func (msg *MsgCreate) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -49,12 +49,12 @@ func (msg *MsgInvest) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgInvest) GetSignBytes() []byte {
+func (msg *MsgCreate) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgInvest) ValidateBasic() error {
+func (msg *MsgCreate) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)

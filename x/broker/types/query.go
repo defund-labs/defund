@@ -14,3 +14,17 @@ func NewQueryInterchainAccountResponse(interchainAccAddr string) *QueryInterchai
 		InterchainAccountAddress: interchainAccAddr,
 	}
 }
+
+// NewQueryBrokerRequest creates and returns a new QueryBrokerRequest
+func NewQueryBrokerRequest(broker string) *QueryBrokerRequest {
+	return &QueryBrokerRequest{
+		Broker: broker,
+	}
+}
+
+// NewQueryBrokerResponse creates and returns a new QueryBrokerResponse
+func NewQueryBrokerResponse(broker Broker) *QueryBrokerResponse {
+	return &QueryBrokerResponse{
+		Broker: &broker,
+	}
+}

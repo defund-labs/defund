@@ -89,7 +89,7 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 }
 
 // SetInvest set a specific invest in the store from its index
-func (k Keeper) SetInvest(ctx sdk.Context, invest types.Invest) {
+func (k Keeper) SetInvest(ctx sdk.Context, invest types.Create) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
 	b := k.cdc.MustMarshal(&invest)
 	store.Set(types.InvestKey(
@@ -102,7 +102,7 @@ func (k Keeper) GetInvest(
 	ctx sdk.Context,
 	index string,
 
-) (val types.Invest, found bool) {
+) (val types.Create, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
 
 	b := store.Get(types.InvestKey(
@@ -117,7 +117,7 @@ func (k Keeper) GetInvest(
 }
 
 // GetAllInvest returns all invests from store
-func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
+func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Create) {
 	store := ctx.KVStore(k.storeKey)
 	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
 
@@ -126,7 +126,7 @@ func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Invest
+		var val types.Create
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
@@ -135,7 +135,7 @@ func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
 }
 
 // GetAllInvestbySymbol returns all invests from store based on symbol
-func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []types.Invest) {
+func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []types.Create) {
 	store := ctx.KVStore(k.storeKey)
 	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
 
@@ -144,7 +144,7 @@ func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []typ
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Invest
+		var val types.Create
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.Fund.Symbol == symbol {
 			list = append(list, val)

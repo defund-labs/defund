@@ -83,9 +83,9 @@ func sum(items []sdk.Dec) sdk.Dec {
 	return sum
 }
 
-// Invest sends an IBC transfer to the account specified and creates a pending invest store.
+// Create sends an IBC transfer to the account specified and creates a pending invest store.
 // Initializes the investment process which continues in Broker module in OnAckRec.
-func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (k Keeper) Create(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	portid, err := icatypes.NewControllerPortID(fund.Address)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
@@ -94,7 +94,7 @@ func (k Keeper) Invest(ctx sdk.Context, id string, sendFrom string, fund types.F
 	if !found {
 		return sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portid)
 	}
-	invest := types.Invest{
+	invest := types.Create{
 		Id:       id,
 		Creator:  sender,
 		Fund:     &fund,

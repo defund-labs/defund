@@ -14,8 +14,8 @@ option go_package = "github.com/defund-labs/defund/x/etf/types";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
-  rpc Invest(MsgInvest) returns (MsgInvestResponse);
-  rpc Uninvest(MsgUninvest) returns (MsgUninvestResponse);
+  rpc Create(MsgCreate) returns (MsgCreateResponse);
+  rpc Redeem(MsgRedeem) returns (MsgRedeemResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -32,7 +32,7 @@ message MsgCreateFund {
 }
 message MsgCreateFundResponse {}
 
-message MsgInvest {
+message MsgCreate {
   string creator = 1;
 
   string fund = 2;
@@ -46,10 +46,10 @@ message MsgInvest {
   uint64 timeout_timestamp = 6;
 }
 
-message MsgInvestResponse {
+message MsgCreateResponse {
 }
 
-message MsgUninvest {
+message MsgRedeem {
   string creator = 1;
 
   string fund = 2;
@@ -63,7 +63,7 @@ message MsgUninvest {
   uint64 timeout_timestamp = 6;
 }
 
-message MsgUninvestResponse {
+message MsgRedeemResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message
