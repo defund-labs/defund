@@ -7,7 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgRedeem{}
 
-func NewMsgUninvest(creator string, fund string, amount *sdk.Coin) *MsgRedeem {
+func NewMsgRedeem(creator string, fund string, amount *sdk.Coin) *MsgRedeem {
 	return &MsgRedeem{
 		Creator: creator,
 		Fund:    fund,
@@ -20,7 +20,7 @@ func (msg *MsgRedeem) Route() string {
 }
 
 func (msg *MsgRedeem) Type() string {
-	return "Uninvest"
+	return "Redeem"
 }
 
 func (msg *MsgRedeem) GetSigners() []sdk.AccAddress {

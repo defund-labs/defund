@@ -83,9 +83,9 @@ func sum(items []sdk.Dec) sdk.Dec {
 	return sum
 }
 
-// Create sends an IBC transfer to the account specified and creates a pending invest store.
+// CreateShares sends an IBC transfer to the account specified and creates a pending invest store.
 // Initializes the investment process which continues in Broker module in OnAckRec.
-func (k Keeper) Create(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (k Keeper) CreateShares(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	portid, err := icatypes.NewControllerPortID(fund.Address)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
@@ -94,7 +94,7 @@ func (k Keeper) Create(ctx sdk.Context, id string, sendFrom string, fund types.F
 	if !found {
 		return sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portid)
 	}
-	invest := types.Create{
+	create := types.Create{
 		Id:       id,
 		Creator:  sender,
 		Fund:     &fund,
@@ -103,7 +103,32 @@ func (k Keeper) Create(ctx sdk.Context, id string, sendFrom string, fund types.F
 		Sequence: strconv.FormatUint(sequence, 10),
 		Status:   "pending",
 	}
-	k.SetInvest(ctx, invest)
+	k.SetCreate(ctx, create)
+	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
+	return nil
+}
+
+// RedeemShares sends an IBC transfer to the account specified and creates a pending invest store.
+// Initializes the investment process which continues in Broker module in OnAckRec.
+func (k Keeper) RedeemShares(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+	portid, err := icatypes.NewControllerPortID(fund.Address)
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
+	}
+	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, portid, channel)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portid)
+	}
+	redeem := types.Redeem{
+		Id:       id,
+		Creator:  sender,
+		Fund:     &fund,
+		Amount:   &amount,
+		Channel:  channel,
+		Sequence: strconv.FormatUint(sequence, 10),
+		Status:   "pending",
+	}
+	k.SetRedeem(ctx, redeem)
 	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return nil
 }
@@ -148,14 +173,6 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 	// Make sure all fund holdings add up to 100%
 	if percentCheck != uint64(100) {
 		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up to 100%")
-	}
-	return nil
-}
-
-func (k Keeper) EndBlocker(ctx sdk.Context) error {
-	err := k.CreatePriceEndBlock(ctx)
-	if err != nil {
-		ctx.Logger().Debug("Error Creating Fund Price Log:", err.Error())
 	}
 	return nil
 }

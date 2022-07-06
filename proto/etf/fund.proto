@@ -11,16 +11,15 @@ option go_package = "github.com/defund-labs/defund/x/etf/types";
 message FundPrices {
   string id = 1;
   repeated FundPrice prices = 2;
-  uint64 NextPruneHeight = 3;
 }
 
 message FundPrice {
   string id = 1;
-  uint64 height = 2;
+  int64 height = 2;
   google.protobuf.Timestamp time = 3 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"start_time\""
+    (gogoproto.moretags) = "yaml:\"time\""
   ];
   cosmos.base.v1beta1.Coin amount = 4;
   string symbol = 5;

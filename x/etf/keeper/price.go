@@ -1,30 +1,41 @@
 package keeper
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
-// SetFund set a specific fund in the store from its index
-func (k Keeper) SetFundPrice(ctx sdk.Context, fundprice types.FundPrice) {
+type PricesSort []*types.FundPrice
+
+func (p PricesSort) Len() int {
+	return len(p)
+}
+
+func (p PricesSort) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func (p PricesSort) Less(i, j int) bool {
+	return p[i].Height < p[j].Height
+}
+
+// SetFundPrices set a specific funds list of prices in the store from its index
+func (k Keeper) SetFundPrices(ctx sdk.Context, fundprices types.FundPrices) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundPriceKeyPrefix))
-	b := k.cdc.MustMarshal(&fundprice)
+	b := k.cdc.MustMarshal(&fundprices)
 	store.Set(types.FundPriceKey(
-		fundprice.Id,
+		fundprices.Id,
 	), b)
 }
 
-// GetFund returns a fund from its index
-func (k Keeper) GetFundPrice(
+// GetFundPrices returns a funds prices from its index
+func (k Keeper) GetFundPrices(
 	ctx sdk.Context,
 	index string,
 
-) (val types.FundPrice, found bool) {
+) (val types.FundPrices, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundPriceKeyPrefix))
 
 	b := store.Get(types.FundPriceKey(
@@ -38,8 +49,8 @@ func (k Keeper) GetFundPrice(
 	return val, true
 }
 
-// GetAllFundPrice returns all funds prices in store
-func (k Keeper) GetAllFundPrice(ctx sdk.Context) (list []types.FundPrice) {
+// GetAllFundPrices returns all funds prices in store
+func (k Keeper) GetAllFundPrices(ctx sdk.Context) (list []types.FundPrices) {
 	store := ctx.KVStore(k.storeKey)
 	fundPriceResultStore := prefix.NewStore(store, []byte(types.FundPriceKeyPrefix))
 
@@ -48,7 +59,7 @@ func (k Keeper) GetAllFundPrice(ctx sdk.Context) (list []types.FundPrice) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.FundPrice
+		var val types.FundPrices
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
@@ -84,26 +95,4 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		price = sdk.NewCoin(fund.Broker.BaseDenom, sdk.NewInt(total.RoundInt64()))
 	}
 	return price, nil
-}
-
-// CreateAllFundPriceEndBlock is a function that runs at each end block that logs the fund price for each fund
-// and purges unneeded fund prices from the store
-func (k Keeper) CreatePriceEndBlock(ctx sdk.Context) error {
-	funds := k.GetAllFund(ctx)
-	for _, fund := range funds {
-		price, err := k.CreateFundPrice(ctx, fund.Symbol)
-		if err != nil {
-			return err
-		}
-
-		fundPrice := types.FundPrice{
-			Height: uint64(ctx.BlockHeight()),
-			Amount: &price,
-			Time:   ctx.BlockTime(),
-			Symbol: fund.Symbol,
-			Id:     fmt.Sprintf("%s-%s", fund.Symbol, strconv.FormatInt(ctx.BlockHeight(), 10)),
-		}
-		k.SetFundPrice(ctx, fundPrice)
-	}
-	return nil
 }

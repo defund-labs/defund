@@ -22,7 +22,7 @@ var (
 
 var _ sdk.Msg = &MsgCreate{}
 
-func NewMsgInvest(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgCreate {
+func NewMsgCreate(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgCreate {
 	return &MsgCreate{
 		Creator:          creator,
 		Fund:             fund,
@@ -38,7 +38,7 @@ func (msg *MsgCreate) Route() string {
 }
 
 func (msg *MsgCreate) Type() string {
-	return "Invest"
+	return "Create"
 }
 
 func (msg *MsgCreate) GetSigners() []sdk.AccAddress {

@@ -156,7 +156,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, err
 	}
 
-	err = k.Keeper.Create(ctx, id, acc, fund, msg.Channel, *msg.Amount, msg.Creator, fund.Address, timeoutHeight, msg.TimeoutTimestamp)
+	err = k.Keeper.CreateShares(ctx, id, acc, fund, msg.Channel, *msg.Amount, msg.Creator, fund.Address, timeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}

@@ -88,24 +88,24 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 	return strconv.Itoa(count)
 }
 
-// SetInvest set a specific invest in the store from its index
-func (k Keeper) SetInvest(ctx sdk.Context, invest types.Create) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
-	b := k.cdc.MustMarshal(&invest)
-	store.Set(types.InvestKey(
-		invest.Id,
+// SetCreate set a specific create in the store from its index
+func (k Keeper) SetCreate(ctx sdk.Context, create types.Create) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
+	b := k.cdc.MustMarshal(&create)
+	store.Set(types.CreateKey(
+		create.Id,
 	), b)
 }
 
-// GetInvest returns a invest from its index
-func (k Keeper) GetInvest(
+// GetCreate returns a increatevest from its index
+func (k Keeper) GetCreate(
 	ctx sdk.Context,
 	index string,
 
 ) (val types.Create, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
 
-	b := store.Get(types.InvestKey(
+	b := store.Get(types.CreateKey(
 		index,
 	))
 	if b == nil {
@@ -116,12 +116,12 @@ func (k Keeper) GetInvest(
 	return val, true
 }
 
-// GetAllInvest returns all invests from store
-func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Create) {
+// GetAllCreate returns all creates from store
+func (k Keeper) GetAllCreate(ctx sdk.Context) (list []types.Create) {
 	store := ctx.KVStore(k.storeKey)
-	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+	createStore := prefix.NewStore(store, []byte(types.CreateKeyPrefix))
 
-	iterator := investStore.Iterator(nil, nil)
+	iterator := createStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
@@ -134,17 +134,83 @@ func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Create) {
 	return
 }
 
-// GetAllInvestbySymbol returns all invests from store based on symbol
-func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []types.Create) {
+// GetAllCreatebySymbol returns all creates from store based on symbol
+func (k Keeper) GetAllCreatebySymbol(ctx sdk.Context, symbol string) (list []types.Create) {
 	store := ctx.KVStore(k.storeKey)
-	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+	createStore := prefix.NewStore(store, []byte(types.CreateKeyPrefix))
 
-	iterator := investStore.Iterator(nil, nil)
+	iterator := createStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Create
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Fund.Symbol == symbol {
+			list = append(list, val)
+		}
+	}
+
+	return
+}
+
+// SetRedeem set a specific redeem in the store from its index
+func (k Keeper) SetRedeem(ctx sdk.Context, redeem types.Redeem) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	b := k.cdc.MustMarshal(&redeem)
+	store.Set(types.RedeemKey(
+		redeem.Id,
+	), b)
+}
+
+// GetRedeem returns a redeem from its index
+func (k Keeper) GetRedeem(
+	ctx sdk.Context,
+	index string,
+
+) (val types.Redeem, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+
+	b := store.Get(types.RedeemKey(
+		index,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// GetAllRedeem returns all redeems from store
+func (k Keeper) GetAllRedeem(ctx sdk.Context) (list []types.Redeem) {
+	store := ctx.KVStore(k.storeKey)
+	redeemStore := prefix.NewStore(store, []byte(types.RedeemKeyPrefix))
+
+	iterator := redeemStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Redeem
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}
+
+// GetAllRedeembySymbol returns all redeems from store based on symbol
+func (k Keeper) GetAllRedeembySymbol(ctx sdk.Context, symbol string) (list []types.Redeem) {
+	store := ctx.KVStore(k.storeKey)
+	redeemStore := prefix.NewStore(store, []byte(types.RedeemKeyPrefix))
+
+	iterator := redeemStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Redeem
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.Fund.Symbol == symbol {
 			list = append(list, val)

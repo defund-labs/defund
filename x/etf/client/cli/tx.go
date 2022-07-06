@@ -131,7 +131,7 @@ func CmdInvest() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgInvest(
+			msg := types.NewMsgCreate(
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
@@ -170,7 +170,7 @@ func CmdUninvest() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUninvest(
+			msg := types.NewMsgRedeem(
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
