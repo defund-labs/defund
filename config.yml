@@ -33,3 +33,5 @@ genesis:
         min_deposit:
           - amount: "10000000"
             denom: "ufetf"
+    broker:
+      brokers:

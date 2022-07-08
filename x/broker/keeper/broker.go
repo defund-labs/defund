@@ -38,9 +38,9 @@ func (k Keeper) GetBroker(
 // GetAllBrokers returns all brokers in store
 func (k Keeper) GetAllBrokers(ctx sdk.Context) (list []types.Broker) {
 	store := ctx.KVStore(k.storeKey)
-	interqueryResultStore := prefix.NewStore(store, []byte(types.BrokerKeyPrefix))
+	brokerResultStore := prefix.NewStore(store, types.KeyPrefix(types.BrokerKeyPrefix))
 
-	iterator := interqueryResultStore.Iterator(nil, nil)
+	iterator := brokerResultStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
