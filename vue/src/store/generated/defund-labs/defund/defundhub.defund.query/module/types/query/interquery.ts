@@ -1,42 +1,42 @@
 /* eslint-disable */
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
-import { ProofOps } from "../tendermint/crypto/proof";
 
 export const protobufPackage = "defundhub.defund.query";
 
 export interface Interquery {
   creator: string;
   storeid: string;
+  chainid: string;
   path: string;
   key: Uint8Array;
   timeoutHeight: number;
-  clientId: string;
+  connectionId: string;
 }
 
 export interface InterqueryResult {
   creator: string;
   storeid: string;
+  chainid: string;
   data: Uint8Array;
   height: number;
-  clientId: string;
   success: boolean;
-  proof: ProofOps | undefined;
+  proved: boolean;
 }
 
 export interface InterqueryTimeoutResult {
   creator: string;
   storeid: string;
   timeoutHeight: number;
-  clientId: string;
 }
 
 const baseInterquery: object = {
   creator: "",
   storeid: "",
+  chainid: "",
   path: "",
   timeoutHeight: 0,
-  clientId: "",
+  connectionId: "",
 };
 
 export const Interquery = {
@@ -47,17 +47,20 @@ export const Interquery = {
     if (message.storeid !== "") {
       writer.uint32(18).string(message.storeid);
     }
+    if (message.chainid !== "") {
+      writer.uint32(26).string(message.chainid);
+    }
     if (message.path !== "") {
-      writer.uint32(26).string(message.path);
+      writer.uint32(34).string(message.path);
     }
     if (message.key.length !== 0) {
-      writer.uint32(34).bytes(message.key);
+      writer.uint32(42).bytes(message.key);
     }
     if (message.timeoutHeight !== 0) {
-      writer.uint32(40).uint64(message.timeoutHeight);
+      writer.uint32(48).uint64(message.timeoutHeight);
     }
-    if (message.clientId !== "") {
-      writer.uint32(50).string(message.clientId);
+    if (message.connectionId !== "") {
+      writer.uint32(58).string(message.connectionId);
     }
     return writer;
   },
@@ -76,16 +79,19 @@ export const Interquery = {
           message.storeid = reader.string();
           break;
         case 3:
-          message.path = reader.string();
+          message.chainid = reader.string();
           break;
         case 4:
-          message.key = reader.bytes();
+          message.path = reader.string();
           break;
         case 5:
-          message.timeoutHeight = longToNumber(reader.uint64() as Long);
+          message.key = reader.bytes();
           break;
         case 6:
-          message.clientId = reader.string();
+          message.timeoutHeight = longToNumber(reader.uint64() as Long);
+          break;
+        case 7:
+          message.connectionId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -107,6 +113,11 @@ export const Interquery = {
     } else {
       message.storeid = "";
     }
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = String(object.chainid);
+    } else {
+      message.chainid = "";
+    }
     if (object.path !== undefined && object.path !== null) {
       message.path = String(object.path);
     } else {
@@ -120,10 +131,10 @@ export const Interquery = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = String(object.connectionId);
     } else {
-      message.clientId = "";
+      message.connectionId = "";
     }
     return message;
   },
@@ -132,6 +143,7 @@ export const Interquery = {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
+    message.chainid !== undefined && (obj.chainid = message.chainid);
     message.path !== undefined && (obj.path = message.path);
     message.key !== undefined &&
       (obj.key = base64FromBytes(
@@ -139,7 +151,8 @@ export const Interquery = {
       ));
     message.timeoutHeight !== undefined &&
       (obj.timeoutHeight = message.timeoutHeight);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.connectionId !== undefined &&
+      (obj.connectionId = message.connectionId);
     return obj;
   },
 
@@ -154,6 +167,11 @@ export const Interquery = {
       message.storeid = object.storeid;
     } else {
       message.storeid = "";
+    }
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = object.chainid;
+    } else {
+      message.chainid = "";
     }
     if (object.path !== undefined && object.path !== null) {
       message.path = object.path;
@@ -170,10 +188,10 @@ export const Interquery = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = object.connectionId;
     } else {
-      message.clientId = "";
+      message.connectionId = "";
     }
     return message;
   },
@@ -182,9 +200,10 @@ export const Interquery = {
 const baseInterqueryResult: object = {
   creator: "",
   storeid: "",
+  chainid: "",
   height: 0,
-  clientId: "",
   success: false,
+  proved: false,
 };
 
 export const InterqueryResult = {
@@ -195,20 +214,20 @@ export const InterqueryResult = {
     if (message.storeid !== "") {
       writer.uint32(18).string(message.storeid);
     }
+    if (message.chainid !== "") {
+      writer.uint32(26).string(message.chainid);
+    }
     if (message.data.length !== 0) {
-      writer.uint32(26).bytes(message.data);
+      writer.uint32(34).bytes(message.data);
     }
     if (message.height !== 0) {
-      writer.uint32(32).uint64(message.height);
-    }
-    if (message.clientId !== "") {
-      writer.uint32(42).string(message.clientId);
+      writer.uint32(40).uint64(message.height);
     }
     if (message.success === true) {
       writer.uint32(48).bool(message.success);
     }
-    if (message.proof !== undefined) {
-      ProofOps.encode(message.proof, writer.uint32(58).fork()).ldelim();
+    if (message.proved === true) {
+      writer.uint32(56).bool(message.proved);
     }
     return writer;
   },
@@ -227,19 +246,19 @@ export const InterqueryResult = {
           message.storeid = reader.string();
           break;
         case 3:
-          message.data = reader.bytes();
+          message.chainid = reader.string();
           break;
         case 4:
-          message.height = longToNumber(reader.uint64() as Long);
+          message.data = reader.bytes();
           break;
         case 5:
-          message.clientId = reader.string();
+          message.height = longToNumber(reader.uint64() as Long);
           break;
         case 6:
           message.success = reader.bool();
           break;
         case 7:
-          message.proof = ProofOps.decode(reader, reader.uint32());
+          message.proved = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -261,6 +280,11 @@ export const InterqueryResult = {
     } else {
       message.storeid = "";
     }
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = String(object.chainid);
+    } else {
+      message.chainid = "";
+    }
     if (object.data !== undefined && object.data !== null) {
       message.data = bytesFromBase64(object.data);
     }
@@ -269,20 +293,15 @@ export const InterqueryResult = {
     } else {
       message.height = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
     if (object.success !== undefined && object.success !== null) {
       message.success = Boolean(object.success);
     } else {
       message.success = false;
     }
-    if (object.proof !== undefined && object.proof !== null) {
-      message.proof = ProofOps.fromJSON(object.proof);
+    if (object.proved !== undefined && object.proved !== null) {
+      message.proved = Boolean(object.proved);
     } else {
-      message.proof = undefined;
+      message.proved = false;
     }
     return message;
   },
@@ -291,15 +310,14 @@ export const InterqueryResult = {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
+    message.chainid !== undefined && (obj.chainid = message.chainid);
     message.data !== undefined &&
       (obj.data = base64FromBytes(
         message.data !== undefined ? message.data : new Uint8Array()
       ));
     message.height !== undefined && (obj.height = message.height);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
     message.success !== undefined && (obj.success = message.success);
-    message.proof !== undefined &&
-      (obj.proof = message.proof ? ProofOps.toJSON(message.proof) : undefined);
+    message.proved !== undefined && (obj.proved = message.proved);
     return obj;
   },
 
@@ -315,6 +333,11 @@ export const InterqueryResult = {
     } else {
       message.storeid = "";
     }
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = object.chainid;
+    } else {
+      message.chainid = "";
+    }
     if (object.data !== undefined && object.data !== null) {
       message.data = object.data;
     } else {
@@ -325,20 +348,15 @@ export const InterqueryResult = {
     } else {
       message.height = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
     if (object.success !== undefined && object.success !== null) {
       message.success = object.success;
     } else {
       message.success = false;
     }
-    if (object.proof !== undefined && object.proof !== null) {
-      message.proof = ProofOps.fromPartial(object.proof);
+    if (object.proved !== undefined && object.proved !== null) {
+      message.proved = object.proved;
     } else {
-      message.proof = undefined;
+      message.proved = false;
     }
     return message;
   },
@@ -348,7 +366,6 @@ const baseInterqueryTimeoutResult: object = {
   creator: "",
   storeid: "",
   timeoutHeight: 0,
-  clientId: "",
 };
 
 export const InterqueryTimeoutResult = {
@@ -364,9 +381,6 @@ export const InterqueryTimeoutResult = {
     }
     if (message.timeoutHeight !== 0) {
       writer.uint32(24).uint64(message.timeoutHeight);
-    }
-    if (message.clientId !== "") {
-      writer.uint32(34).string(message.clientId);
     }
     return writer;
   },
@@ -388,9 +402,6 @@ export const InterqueryTimeoutResult = {
           break;
         case 3:
           message.timeoutHeight = longToNumber(reader.uint64() as Long);
-          break;
-        case 4:
-          message.clientId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -419,11 +430,6 @@ export const InterqueryTimeoutResult = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
     return message;
   },
 
@@ -433,7 +439,6 @@ export const InterqueryTimeoutResult = {
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.timeoutHeight !== undefined &&
       (obj.timeoutHeight = message.timeoutHeight);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
     return obj;
   },
 
@@ -457,11 +462,6 @@ export const InterqueryTimeoutResult = {
       message.timeoutHeight = object.timeoutHeight;
     } else {
       message.timeoutHeight = 0;
-    }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
     }
     return message;
   },

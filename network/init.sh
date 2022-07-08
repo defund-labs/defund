@@ -3,7 +3,7 @@
 BINARY=defundd
 CHAIN_DIR=./network/data
 CHAINID_1=defund
-CHAINID_2=theta-testnet-001
+CHAINID_2=osmo-test-4
 VAL_MNEMONIC_1="clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion"
 DEMO_MNEMONIC_1="banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass"
 DEMO_MNEMONIC_2="veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only"

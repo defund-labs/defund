@@ -9,9 +9,28 @@
  * ---------------------------------------------------------------
  */
 
+export interface BrokerBroker {
+  id?: string;
+  connection_id?: string;
+  pools?: BrokerPool[];
+  baseDenom?: string;
+  status?: string;
+}
+
 export type BrokerMsgAddConnectionBrokerResponse = object;
 
 export type BrokerMsgAddLiquiditySourceResponse = object;
+
+export interface BrokerPool {
+  /** @format uint64 */
+  pool_id?: string;
+  interquery_id?: string;
+  status?: string;
+}
+
+export interface BrokerQueryBrokerResponse {
+  broker?: BrokerBroker;
+}
 
 export interface BrokerQueryInterchainAccountFromAddressResponse {
   interchain_account_address?: string;
@@ -336,4 +355,20 @@ export class HttpClient<SecurityDataType = unknown> {
  * @title broker/broker.proto
  * @version version not set
  */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {}
+export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryBroker
+   * @summary QueryBrokerRequest returns the broker based on the broker id requested
+   * @request GET:/defund-labs/defund/broker/broker/{broker}
+   */
+  queryBroker = (broker: string, params: RequestParams = {}) =>
+    this.request<BrokerQueryBrokerResponse, RpcStatus>({
+      path: `/defund-labs/defund/broker/broker/${broker}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+}

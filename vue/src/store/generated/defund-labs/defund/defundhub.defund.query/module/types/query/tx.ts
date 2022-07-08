@@ -7,12 +7,12 @@ export const protobufPackage = "defundhub.defund.query";
 
 export interface MsgCreateInterquery {
   creator: string;
-  id: string;
-  name: string;
+  storeid: string;
+  chainid: string;
   path: string;
   key: Uint8Array;
   timeoutHeight: number;
-  clientId: string;
+  connectionId: string;
 }
 
 export interface MsgCreateInterqueryResponse {}
@@ -22,8 +22,6 @@ export interface MsgCreateInterqueryResult {
   storeid: string;
   data: Uint8Array;
   height: number;
-  clientId: string;
-  success: boolean;
   proof: ProofOps | undefined;
 }
 
@@ -33,18 +31,17 @@ export interface MsgCreateInterqueryTimeout {
   creator: string;
   storeid: string;
   timeoutHeight: number;
-  clientId: string;
 }
 
 export interface MsgCreateInterqueryTimeoutResponse {}
 
 const baseMsgCreateInterquery: object = {
   creator: "",
-  id: "",
-  name: "",
+  storeid: "",
+  chainid: "",
   path: "",
   timeoutHeight: 0,
-  clientId: "",
+  connectionId: "",
 };
 
 export const MsgCreateInterquery = {
@@ -55,11 +52,11 @@ export const MsgCreateInterquery = {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
-    if (message.id !== "") {
-      writer.uint32(18).string(message.id);
+    if (message.storeid !== "") {
+      writer.uint32(18).string(message.storeid);
     }
-    if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+    if (message.chainid !== "") {
+      writer.uint32(26).string(message.chainid);
     }
     if (message.path !== "") {
       writer.uint32(34).string(message.path);
@@ -70,8 +67,8 @@ export const MsgCreateInterquery = {
     if (message.timeoutHeight !== 0) {
       writer.uint32(48).uint64(message.timeoutHeight);
     }
-    if (message.clientId !== "") {
-      writer.uint32(58).string(message.clientId);
+    if (message.connectionId !== "") {
+      writer.uint32(58).string(message.connectionId);
     }
     return writer;
   },
@@ -87,10 +84,10 @@ export const MsgCreateInterquery = {
           message.creator = reader.string();
           break;
         case 2:
-          message.id = reader.string();
+          message.storeid = reader.string();
           break;
         case 3:
-          message.name = reader.string();
+          message.chainid = reader.string();
           break;
         case 4:
           message.path = reader.string();
@@ -102,7 +99,7 @@ export const MsgCreateInterquery = {
           message.timeoutHeight = longToNumber(reader.uint64() as Long);
           break;
         case 7:
-          message.clientId = reader.string();
+          message.connectionId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -119,15 +116,15 @@ export const MsgCreateInterquery = {
     } else {
       message.creator = "";
     }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
+    if (object.storeid !== undefined && object.storeid !== null) {
+      message.storeid = String(object.storeid);
     } else {
-      message.id = "";
+      message.storeid = "";
     }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = String(object.chainid);
     } else {
-      message.name = "";
+      message.chainid = "";
     }
     if (object.path !== undefined && object.path !== null) {
       message.path = String(object.path);
@@ -142,10 +139,10 @@ export const MsgCreateInterquery = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = String(object.connectionId);
     } else {
-      message.clientId = "";
+      message.connectionId = "";
     }
     return message;
   },
@@ -153,8 +150,8 @@ export const MsgCreateInterquery = {
   toJSON(message: MsgCreateInterquery): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
-    message.id !== undefined && (obj.id = message.id);
-    message.name !== undefined && (obj.name = message.name);
+    message.storeid !== undefined && (obj.storeid = message.storeid);
+    message.chainid !== undefined && (obj.chainid = message.chainid);
     message.path !== undefined && (obj.path = message.path);
     message.key !== undefined &&
       (obj.key = base64FromBytes(
@@ -162,7 +159,8 @@ export const MsgCreateInterquery = {
       ));
     message.timeoutHeight !== undefined &&
       (obj.timeoutHeight = message.timeoutHeight);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.connectionId !== undefined &&
+      (obj.connectionId = message.connectionId);
     return obj;
   },
 
@@ -173,15 +171,15 @@ export const MsgCreateInterquery = {
     } else {
       message.creator = "";
     }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
+    if (object.storeid !== undefined && object.storeid !== null) {
+      message.storeid = object.storeid;
     } else {
-      message.id = "";
+      message.storeid = "";
     }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
+    if (object.chainid !== undefined && object.chainid !== null) {
+      message.chainid = object.chainid;
     } else {
-      message.name = "";
+      message.chainid = "";
     }
     if (object.path !== undefined && object.path !== null) {
       message.path = object.path;
@@ -198,10 +196,10 @@ export const MsgCreateInterquery = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
+    if (object.connectionId !== undefined && object.connectionId !== null) {
+      message.connectionId = object.connectionId;
     } else {
-      message.clientId = "";
+      message.connectionId = "";
     }
     return message;
   },
@@ -263,8 +261,6 @@ const baseMsgCreateInterqueryResult: object = {
   creator: "",
   storeid: "",
   height: 0,
-  clientId: "",
-  success: false,
 };
 
 export const MsgCreateInterqueryResult = {
@@ -284,14 +280,8 @@ export const MsgCreateInterqueryResult = {
     if (message.height !== 0) {
       writer.uint32(32).uint64(message.height);
     }
-    if (message.clientId !== "") {
-      writer.uint32(42).string(message.clientId);
-    }
-    if (message.success === true) {
-      writer.uint32(48).bool(message.success);
-    }
     if (message.proof !== undefined) {
-      ProofOps.encode(message.proof, writer.uint32(58).fork()).ldelim();
+      ProofOps.encode(message.proof, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -321,12 +311,6 @@ export const MsgCreateInterqueryResult = {
           message.height = longToNumber(reader.uint64() as Long);
           break;
         case 5:
-          message.clientId = reader.string();
-          break;
-        case 6:
-          message.success = reader.bool();
-          break;
-        case 7:
           message.proof = ProofOps.decode(reader, reader.uint32());
           break;
         default:
@@ -359,16 +343,6 @@ export const MsgCreateInterqueryResult = {
     } else {
       message.height = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
-    if (object.success !== undefined && object.success !== null) {
-      message.success = Boolean(object.success);
-    } else {
-      message.success = false;
-    }
     if (object.proof !== undefined && object.proof !== null) {
       message.proof = ProofOps.fromJSON(object.proof);
     } else {
@@ -386,8 +360,6 @@ export const MsgCreateInterqueryResult = {
         message.data !== undefined ? message.data : new Uint8Array()
       ));
     message.height !== undefined && (obj.height = message.height);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
-    message.success !== undefined && (obj.success = message.success);
     message.proof !== undefined &&
       (obj.proof = message.proof ? ProofOps.toJSON(message.proof) : undefined);
     return obj;
@@ -418,16 +390,6 @@ export const MsgCreateInterqueryResult = {
       message.height = object.height;
     } else {
       message.height = 0;
-    }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
-    if (object.success !== undefined && object.success !== null) {
-      message.success = object.success;
-    } else {
-      message.success = false;
     }
     if (object.proof !== undefined && object.proof !== null) {
       message.proof = ProofOps.fromPartial(object.proof);
@@ -494,7 +456,6 @@ const baseMsgCreateInterqueryTimeout: object = {
   creator: "",
   storeid: "",
   timeoutHeight: 0,
-  clientId: "",
 };
 
 export const MsgCreateInterqueryTimeout = {
@@ -510,9 +471,6 @@ export const MsgCreateInterqueryTimeout = {
     }
     if (message.timeoutHeight !== 0) {
       writer.uint32(24).uint64(message.timeoutHeight);
-    }
-    if (message.clientId !== "") {
-      writer.uint32(34).string(message.clientId);
     }
     return writer;
   },
@@ -537,9 +495,6 @@ export const MsgCreateInterqueryTimeout = {
           break;
         case 3:
           message.timeoutHeight = longToNumber(reader.uint64() as Long);
-          break;
-        case 4:
-          message.clientId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -568,11 +523,6 @@ export const MsgCreateInterqueryTimeout = {
     } else {
       message.timeoutHeight = 0;
     }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
     return message;
   },
 
@@ -582,7 +532,6 @@ export const MsgCreateInterqueryTimeout = {
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.timeoutHeight !== undefined &&
       (obj.timeoutHeight = message.timeoutHeight);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
     return obj;
   },
 
@@ -606,11 +555,6 @@ export const MsgCreateInterqueryTimeout = {
       message.timeoutHeight = object.timeoutHeight;
     } else {
       message.timeoutHeight = 0;
-    }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
     }
     return message;
   },

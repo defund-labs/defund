@@ -44,6 +44,7 @@ function getStructure(template) {
 
 const getDefaultState = () => {
 	return {
+				Broker: {},
 				
 				_Structure: {
 						Pool: getStructure(Pool.fromPartial({})),
@@ -78,6 +79,12 @@ export default {
 		}
 	},
 	getters: {
+				getBroker: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.Broker[JSON.stringify(params)] ?? {}
+		},
 				
 		getTypeStructure: (state) => (type) => {
 			return state._Structure[type].fields
@@ -112,21 +119,28 @@ export default {
 			})
 		},
 		
-		async sendMsgAddLiquiditySource({ rootGetters }, { value, fee = [], memo = '' }) {
+		
+		
+		 		
+		
+		
+		async QueryBroker({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgAddLiquiditySource(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryBroker( key.broker)).data
+				
+					
+				commit('QUERY', { query: 'Broker', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryBroker', payload: { options: { all }, params: {...key},query }})
+				return getters['getBroker']( { params: {...key}, query}) ?? {}
 			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgAddLiquiditySource:Send Could not broadcast Tx: '+ e.message)
-				}
+				throw new Error('QueryClient:QueryBroker API Node Unavailable. Could not perform query: ' + e.message)
+				
 			}
 		},
+		
+		
 		async sendMsgAddConnectionBroker({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
@@ -142,20 +156,22 @@ export default {
 				}
 			}
 		},
-		
-		async MsgAddLiquiditySource({ rootGetters }, { value }) {
+		async sendMsgAddLiquiditySource({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
 				const msg = await txClient.msgAddLiquiditySource(value)
-				return msg
+				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
+	gas: "200000" }, memo})
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgAddLiquiditySource:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgAddLiquiditySource:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgAddConnectionBroker({ rootGetters }, { value }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
@@ -166,6 +182,19 @@ export default {
 					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgAddConnectionBroker:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgAddLiquiditySource({ rootGetters }, { value }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgAddLiquiditySource(value)
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgAddLiquiditySource:Create Could not create message: ' + e.message)
 				}
 			}
 		},

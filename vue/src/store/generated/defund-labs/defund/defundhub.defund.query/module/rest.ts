@@ -30,6 +30,7 @@ export interface ProtobufAny {
 export interface QueryInterquery {
   creator?: string;
   storeid?: string;
+  chainid?: string;
   path?: string;
 
   /** @format byte */
@@ -37,21 +38,21 @@ export interface QueryInterquery {
 
   /** @format uint64 */
   timeoutHeight?: string;
-  clientId?: string;
+  connectionId?: string;
 }
 
 export interface QueryInterqueryResult {
   creator?: string;
   storeid?: string;
+  chainid?: string;
 
   /** @format byte */
   data?: string;
 
   /** @format uint64 */
   height?: string;
-  clientId?: string;
   success?: boolean;
-  proof?: CryptoProofOps;
+  proved?: boolean;
 }
 
 export interface QueryInterqueryTimeoutResult {
@@ -60,7 +61,6 @@ export interface QueryInterqueryTimeoutResult {
 
   /** @format uint64 */
   timeoutHeight?: string;
-  clientId?: string;
 }
 
 export type QueryMsgCreateInterqueryResponse = object;

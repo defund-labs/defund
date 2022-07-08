@@ -44,14 +44,25 @@ export interface EtfFund {
   rebalance?: string;
   baseDenom?: string;
   connectionId?: string;
+
+  /**
+   * Coin defines a token with a denomination and an amount.
+   *
+   * NOTE: The amount field is an Int which implements the custom method
+   * signatures required by gogoproto.
+   */
+  startingPrice?: V1Beta1Coin;
   creator?: string;
 }
 
 export interface EtfFundPrice {
   id?: string;
 
-  /** @format uint64 */
+  /** @format int64 */
   height?: string;
+
+  /** @format date-time */
+  time?: string;
 
   /**
    * Coin defines a token with a denomination and an amount.
@@ -68,14 +79,16 @@ export interface EtfHolding {
 
   /** @format int64 */
   percent?: string;
+
+  /** @format uint64 */
   poolId?: string;
 }
 
 export type EtfMsgCreateFundResponse = object;
 
-export type EtfMsgInvestResponse = object;
+export type EtfMsgCreateResponse = object;
 
-export type EtfMsgUninvestResponse = object;
+export type EtfMsgRedeemResponse = object;
 
 export interface EtfQueryAllFundPriceResponse {
   price?: EtfFundPrice[];

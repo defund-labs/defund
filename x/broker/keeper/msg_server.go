@@ -61,6 +61,7 @@ func (k msgServer) AddConnectionBroker(goCtx context.Context, msg *types.MsgAddC
 	}
 
 	broker.ConnectionId = msg.ConnectionId
+	broker.Status = "active"
 
 	k.SetBroker(ctx, broker)
 

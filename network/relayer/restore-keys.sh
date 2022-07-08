@@ -14,5 +14,5 @@ sleep 1s
 rly keys restore defund rly1 "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart" --home $RELAYER_DIRECTORY
 sleep 5s
 
-rly keys restore theta-testnet-001 rly2 "record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset" --home $RELAYER_DIRECTORY
+rly keys restore osmo-test-4 rly2 "record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset" --home $RELAYER_DIRECTORY
 sleep 5s

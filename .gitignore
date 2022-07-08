@@ -5,3 +5,9 @@ network/data
 test.txt
 build
 vue/data
+.vscode
+hermes.log
+defundosmosis.log
+osmosisdefund.log
+relayer/keys/
+relayer/config/

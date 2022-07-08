@@ -14,7 +14,9 @@ service Query {
   // QueryInterchainAccountFromAddress returns the interchain account for given owner address on a given connection pair
   rpc InterchainAccountFromAddress(QueryInterchainAccountFromAddressRequest) returns (QueryInterchainAccountFromAddressResponse);
   // QueryBrokerRequest returns the broker based on the broker id requested
-  rpc Broker(QueryBrokerRequest) returns (QueryBrokerResponse);
+  rpc Broker(QueryBrokerRequest) returns (QueryBrokerResponse) {
+    option (google.api.http).get = "/defund-labs/defund/broker/broker/{broker}";
+  };
   // this line is used by starport scaffolding # 2
 }
 

@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { Reader, Writer } from "protobufjs/minimal";
+import { Broker } from "../broker/broker";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
@@ -12,6 +13,16 @@ export interface QueryInterchainAccountFromAddressRequest {
 /** QueryInterchainAccountFromAddressResponse the response type for the Query/InterchainAccountAddress RPC */
 export interface QueryInterchainAccountFromAddressResponse {
   interchain_account_address: string;
+}
+
+/** QueryBrokerRequest is the request type for the Query/Broker RPC */
+export interface QueryBrokerRequest {
+  broker: string;
+}
+
+/** QueryBrokerResponse the response type for the Query/Broker RPC */
+export interface QueryBrokerResponse {
+  broker: Broker | undefined;
 }
 
 const baseQueryInterchainAccountFromAddressRequest: object = {
@@ -184,12 +195,131 @@ export const QueryInterchainAccountFromAddressResponse = {
   },
 };
 
+const baseQueryBrokerRequest: object = { broker: "" };
+
+export const QueryBrokerRequest = {
+  encode(
+    message: QueryBrokerRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.broker !== "") {
+      writer.uint32(10).string(message.broker);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryBrokerRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.broker = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryBrokerRequest {
+    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
+    if (object.broker !== undefined && object.broker !== null) {
+      message.broker = String(object.broker);
+    } else {
+      message.broker = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryBrokerRequest): unknown {
+    const obj: any = {};
+    message.broker !== undefined && (obj.broker = message.broker);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<QueryBrokerRequest>): QueryBrokerRequest {
+    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
+    if (object.broker !== undefined && object.broker !== null) {
+      message.broker = object.broker;
+    } else {
+      message.broker = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryBrokerResponse: object = {};
+
+export const QueryBrokerResponse = {
+  encode(
+    message: QueryBrokerResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.broker !== undefined) {
+      Broker.encode(message.broker, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): QueryBrokerResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.broker = Broker.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryBrokerResponse {
+    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
+    if (object.broker !== undefined && object.broker !== null) {
+      message.broker = Broker.fromJSON(object.broker);
+    } else {
+      message.broker = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryBrokerResponse): unknown {
+    const obj: any = {};
+    message.broker !== undefined &&
+      (obj.broker = message.broker ? Broker.toJSON(message.broker) : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<QueryBrokerResponse>): QueryBrokerResponse {
+    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
+    if (object.broker !== undefined && object.broker !== null) {
+      message.broker = Broker.fromPartial(object.broker);
+    } else {
+      message.broker = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** QueryInterchainAccountFromAddress returns the interchain account for given owner address on a given connection pair */
   InterchainAccountFromAddress(
     request: QueryInterchainAccountFromAddressRequest
   ): Promise<QueryInterchainAccountFromAddressResponse>;
+  /** QueryBrokerRequest returns the broker based on the broker id requested */
+  Broker(request: QueryBrokerRequest): Promise<QueryBrokerResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -211,6 +341,16 @@ export class QueryClientImpl implements Query {
     return promise.then((data) =>
       QueryInterchainAccountFromAddressResponse.decode(new Reader(data))
     );
+  }
+
+  Broker(request: QueryBrokerRequest): Promise<QueryBrokerResponse> {
+    const data = QueryBrokerRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "defundlabs.defund.broker.Query",
+      "Broker",
+      data
+    );
+    return promise.then((data) => QueryBrokerResponse.decode(new Reader(data)));
   }
 }
 

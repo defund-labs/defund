@@ -19,36 +19,36 @@ chains:
     - type: cosmos
       value:
         key: rly2
-        chain-id: theta-testnet-001
-        rpc-addr: http://rpc.sentry-01.theta-testnet.polypore.xyz:26657
-        account-prefix: cosmos
+        chain-id: osmo-test-4
+        rpc-addr: http://143.198.139.33:26657
+        account-prefix: osmo
         keyring-backend: test
         gas-adjustment: 1.2
-        gas-prices: 0.01uatom
+        gas-prices: 0.01uosmo
         debug: false
         timeout: 20s
         output-format: json
         sign-mode: direct
 paths:
-    defundhub:
+    defundosmosis:
         src:
             chain-id: defund
             client-id: 07-tendermint-0
             connection-id: connection-0
         dst:
-            chain-id: theta-testnet-001
-            client-id: 07-tendermint-696
-            connection-id: connection-585
+            chain-id: osmo-test-4
+            client-id: 07-tendermint-2087
+            connection-id: connection-1624
         src-channel-filter:
             rule: ""
             channel-list: []
         interquery:
             query: true
-    hubdefund:
+    osmosisdefund:
         src:
-            chain-id: theta-testnet-001
-            client-id: 07-tendermint-696
-            connection-id: connection-585
+            chain-id: osmo-test-4
+            client-id: 07-tendermint-2087
+            connection-id: connection-1624
         dst:
             chain-id: defund
             client-id: 07-tendermint-0

@@ -14,8 +14,8 @@ if [ -f $RELAYER_DIRECTORY/hubdefund.log ]; then
 fi
 
 # Start the Cosmos relayer for both paths
-echo "Starting Cosmos relayer for Defund-ICA ----> Theta-ICA..."
-$RELAYER_BINARY start defundhub --home $RELAYER_DIRECTORY > $RELAYER_DIRECTORY/defundhub.log 2>&1 &
+echo "Starting Cosmos relayer for Defund-ICA ----> Osmosis-ICA..."
+$RELAYER_BINARY start defundosmosis --home $RELAYER_DIRECTORY > $RELAYER_DIRECTORY/defundosmosis.log 2>&1 &
 
-echo "Starting Cosmos relayer for Defund-Transfer ---> Theta-Transfer..."
-$RELAYER_BINARY start hubdefund --home $RELAYER_DIRECTORY --debug-addr "localhost:7598" > $RELAYER_DIRECTORY/hubdefund.log 2>&1 &
+echo "Starting Cosmos relayer for Defund-Transfer ---> Osmosis-Transfer..."
+$RELAYER_BINARY start osmosisdefund --home $RELAYER_DIRECTORY --debug-addr "localhost:7598" > $RELAYER_DIRECTORY/osmosisdefund.log 2>&1 &

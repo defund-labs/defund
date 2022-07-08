@@ -210,8 +210,8 @@ proto-update-deps:
 
 create-connection:
 	@echo "Making Relayer Connection"
-	@echo "Creating Defund -> Theta Connection"
-	hermes -c ./network/hermes/config.toml create connection defund theta-testnet-001
+	@echo "Creating Defund -> Osmosis Connection"
+	hermes -c ./network/hermes/config.toml create connection defund osmosis
 
 init: kill-dev 
 	@echo "Initializing both blockchains..."
@@ -234,6 +234,9 @@ create-conn:
 
 start-rly:
 	./network/relayer/start.sh
+
+start-hermes:
+	./network/hermes/start.sh	
 
 kill-dev:
 	@echo "Killing defundd, gaiad and removing previous data"

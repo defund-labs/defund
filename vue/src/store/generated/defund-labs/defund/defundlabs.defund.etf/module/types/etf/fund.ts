@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { Timestamp } from "../google/protobuf/timestamp";
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Coin } from "../cosmos/base/v1beta1/coin";
@@ -6,9 +7,15 @@ import { Broker } from "../broker/broker";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
+export interface FundPrices {
+  id: string;
+  prices: FundPrice[];
+}
+
 export interface FundPrice {
   id: string;
   height: number;
+  time: Date | undefined;
   amount: Coin | undefined;
   symbol: string;
 }
@@ -17,7 +24,7 @@ export interface Holding {
   token: string;
   percent: number;
   /** Pool ID of the Pool for this holding on Broker */
-  poolId: string;
+  poolId: number;
 }
 
 export interface Fund {
@@ -31,10 +38,11 @@ export interface Fund {
   rebalance: number;
   baseDenom: string;
   connectionId: string;
+  startingPrice: Coin | undefined;
   creator: string;
 }
 
-export interface Invest {
+export interface Create {
   id: string;
   creator: string;
   fund: Fund | undefined;
@@ -44,7 +52,7 @@ export interface Invest {
   status: string;
 }
 
-export interface Uninvest {
+export interface Redeem {
   id: string;
   creator: string;
   fund: Fund | undefined;
@@ -53,6 +61,87 @@ export interface Uninvest {
   sequence: string;
   status: string;
 }
+
+const baseFundPrices: object = { id: "" };
+
+export const FundPrices = {
+  encode(message: FundPrices, writer: Writer = Writer.create()): Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    for (const v of message.prices) {
+      FundPrice.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): FundPrices {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseFundPrices } as FundPrices;
+    message.prices = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = reader.string();
+          break;
+        case 2:
+          message.prices.push(FundPrice.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FundPrices {
+    const message = { ...baseFundPrices } as FundPrices;
+    message.prices = [];
+    if (object.id !== undefined && object.id !== null) {
+      message.id = String(object.id);
+    } else {
+      message.id = "";
+    }
+    if (object.prices !== undefined && object.prices !== null) {
+      for (const e of object.prices) {
+        message.prices.push(FundPrice.fromJSON(e));
+      }
+    }
+    return message;
+  },
+
+  toJSON(message: FundPrices): unknown {
+    const obj: any = {};
+    message.id !== undefined && (obj.id = message.id);
+    if (message.prices) {
+      obj.prices = message.prices.map((e) =>
+        e ? FundPrice.toJSON(e) : undefined
+      );
+    } else {
+      obj.prices = [];
+    }
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<FundPrices>): FundPrices {
+    const message = { ...baseFundPrices } as FundPrices;
+    message.prices = [];
+    if (object.id !== undefined && object.id !== null) {
+      message.id = object.id;
+    } else {
+      message.id = "";
+    }
+    if (object.prices !== undefined && object.prices !== null) {
+      for (const e of object.prices) {
+        message.prices.push(FundPrice.fromPartial(e));
+      }
+    }
+    return message;
+  },
+};
 
 const baseFundPrice: object = { id: "", height: 0, symbol: "" };
 
@@ -62,13 +151,19 @@ export const FundPrice = {
       writer.uint32(10).string(message.id);
     }
     if (message.height !== 0) {
-      writer.uint32(16).uint64(message.height);
+      writer.uint32(16).int64(message.height);
+    }
+    if (message.time !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.time),
+        writer.uint32(26).fork()
+      ).ldelim();
     }
     if (message.amount !== undefined) {
-      Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
+      Coin.encode(message.amount, writer.uint32(34).fork()).ldelim();
     }
     if (message.symbol !== "") {
-      writer.uint32(34).string(message.symbol);
+      writer.uint32(42).string(message.symbol);
     }
     return writer;
   },
@@ -84,12 +179,17 @@ export const FundPrice = {
           message.id = reader.string();
           break;
         case 2:
-          message.height = longToNumber(reader.uint64() as Long);
+          message.height = longToNumber(reader.int64() as Long);
           break;
         case 3:
-          message.amount = Coin.decode(reader, reader.uint32());
+          message.time = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
           break;
         case 4:
+          message.amount = Coin.decode(reader, reader.uint32());
+          break;
+        case 5:
           message.symbol = reader.string();
           break;
         default:
@@ -112,6 +212,11 @@ export const FundPrice = {
     } else {
       message.height = 0;
     }
+    if (object.time !== undefined && object.time !== null) {
+      message.time = fromJsonTimestamp(object.time);
+    } else {
+      message.time = undefined;
+    }
     if (object.amount !== undefined && object.amount !== null) {
       message.amount = Coin.fromJSON(object.amount);
     } else {
@@ -129,6 +234,9 @@ export const FundPrice = {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
     message.height !== undefined && (obj.height = message.height);
+    message.time !== undefined &&
+      (obj.time =
+        message.time !== undefined ? message.time.toISOString() : null);
     message.amount !== undefined &&
       (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     message.symbol !== undefined && (obj.symbol = message.symbol);
@@ -147,6 +255,11 @@ export const FundPrice = {
     } else {
       message.height = 0;
     }
+    if (object.time !== undefined && object.time !== null) {
+      message.time = object.time;
+    } else {
+      message.time = undefined;
+    }
     if (object.amount !== undefined && object.amount !== null) {
       message.amount = Coin.fromPartial(object.amount);
     } else {
@@ -161,7 +274,7 @@ export const FundPrice = {
   },
 };
 
-const baseHolding: object = { token: "", percent: 0, poolId: "" };
+const baseHolding: object = { token: "", percent: 0, poolId: 0 };
 
 export const Holding = {
   encode(message: Holding, writer: Writer = Writer.create()): Writer {
@@ -171,8 +284,8 @@ export const Holding = {
     if (message.percent !== 0) {
       writer.uint32(16).int64(message.percent);
     }
-    if (message.poolId !== "") {
-      writer.uint32(26).string(message.poolId);
+    if (message.poolId !== 0) {
+      writer.uint32(24).uint64(message.poolId);
     }
     return writer;
   },
@@ -191,7 +304,7 @@ export const Holding = {
           message.percent = longToNumber(reader.int64() as Long);
           break;
         case 3:
-          message.poolId = reader.string();
+          message.poolId = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -214,9 +327,9 @@ export const Holding = {
       message.percent = 0;
     }
     if (object.poolId !== undefined && object.poolId !== null) {
-      message.poolId = String(object.poolId);
+      message.poolId = Number(object.poolId);
     } else {
-      message.poolId = "";
+      message.poolId = 0;
     }
     return message;
   },
@@ -244,7 +357,7 @@ export const Holding = {
     if (object.poolId !== undefined && object.poolId !== null) {
       message.poolId = object.poolId;
     } else {
-      message.poolId = "";
+      message.poolId = 0;
     }
     return message;
   },
@@ -293,8 +406,11 @@ export const Fund = {
     if (message.connectionId !== "") {
       writer.uint32(82).string(message.connectionId);
     }
+    if (message.startingPrice !== undefined) {
+      Coin.encode(message.startingPrice, writer.uint32(90).fork()).ldelim();
+    }
     if (message.creator !== "") {
-      writer.uint32(90).string(message.creator);
+      writer.uint32(98).string(message.creator);
     }
     return writer;
   },
@@ -338,6 +454,9 @@ export const Fund = {
           message.connectionId = reader.string();
           break;
         case 11:
+          message.startingPrice = Coin.decode(reader, reader.uint32());
+          break;
+        case 12:
           message.creator = reader.string();
           break;
         default:
@@ -401,6 +520,11 @@ export const Fund = {
     } else {
       message.connectionId = "";
     }
+    if (object.startingPrice !== undefined && object.startingPrice !== null) {
+      message.startingPrice = Coin.fromJSON(object.startingPrice);
+    } else {
+      message.startingPrice = undefined;
+    }
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
@@ -431,6 +555,10 @@ export const Fund = {
     message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
     message.connectionId !== undefined &&
       (obj.connectionId = message.connectionId);
+    message.startingPrice !== undefined &&
+      (obj.startingPrice = message.startingPrice
+        ? Coin.toJSON(message.startingPrice)
+        : undefined);
     message.creator !== undefined && (obj.creator = message.creator);
     return obj;
   },
@@ -488,6 +616,11 @@ export const Fund = {
     } else {
       message.connectionId = "";
     }
+    if (object.startingPrice !== undefined && object.startingPrice !== null) {
+      message.startingPrice = Coin.fromPartial(object.startingPrice);
+    } else {
+      message.startingPrice = undefined;
+    }
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
@@ -497,7 +630,7 @@ export const Fund = {
   },
 };
 
-const baseInvest: object = {
+const baseCreate: object = {
   id: "",
   creator: "",
   channel: "",
@@ -505,8 +638,8 @@ const baseInvest: object = {
   status: "",
 };
 
-export const Invest = {
-  encode(message: Invest, writer: Writer = Writer.create()): Writer {
+export const Create = {
+  encode(message: Create, writer: Writer = Writer.create()): Writer {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
@@ -531,10 +664,10 @@ export const Invest = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Invest {
+  decode(input: Reader | Uint8Array, length?: number): Create {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseInvest } as Invest;
+    const message = { ...baseCreate } as Create;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -567,8 +700,8 @@ export const Invest = {
     return message;
   },
 
-  fromJSON(object: any): Invest {
-    const message = { ...baseInvest } as Invest;
+  fromJSON(object: any): Create {
+    const message = { ...baseCreate } as Create;
     if (object.id !== undefined && object.id !== null) {
       message.id = String(object.id);
     } else {
@@ -607,7 +740,7 @@ export const Invest = {
     return message;
   },
 
-  toJSON(message: Invest): unknown {
+  toJSON(message: Create): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
     message.creator !== undefined && (obj.creator = message.creator);
@@ -621,8 +754,8 @@ export const Invest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Invest>): Invest {
-    const message = { ...baseInvest } as Invest;
+  fromPartial(object: DeepPartial<Create>): Create {
+    const message = { ...baseCreate } as Create;
     if (object.id !== undefined && object.id !== null) {
       message.id = object.id;
     } else {
@@ -662,7 +795,7 @@ export const Invest = {
   },
 };
 
-const baseUninvest: object = {
+const baseRedeem: object = {
   id: "",
   creator: "",
   channel: "",
@@ -670,8 +803,8 @@ const baseUninvest: object = {
   status: "",
 };
 
-export const Uninvest = {
-  encode(message: Uninvest, writer: Writer = Writer.create()): Writer {
+export const Redeem = {
+  encode(message: Redeem, writer: Writer = Writer.create()): Writer {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
@@ -696,10 +829,10 @@ export const Uninvest = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Uninvest {
+  decode(input: Reader | Uint8Array, length?: number): Redeem {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUninvest } as Uninvest;
+    const message = { ...baseRedeem } as Redeem;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -732,8 +865,8 @@ export const Uninvest = {
     return message;
   },
 
-  fromJSON(object: any): Uninvest {
-    const message = { ...baseUninvest } as Uninvest;
+  fromJSON(object: any): Redeem {
+    const message = { ...baseRedeem } as Redeem;
     if (object.id !== undefined && object.id !== null) {
       message.id = String(object.id);
     } else {
@@ -772,7 +905,7 @@ export const Uninvest = {
     return message;
   },
 
-  toJSON(message: Uninvest): unknown {
+  toJSON(message: Redeem): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
     message.creator !== undefined && (obj.creator = message.creator);
@@ -786,8 +919,8 @@ export const Uninvest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Uninvest>): Uninvest {
-    const message = { ...baseUninvest } as Uninvest;
+  fromPartial(object: DeepPartial<Redeem>): Redeem {
+    const message = { ...baseRedeem } as Redeem;
     if (object.id !== undefined && object.id !== null) {
       message.id = object.id;
     } else {
@@ -847,6 +980,28 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

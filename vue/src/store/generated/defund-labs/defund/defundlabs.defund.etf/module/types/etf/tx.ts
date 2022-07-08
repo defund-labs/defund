@@ -14,11 +14,12 @@ export interface MsgCreateFund {
   holdings: string;
   rebalance: number;
   baseDenom: string;
+  startingPrice: string;
 }
 
 export interface MsgCreateFundResponse {}
 
-export interface MsgInvest {
+export interface MsgCreate {
   creator: string;
   fund: string;
   amount: Coin | undefined;
@@ -35,9 +36,9 @@ export interface MsgInvest {
   timeout_timestamp: number;
 }
 
-export interface MsgInvestResponse {}
+export interface MsgCreateResponse {}
 
-export interface MsgUninvest {
+export interface MsgRedeem {
   creator: string;
   fund: string;
   amount: Coin | undefined;
@@ -54,7 +55,7 @@ export interface MsgUninvest {
   timeout_timestamp: number;
 }
 
-export interface MsgUninvestResponse {}
+export interface MsgRedeemResponse {}
 
 const baseMsgCreateFund: object = {
   creator: "",
@@ -65,6 +66,7 @@ const baseMsgCreateFund: object = {
   holdings: "",
   rebalance: 0,
   baseDenom: "",
+  startingPrice: "",
 };
 
 export const MsgCreateFund = {
@@ -92,6 +94,9 @@ export const MsgCreateFund = {
     }
     if (message.baseDenom !== "") {
       writer.uint32(66).string(message.baseDenom);
+    }
+    if (message.startingPrice !== "") {
+      writer.uint32(74).string(message.startingPrice);
     }
     return writer;
   },
@@ -126,6 +131,9 @@ export const MsgCreateFund = {
           break;
         case 8:
           message.baseDenom = reader.string();
+          break;
+        case 9:
+          message.startingPrice = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -177,6 +185,11 @@ export const MsgCreateFund = {
     } else {
       message.baseDenom = "";
     }
+    if (object.startingPrice !== undefined && object.startingPrice !== null) {
+      message.startingPrice = String(object.startingPrice);
+    } else {
+      message.startingPrice = "";
+    }
     return message;
   },
 
@@ -191,6 +204,8 @@ export const MsgCreateFund = {
     message.holdings !== undefined && (obj.holdings = message.holdings);
     message.rebalance !== undefined && (obj.rebalance = message.rebalance);
     message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
+    message.startingPrice !== undefined &&
+      (obj.startingPrice = message.startingPrice);
     return obj;
   },
 
@@ -236,6 +251,11 @@ export const MsgCreateFund = {
     } else {
       message.baseDenom = "";
     }
+    if (object.startingPrice !== undefined && object.startingPrice !== null) {
+      message.startingPrice = object.startingPrice;
+    } else {
+      message.startingPrice = "";
+    }
     return message;
   },
 };
@@ -278,7 +298,7 @@ export const MsgCreateFundResponse = {
   },
 };
 
-const baseMsgInvest: object = {
+const baseMsgCreate: object = {
   creator: "",
   fund: "",
   channel: "",
@@ -286,8 +306,8 @@ const baseMsgInvest: object = {
   timeout_timestamp: 0,
 };
 
-export const MsgInvest = {
-  encode(message: MsgInvest, writer: Writer = Writer.create()): Writer {
+export const MsgCreate = {
+  encode(message: MsgCreate, writer: Writer = Writer.create()): Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -309,10 +329,10 @@ export const MsgInvest = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgInvest {
+  decode(input: Reader | Uint8Array, length?: number): MsgCreate {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgInvest } as MsgInvest;
+    const message = { ...baseMsgCreate } as MsgCreate;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -342,8 +362,8 @@ export const MsgInvest = {
     return message;
   },
 
-  fromJSON(object: any): MsgInvest {
-    const message = { ...baseMsgInvest } as MsgInvest;
+  fromJSON(object: any): MsgCreate {
+    const message = { ...baseMsgCreate } as MsgCreate;
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
@@ -380,7 +400,7 @@ export const MsgInvest = {
     return message;
   },
 
-  toJSON(message: MsgInvest): unknown {
+  toJSON(message: MsgCreate): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.fund !== undefined && (obj.fund = message.fund);
@@ -394,8 +414,8 @@ export const MsgInvest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgInvest>): MsgInvest {
-    const message = { ...baseMsgInvest } as MsgInvest;
+  fromPartial(object: DeepPartial<MsgCreate>): MsgCreate {
+    const message = { ...baseMsgCreate } as MsgCreate;
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
@@ -433,17 +453,17 @@ export const MsgInvest = {
   },
 };
 
-const baseMsgInvestResponse: object = {};
+const baseMsgCreateResponse: object = {};
 
-export const MsgInvestResponse = {
-  encode(_: MsgInvestResponse, writer: Writer = Writer.create()): Writer {
+export const MsgCreateResponse = {
+  encode(_: MsgCreateResponse, writer: Writer = Writer.create()): Writer {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgInvestResponse {
+  decode(input: Reader | Uint8Array, length?: number): MsgCreateResponse {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgInvestResponse } as MsgInvestResponse;
+    const message = { ...baseMsgCreateResponse } as MsgCreateResponse;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -455,23 +475,23 @@ export const MsgInvestResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgInvestResponse {
-    const message = { ...baseMsgInvestResponse } as MsgInvestResponse;
+  fromJSON(_: any): MsgCreateResponse {
+    const message = { ...baseMsgCreateResponse } as MsgCreateResponse;
     return message;
   },
 
-  toJSON(_: MsgInvestResponse): unknown {
+  toJSON(_: MsgCreateResponse): unknown {
     const obj: any = {};
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgInvestResponse>): MsgInvestResponse {
-    const message = { ...baseMsgInvestResponse } as MsgInvestResponse;
+  fromPartial(_: DeepPartial<MsgCreateResponse>): MsgCreateResponse {
+    const message = { ...baseMsgCreateResponse } as MsgCreateResponse;
     return message;
   },
 };
 
-const baseMsgUninvest: object = {
+const baseMsgRedeem: object = {
   creator: "",
   fund: "",
   channel: "",
@@ -479,8 +499,8 @@ const baseMsgUninvest: object = {
   timeout_timestamp: 0,
 };
 
-export const MsgUninvest = {
-  encode(message: MsgUninvest, writer: Writer = Writer.create()): Writer {
+export const MsgRedeem = {
+  encode(message: MsgRedeem, writer: Writer = Writer.create()): Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -502,10 +522,10 @@ export const MsgUninvest = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgUninvest {
+  decode(input: Reader | Uint8Array, length?: number): MsgRedeem {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUninvest } as MsgUninvest;
+    const message = { ...baseMsgRedeem } as MsgRedeem;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -535,8 +555,8 @@ export const MsgUninvest = {
     return message;
   },
 
-  fromJSON(object: any): MsgUninvest {
-    const message = { ...baseMsgUninvest } as MsgUninvest;
+  fromJSON(object: any): MsgRedeem {
+    const message = { ...baseMsgRedeem } as MsgRedeem;
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
@@ -573,7 +593,7 @@ export const MsgUninvest = {
     return message;
   },
 
-  toJSON(message: MsgUninvest): unknown {
+  toJSON(message: MsgRedeem): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.fund !== undefined && (obj.fund = message.fund);
@@ -587,8 +607,8 @@ export const MsgUninvest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgUninvest>): MsgUninvest {
-    const message = { ...baseMsgUninvest } as MsgUninvest;
+  fromPartial(object: DeepPartial<MsgRedeem>): MsgRedeem {
+    const message = { ...baseMsgRedeem } as MsgRedeem;
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
@@ -626,17 +646,17 @@ export const MsgUninvest = {
   },
 };
 
-const baseMsgUninvestResponse: object = {};
+const baseMsgRedeemResponse: object = {};
 
-export const MsgUninvestResponse = {
-  encode(_: MsgUninvestResponse, writer: Writer = Writer.create()): Writer {
+export const MsgRedeemResponse = {
+  encode(_: MsgRedeemResponse, writer: Writer = Writer.create()): Writer {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgUninvestResponse {
+  decode(input: Reader | Uint8Array, length?: number): MsgRedeemResponse {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUninvestResponse } as MsgUninvestResponse;
+    const message = { ...baseMsgRedeemResponse } as MsgRedeemResponse;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -648,18 +668,18 @@ export const MsgUninvestResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgUninvestResponse {
-    const message = { ...baseMsgUninvestResponse } as MsgUninvestResponse;
+  fromJSON(_: any): MsgRedeemResponse {
+    const message = { ...baseMsgRedeemResponse } as MsgRedeemResponse;
     return message;
   },
 
-  toJSON(_: MsgUninvestResponse): unknown {
+  toJSON(_: MsgRedeemResponse): unknown {
     const obj: any = {};
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgUninvestResponse>): MsgUninvestResponse {
-    const message = { ...baseMsgUninvestResponse } as MsgUninvestResponse;
+  fromPartial(_: DeepPartial<MsgRedeemResponse>): MsgRedeemResponse {
+    const message = { ...baseMsgRedeemResponse } as MsgRedeemResponse;
     return message;
   },
 };
@@ -667,9 +687,9 @@ export const MsgUninvestResponse = {
 /** Msg defines the Msg service. */
 export interface Msg {
   CreateFund(request: MsgCreateFund): Promise<MsgCreateFundResponse>;
-  Invest(request: MsgInvest): Promise<MsgInvestResponse>;
+  Create(request: MsgCreate): Promise<MsgCreateResponse>;
   /** this line is used by starport scaffolding # proto/tx/rpc */
-  Uninvest(request: MsgUninvest): Promise<MsgUninvestResponse>;
+  Redeem(request: MsgRedeem): Promise<MsgRedeemResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -689,24 +709,24 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Invest(request: MsgInvest): Promise<MsgInvestResponse> {
-    const data = MsgInvest.encode(request).finish();
+  Create(request: MsgCreate): Promise<MsgCreateResponse> {
+    const data = MsgCreate.encode(request).finish();
     const promise = this.rpc.request(
       "defundlabs.defund.etf.Msg",
-      "Invest",
+      "Create",
       data
     );
-    return promise.then((data) => MsgInvestResponse.decode(new Reader(data)));
+    return promise.then((data) => MsgCreateResponse.decode(new Reader(data)));
   }
 
-  Uninvest(request: MsgUninvest): Promise<MsgUninvestResponse> {
-    const data = MsgUninvest.encode(request).finish();
+  Redeem(request: MsgRedeem): Promise<MsgRedeemResponse> {
+    const data = MsgRedeem.encode(request).finish();
     const promise = this.rpc.request(
       "defundlabs.defund.etf.Msg",
-      "Uninvest",
+      "Redeem",
       data
     );
-    return promise.then((data) => MsgUninvestResponse.decode(new Reader(data)));
+    return promise.then((data) => MsgRedeemResponse.decode(new Reader(data)));
   }
 }
 
