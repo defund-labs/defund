@@ -17,6 +17,10 @@ service Query {
   rpc Broker(QueryBrokerRequest) returns (QueryBrokerResponse) {
     option (google.api.http).get = "/defund-labs/defund/broker/broker/{broker}";
   };
+  // QueryBrokersRequest returns all brokers
+  rpc Brokers(QueryBrokersRequest) returns (QueryBrokersResponse) {
+    option (google.api.http).get = "/defund-labs/defund/broker/brokers";
+  };
   // this line is used by starport scaffolding # 2
 }
 
@@ -39,6 +43,17 @@ message QueryBrokerRequest {
 // QueryBrokerResponse the response type for the Query/Broker RPC
 message QueryBrokerResponse {
   Broker broker = 1 [(gogoproto.moretags) = "yaml:\"broker\""];
+}
+
+// QueryBrokersRequest is the request type for the Query/Brokers RPC
+message QueryBrokersRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryBrokersResponse the response type for the Query/Brokers RPC
+message QueryBrokersResponse {
+  repeated Broker brokers = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3

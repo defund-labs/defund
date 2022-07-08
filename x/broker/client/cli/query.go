@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/defund-labs/defund/x/broker/types"
@@ -19,6 +21,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(getInterchainAccountCmd())
 	cmd.AddCommand(getBrokerCmd())
+	cmd.AddCommand(getBrokersCmd())
 
 	return cmd
 }
@@ -60,6 +63,38 @@ func getBrokerCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Broker(cmd.Context(), types.NewQueryBrokerRequest(args[0]))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func getBrokersCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "brokers",
+		Args: cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryBrokersRequest{
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.Brokers(context.Background(), params)
 			if err != nil {
 				return err
 			}

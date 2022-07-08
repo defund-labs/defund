@@ -45,6 +45,7 @@ function getStructure(template) {
 const getDefaultState = () => {
 	return {
 				Broker: {},
+				Brokers: {},
 				
 				_Structure: {
 						Pool: getStructure(Pool.fromPartial({})),
@@ -84,6 +85,12 @@ export default {
 						(<any> params).query=null
 					}
 			return state.Broker[JSON.stringify(params)] ?? {}
+		},
+				getBrokers: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.Brokers[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -136,6 +143,32 @@ export default {
 				return getters['getBroker']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QueryBroker API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryBrokers({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryBrokers(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.queryBrokers({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'Brokers', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryBrokers', payload: { options: { all }, params: {...key},query }})
+				return getters['getBrokers']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryBrokers API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},

@@ -6,7 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 
 	"github.com/defund-labs/defund/x/broker/types"
@@ -39,4 +41,33 @@ func (k Keeper) Broker(goCtx context.Context, req *types.QueryBrokerRequest) (*t
 	}
 
 	return types.NewQueryBrokerResponse(broker), nil
+}
+
+// Broker implements the Query/Broker gRPC method
+func (k Keeper) Brokers(goCtx context.Context, req *types.QueryBrokersRequest) (*types.QueryBrokersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	var brokers []types.Broker
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	brokerStore := prefix.NewStore(store, []byte(types.BrokerKeyPrefix))
+
+	pageRes, err := query.Paginate(brokerStore, req.Pagination, func(key []byte, value []byte) error {
+		var broker types.Broker
+		if err := k.cdc.Unmarshal(value, &broker); err != nil {
+			return err
+		}
+
+		brokers = append(brokers, broker)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryBrokersResponse{Brokers: brokers, Pagination: pageRes}, nil
 }
