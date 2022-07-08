@@ -39,8 +39,8 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateFund())
-	cmd.AddCommand(CmdInvest())
-	cmd.AddCommand(CmdUninvest())
+	cmd.AddCommand(CmdCreate())
+	cmd.AddCommand(CmdRedeem())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -99,10 +99,10 @@ func CmdCreateFund() *cobra.Command {
 	return cmd
 }
 
-func CmdInvest() *cobra.Command {
+func CmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "invest [fund] [amount] [channel]",
-		Short: "Invest the specified amount into the dETF ticker using the IBC channel specified.",
+		Use:   "create [fund] [amount] [channel]",
+		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied.",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
@@ -153,10 +153,10 @@ func CmdInvest() *cobra.Command {
 	return cmd
 }
 
-func CmdUninvest() *cobra.Command {
+func CmdRedeem() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "uninvest [fund] [amount]",
-		Short: "Uninvest the specified amount from the dETF specified.",
+		Use:   "redeem [fund] [amount]",
+		Short: "Redeem the specified dETF shares in exchange for tokens.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
