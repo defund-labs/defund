@@ -48,7 +48,7 @@ func GetTxCmd() *cobra.Command {
 
 func CmdCreateFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [connectionId]",
+		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [connectionId] [startingPrice]",
 		Short: "Create a new fund",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -62,6 +62,7 @@ func CmdCreateFund() *cobra.Command {
 			argHoldings := args[5]
 			argRebalance := args[6]
 			argConnection := args[7]
+			argStartingPrice := args[8]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -84,6 +85,7 @@ func CmdCreateFund() *cobra.Command {
 				rebalance,
 				argBaseDenom,
 				argConnection,
+				argStartingPrice,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

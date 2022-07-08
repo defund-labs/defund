@@ -88,7 +88,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 	}
 	// If the fund is brand new, the price starts at price specifed BaseDenom (5,000,000 uatom for example)
 	if len(comp) == 0 {
-		price = sdk.NewCoin(fund.Broker.BaseDenom, sdk.NewInt(5000000))
+		price = fund.StartingPrice
 	}
 	if len(comp) > 0 {
 		total := sum(comp)

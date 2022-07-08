@@ -34,7 +34,7 @@ message Holding {
 
 message Fund {
   string symbol = 1;
-  string address = 2; 
+  string address = 2;
   string name = 3; 
   string description = 4; 
   cosmos.base.v1beta1.Coin shares = 5 [
@@ -49,7 +49,11 @@ message Fund {
   int64 rebalance = 8;
   string baseDenom = 9;
   string connectionId = 10;
-  string creator = 11;
+  cosmos.base.v1beta1.Coin startingPrice = 11 [
+    (gogoproto.moretags) = "yaml:\"starting_price\"",
+    (gogoproto.nullable) = false
+  ];
+  string creator = 12;
 }
 
 message Create {

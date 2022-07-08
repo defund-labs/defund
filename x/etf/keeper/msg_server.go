@@ -110,18 +110,26 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		return nil, err
 	}
 
+	// Convert starting price to coin format
+	rawIntStartingPrice, err := strconv.ParseInt(msg.StartingPrice, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	startPrice := sdk.NewCoin(msg.BaseDenom, sdk.NewInt(rawIntStartingPrice))
+
 	var fund = types.Fund{
-		Creator:      msg.Creator,
-		Symbol:       msg.Symbol,
-		Address:      acc.GetAddress().String(),
-		Name:         msg.Name,
-		Description:  msg.Description,
-		Shares:       sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
-		Broker:       &broker,
-		Holdings:     holdings,
-		BaseDenom:    msg.BaseDenom,
-		Rebalance:    msg.Rebalance,
-		ConnectionId: broker.ConnectionId,
+		Creator:       msg.Creator,
+		Symbol:        msg.Symbol,
+		Address:       acc.GetAddress().String(),
+		Name:          msg.Name,
+		Description:   msg.Description,
+		Shares:        sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
+		Broker:        &broker,
+		Holdings:      holdings,
+		BaseDenom:     msg.BaseDenom,
+		Rebalance:     msg.Rebalance,
+		ConnectionId:  broker.ConnectionId,
+		StartingPrice: startPrice,
 	}
 
 	k.SetFund(
