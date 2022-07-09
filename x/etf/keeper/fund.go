@@ -88,6 +88,22 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 	return strconv.Itoa(count)
 }
 
+// GetNextCreateID gets the count of all creates and then adds 1 for the next create id
+func (k Keeper) GetNextCreateID(ctx sdk.Context) (id string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	count := 0
+
+	for ; iterator.Valid(); iterator.Next() {
+		count = count + 1
+	}
+
+	return strconv.Itoa(count)
+}
+
 // SetCreate set a specific create in the store from its index
 func (k Keeper) SetCreate(ctx sdk.Context, create types.Create) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
@@ -152,6 +168,22 @@ func (k Keeper) GetAllCreatebySymbol(ctx sdk.Context, symbol string) (list []typ
 	}
 
 	return
+}
+
+// GetNextRedeemID gets the count of all redeems and then adds 1 for the next redeem id
+func (k Keeper) GetNextRedeemID(ctx sdk.Context) (id string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	count := 0
+
+	for ; iterator.Valid(); iterator.Next() {
+		count = count + 1
+	}
+
+	return strconv.Itoa(count)
 }
 
 // SetRedeem set a specific redeem in the store from its index

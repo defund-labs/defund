@@ -157,7 +157,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account for owner %s", fund.Address)
 	}
 
-	id := k.GetNextID(ctx)
+	id := k.GetNextCreateID(ctx)
 
 	timeoutHeight, err := clienttypes.ParseHeight(msg.TimeoutHeight)
 	if err != nil {
@@ -181,7 +181,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
 	}
 
-	id := k.GetNextID(ctx)
+	id := k.GetNextRedeemID(ctx)
 
 	err := k.Keeper.RedeemShares(ctx, id, fund, msg.Channel, *msg.Amount, fund.Address, msg.Creator)
 	if err != nil {
