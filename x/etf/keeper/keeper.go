@@ -15,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
@@ -83,7 +84,7 @@ func sum(items []sdk.Dec) sdk.Dec {
 	return sum
 }
 
-// CreateShares sends an IBC transfer to the account specified and creates a pending invest store.
+// CreateShares sends an IBC transfer to the account specified and creates a pending create store.
 // Initializes the investment process which continues in Broker module in OnAckRec.
 func (k Keeper) CreateShares(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	portid, err := icatypes.NewControllerPortID(fund.Address)
@@ -108,9 +109,9 @@ func (k Keeper) CreateShares(ctx sdk.Context, id string, sendFrom string, fund t
 	return nil
 }
 
-// RedeemShares sends an IBC transfer to the account specified and creates a pending invest store.
-// Initializes the investment process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+// RedeemShares sends an IBC transfer to the account specified and creates a pending redeem store.
+// Initializes the uninvestment process which continues in Broker module in OnAckRec.
+func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	portid, err := icatypes.NewControllerPortID(fund.Address)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
@@ -121,15 +122,19 @@ func (k Keeper) RedeemShares(ctx sdk.Context, id string, sendFrom string, fund t
 	}
 	redeem := types.Redeem{
 		Id:       id,
-		Creator:  sender,
+		Creator:  receiver,
 		Fund:     &fund,
 		Amount:   &amount,
 		Channel:  channel,
 		Sequence: strconv.FormatUint(sequence, 10),
 		Status:   "pending",
 	}
+	msg, err := k.brokerKeeper.CreateIBCTransferMsg(ctx, portid, redeem.Channel, *redeem.Amount, fundAccount, receiver)
+	if err != nil {
+		return err
+	}
+	k.brokerKeeper.SendIBCTransfer(ctx, []*transfertypes.MsgTransfer{msg}, fund.Address, fund.ConnectionId)
 	k.SetRedeem(ctx, redeem)
-	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
 	return nil
 }
 

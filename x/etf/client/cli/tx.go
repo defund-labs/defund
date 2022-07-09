@@ -148,6 +148,9 @@ func CmdCreate() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -155,12 +158,13 @@ func CmdCreate() *cobra.Command {
 
 func CmdRedeem() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redeem [fund] [amount]",
-		Short: "Redeem the specified dETF shares in exchange for tokens.",
-		Args:  cobra.ExactArgs(2),
+		Use:   "redeem [fund] [amount] [channel]",
+		Short: "Redeem shares for the dETF ticker using the IBC channel specified and the tokens supplied.",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
 			argAmount := args[1]
+			argChannel := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -172,10 +176,27 @@ func CmdRedeem() *cobra.Command {
 				return err
 			}
 
+			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
+			if err != nil {
+				return err
+			}
+			timeoutHeight, err := clienttypes.ParseHeight(timeoutHeightStr)
+			if err != nil {
+				return err
+			}
+
+			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgRedeem(
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
+				argChannel,
+				timeoutHeight.String(),
+				timeoutTimestamp,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

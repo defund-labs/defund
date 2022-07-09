@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
@@ -65,6 +66,8 @@ type BrokerKeeper interface {
 	GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Pool, found bool)
+	SendIBCTransfer(ctx sdk.Context, msgs []*transfertypes.MsgTransfer, owner string, connectionID string) (sequence uint64, err error)
+	CreateIBCTransferMsg(ctx sdk.Context, sourcePort string, sourceChannel string, token sdk.Coin, fundAccount string, receiver string) (*transfertypes.MsgTransfer, error)
 }
 
 type ChannelKeeper interface {
