@@ -175,6 +175,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// get the fund and check if it exists
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
@@ -182,12 +183,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 
 	id := k.GetNextID(ctx)
 
-	timeoutHeight, err := clienttypes.ParseHeight(msg.TimeoutHeight)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.Keeper.RedeemShares(ctx, id, fund, msg.Channel, *msg.Amount, fund.Address, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
+	err := k.Keeper.RedeemShares(ctx, id, fund, msg.Channel, *msg.Amount, fund.Address, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

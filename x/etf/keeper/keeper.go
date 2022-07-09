@@ -111,7 +111,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, id string, sendFrom string, fund t
 
 // RedeemShares sends an IBC transfer to the account specified and creates a pending redeem store.
 // Initializes the uninvestment process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, receiver string) error {
 	portid, err := icatypes.NewControllerPortID(fund.Address)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
