@@ -17,6 +17,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
@@ -33,6 +34,7 @@ type (
 		brokerKeeper  types.BrokerKeeper
 		queryKeeper   types.InterqueryKeeper
 		channelKeeper types.ChannelKeeper
+		ics4Wrapper   porttypes.ICS4Wrapper
 	}
 )
 
@@ -58,6 +60,16 @@ func NewKeeper(
 		queryKeeper:   interqueryKeeper,
 		brokerKeeper:  brokerKeeper,
 	}
+}
+
+// SetICS4Wrapper sets the ICS4 wrapper to the keeper.
+// It panics if already set
+func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	if k.ics4Wrapper != nil {
+		panic("ICS4 wrapper already set")
+	}
+
+	k.ics4Wrapper = ics4Wrapper
 }
 
 // Logger returns the module logger

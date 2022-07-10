@@ -65,6 +65,8 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings 
 	return holdingsList, nil
 }
 
+// CreateFund is the Msg handler that creates a new fund in store and initializes
+// everything for the creation of that fund
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -139,8 +141,12 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	return &types.MsgCreateFundResponse{}, nil
 }
 
+// Create is the Msg handler that creates new fund shares
 func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.MsgCreateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	//basic validation of the message
+	msg.ValidateBasic()
 
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
@@ -172,8 +178,12 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 	return &types.MsgCreateResponse{}, nil
 }
 
+// Redeem is the Msg handler that redeems new fund shares
 func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	//basic validation of the message
+	msg.ValidateBasic()
 
 	// get the fund and check if it exists
 	fund, found := k.GetFund(ctx, msg.Fund)
