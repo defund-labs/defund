@@ -193,3 +193,20 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 	}
 	return nil
 }
+
+// getOsmosisRoutes is a helper function that looks up the Osmosis broker, takes in the currentDenom, needDenom
+// and returns a list of the best routes to go through. It does this by first checking if a currentDenom
+// has a direct pool with uosmo, if it does not, it then finds a curentDenom -> usomo with uosmo -> needDenom
+// pair to create the routes needed to go from currentDenom -> needDenom.
+func (k Keeper) getRoutes(ctx sdk.Context, currentDenom string, needDenom string) {}
+
+// SendRebalanceTx sends one ICA tx for the fund with a list of swap msg's to rebalance
+// an ETF. Each swap message will have multiple routes within it to swap to the needed
+// rebalanced asset.
+// For calculation of rebalances needed, each holding is converted to the base denom,
+// then each holdings current weight in the base denom is subtracted from the expected composition.
+// Then each needed composition that is positive (over owned) is matched with each negative composition (under owned)
+// to create a swap message until no negative compositions exist.
+func (k Keeper) SendRebalanceTx(ctx sdk.Context, fund types.Fund) {
+
+}
