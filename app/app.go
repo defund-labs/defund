@@ -483,8 +483,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
+		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -493,8 +493,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
+		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -516,14 +516,14 @@ func New(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		etfmoduletypes.ModuleName,
-		querymoduletypes.ModuleName,
 		icatypes.ModuleName,
-		brokermoduletypes.ModuleName,
+		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		upgradetypes.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
+		querymoduletypes.ModuleName,
+		brokermoduletypes.ModuleName,
+		etfmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
