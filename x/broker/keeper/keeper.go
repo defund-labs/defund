@@ -134,10 +134,11 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, msgResponses *sdk.TxMsgData) error {
 	switch ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		return k.OnAcknowledgementPacketSuccess(ctx, packet, ack)
 	case *channeltypes.Acknowledgement_Error:
 		return k.OnAcknowledgementPacketFailure(ctx, packet, ack)
 	default:
-		k.OnAcknowledgementPacketFailure(ctx, packet, ack)
 		return nil
 	}
 }
