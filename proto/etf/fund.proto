@@ -54,6 +54,7 @@ message Fund {
     (gogoproto.nullable) = false
   ];
   string creator = 12;
+  int64  lastRebalanceHeight = 13;
 }
 
 message Create {
@@ -74,5 +75,12 @@ message Redeem {
   string channel = 5;
   string sequence = 6;
   string status = 7;
+}
+
+message Rebalance {
+  string id = 1;
+  Fund fund = 2;
+  // the height the rebalance was created
+  int64 height = 3;
 }
 

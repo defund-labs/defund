@@ -202,7 +202,7 @@ func (k Keeper) getRoutes(ctx sdk.Context, currentDenom string, needDenom string
 
 // SendRebalanceTx sends one ICA tx for the fund with a list of swap msg's to rebalance
 // an ETF. Each swap message will have multiple routes within it to swap to the needed
-// rebalanced asset.
+// rebalanced asset (see getRoutes above).
 // For calculation of rebalances needed, each holding is converted to the base denom,
 // then each holdings current weight in the base denom is subtracted from the expected composition.
 // Then each needed composition that is positive (over owned) is matched with each negative composition (under owned)
