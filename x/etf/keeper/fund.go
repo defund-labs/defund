@@ -251,3 +251,22 @@ func (k Keeper) GetAllRedeembySymbol(ctx sdk.Context, symbol string) (list []typ
 
 	return
 }
+
+// GetRebalance returns a rebalance from its index
+func (k Keeper) GetRebalance(
+	ctx sdk.Context,
+	index string,
+
+) (val types.Rebalance, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+
+	b := store.Get(types.RebalanceKey(
+		index,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}

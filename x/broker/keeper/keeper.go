@@ -20,9 +20,13 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/defund-labs/defund/x/broker/types"
 
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
+	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 type Keeper struct {
@@ -37,9 +41,11 @@ type Keeper struct {
 	connectionKeeper    connectionkeeper.Keeper
 	clientKeeper        clientkeeper.Keeper
 	queryKeeper         querykeeper.Keeper
+	etfKeeper           etfkeeper.Keeper
+	bankKeeper          bankkeeper.Keeper
 }
 
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper, etfkeeper etfkeeper.Keeper, bankkeeper bankkeeper.Keeper) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
@@ -51,6 +57,8 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkee
 		connectionKeeper:    connectionkeeper,
 		clientKeeper:        clientkeeper,
 		queryKeeper:         querykeeper,
+		etfKeeper:           etfkeeper,
+		bankKeeper:          bankkeeper,
 	}
 }
 
@@ -87,19 +95,41 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 	return connection, found
 }
 
-func (k Keeper) OnRedeemSuccess(ctx sdk.Context) error {
+// OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares
+// and burns them.
+func (k Keeper) OnRedeemSuccess(ctx sdk.Context, redeem etftypes.Redeem) error {
+	err := k.bankKeeper.BurnCoins(ctx, etftypes.ModuleName, sdk.NewCoins(*redeem.Amount))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (k Keeper) OnRedeemFailure(ctx sdk.Context) error {
+// OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
+// and sends them back to the redeemer them.
+func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem) error {
+	addr, err := sdk.AccAddressFromBech32(redeem.Creator)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, etftypes.ModuleName, addr, sdk.NewCoins(*redeem.Amount))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (k Keeper) OnRebalanceSuccess(ctx sdk.Context) error {
+// OnRebalanceSuccess runs the rebalance etf logic which just deletes the rebalance
+// in the store.
+func (k Keeper) OnRebalanceSuccess(ctx sdk.Context, fund *etftypes.Fund) error {
 	return nil
 }
 
-func (k Keeper) OnRebalanceFailure(ctx sdk.Context) error {
+// OnRebalanceFailure runs the rebalance etf failure logic which logs an error and then deletes
+// the rebalance in the store.
+//
+// NOTE: Potentially add a timeout/retry for failed rebalances?
+func (k Keeper) OnRebalanceFailure(ctx sdk.Context, fund *etftypes.Fund) error {
 	return nil
 }
 
@@ -119,14 +149,34 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 	for _, msgData := range txMsgData.Data {
 		switch msgData.MsgType {
 		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+			// get the redeem from the store. If not found return nil and do not run logic
+			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			if !found {
+				return nil
+			}
 			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}
-			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", msgResponse.String())
-
+			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
 			// Run redeem success logic
-			k.OnRedeemSuccess(ctx)
+			k.OnRedeemSuccess(ctx, redeem)
+
+			return nil
+		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
+			// get the fund from the store. If not found return nil and do not run logic
+			rebalance, found := k.etfKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			if !found {
+				return nil
+			}
+			fund := rebalance.Fund
+			msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
+			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+			}
+			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.", "response", msgResponse.String())
+			// Run rebalance success logic
+			k.OnRebalanceSuccess(ctx, fund)
 
 			return nil
 		default:
@@ -141,14 +191,36 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 	for _, msgData := range txMsgData.Data {
 		switch msgData.MsgType {
 		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+			// get the redeem from the store. If not found return nil and do not run logic
+			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			if !found {
+				return nil
+			}
 			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}
-			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", msgResponse.String())
+			k.Logger(ctx).Debug("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response", msgResponse.String())
 
 			// Run redeem failure logic
-			k.OnRedeemFailure(ctx)
+			k.OnRedeemFailure(ctx, redeem)
+
+			return nil
+		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
+			// get the fund from the store. If not found return nil and do not run logic
+			rebalance, found := k.etfKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			if !found {
+				return nil
+			}
+			fund := rebalance.Fund
+			msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
+			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+			}
+			k.Logger(ctx).Info("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response", msgResponse.String()) // Run rebalance failure logic
+
+			// Run rebalance failure logic
+			k.OnRebalanceFailure(ctx, fund)
 
 			return nil
 		default:
