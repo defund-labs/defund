@@ -5,10 +5,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	proto "github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
-	"google.golang.org/protobuf/proto"
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
@@ -20,6 +21,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
 )
 
@@ -85,6 +87,22 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 	return connection, found
 }
 
+func (k Keeper) OnRedeemSuccess(ctx sdk.Context) error {
+	return nil
+}
+
+func (k Keeper) OnRedeemFailure(ctx sdk.Context) error {
+	return nil
+}
+
+func (k Keeper) OnRebalanceSuccess(ctx sdk.Context) error {
+	return nil
+}
+
+func (k Keeper) OnRebalanceFailure(ctx sdk.Context) error {
+	return nil
+}
+
 // OnAcknowledgementPacketSuccess is the logic called on the IBC OnAcknowledgementPacket callback.
 // In this function we check the incoming packet as an ICS-27 packet. We then take that ICS-27
 // packet and run through each ICA message for the ack.
@@ -96,48 +114,58 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 //
 // If the ICA message is an ICA Swap Message, we know it is a rebalance workflow, and we mark the rebalance
 // from pending to complete.
-func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, msgResponses *sdk.TxMsgData) error {
-	switch msgResponses.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
+	// loop through each ICA msg in the tx (one ack respresents one tx)
+	for _, msgData := range txMsgData.Data {
+		switch msgData.MsgType {
+		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+			msgResponse := &transfertypes.MsgTransferResponse{}
+			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+			}
+			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", msgResponse.String())
+
+			// Run redeem success logic
+			k.OnRedeemSuccess(ctx)
+
+			return nil
+		default:
+			return nil
 		}
-
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
-	default:
-		return "", nil
 	}
 	return nil
 }
 
-func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, msgResponses *sdk.TxMsgData) error {
-	switch msgResponses.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
+	// loop through each ICA msg in the tx (one ack respresents one tx)
+	for _, msgData := range txMsgData.Data {
+		switch msgData.MsgType {
+		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+			msgResponse := &transfertypes.MsgTransferResponse{}
+			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+			}
+			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", msgResponse.String())
+
+			// Run redeem failure logic
+			k.OnRedeemFailure(ctx)
+
+			return nil
+		default:
+			return nil
 		}
-
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
-	default:
-		return "", nil
 	}
 	return nil
 }
 
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, msgResponses *sdk.TxMsgData) error {
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
 	switch ack.Response.(type) {
+	// on successful ack
 	case *channeltypes.Acknowledgement_Result:
-		return k.OnAcknowledgementPacketSuccess(ctx, packet, ack)
+		return k.OnAcknowledgementPacketSuccess(ctx, packet, ack, txMsgData)
+	// on failure ack
 	case *channeltypes.Acknowledgement_Error:
-		return k.OnAcknowledgementPacketFailure(ctx, packet, ack)
+		return k.OnAcknowledgementPacketFailure(ctx, packet, ack, txMsgData)
 	default:
 		return nil
 	}

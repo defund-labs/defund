@@ -119,17 +119,25 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	// unmarshal the ack to be used later
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker packet acknowledgement: %v", err)
 	}
+	// unmarshal the msg data from the tx to be used later
 	txMsgData := &sdk.TxMsgData{}
 	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker tx message data: %v", err)
 	}
-	err := im.keeper.OnAcknowledgementPacket(ctx, packet, ack, txMsgData)
-	if err != nil {
-		return err
+	// if the length of the msg data is 0 skip/return, otherwise run through logic
+	switch len(txMsgData.Data) {
+	case 0:
+		return nil
+	default:
+		err := im.keeper.OnAcknowledgementPacket(ctx, packet, ack, txMsgData)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

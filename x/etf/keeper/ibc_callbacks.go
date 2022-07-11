@@ -10,7 +10,7 @@ import (
 // the transfer is associated with a Defund Create shares workflow. If not, we simply skip
 // ahead the middleware stack, if it is, we record the share creation as complete if the ack
 // is successful and mint new fund shares that are sent to the user that created the new shares.
-// If it is failed, we record the Create shares as failed and then proceed through the IBC the stack.
+// If it is failed, we record the Create shares as failed and then proceed through the IBC middleware stack.
 func (k Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
