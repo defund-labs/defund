@@ -76,3 +76,61 @@ func (k Keeper) GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint6
 
 	return val, false
 }
+
+// SetTransfer set a specific transfer in the store from its index
+func (k Keeper) SetTransfer(ctx sdk.Context, transfer types.Transfer) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferKeyPrefix))
+	b := k.cdc.MustMarshal(&transfer)
+	store.Set(types.TransferKey(
+		transfer.Id,
+	), b)
+}
+
+// GetTransfer returns a transfer from its index
+func (k Keeper) GetTransfer(
+	ctx sdk.Context,
+	index string,
+
+) (val types.Transfer, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferKeyPrefix))
+
+	b := store.Get(types.TransferKey(
+		index,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// RemoveTransfer removes an transfer from the store
+func (k Keeper) RemoveTransfer(
+	ctx sdk.Context,
+	id string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferKeyPrefix))
+	store.Delete(types.TransferKey(
+		id,
+	))
+}
+
+// GetAllTransfer returns all transfers from store
+func (k Keeper) GetAllTransfer(ctx sdk.Context) (list []types.Transfer) {
+	store := ctx.KVStore(k.storeKey)
+	transferStore := prefix.NewStore(store, []byte(types.TransferKeyPrefix))
+
+	iterator := transferStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Transfer
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}

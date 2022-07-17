@@ -14,10 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
@@ -29,12 +30,15 @@ type (
 		storeKey sdk.StoreKey
 		memKey   sdk.StoreKey
 
-		accountKeeper types.AccountKeeper
-		bankKeeper    types.BankKeeper
-		brokerKeeper  types.BrokerKeeper
-		queryKeeper   types.InterqueryKeeper
-		channelKeeper types.ChannelKeeper
-		ics4Wrapper   porttypes.ICS4Wrapper
+		accountKeeper       types.AccountKeeper
+		bankKeeper          types.BankKeeper
+		brokerKeeper        types.BrokerKeeper
+		queryKeeper         types.InterqueryKeeper
+		channelKeeper       types.ChannelKeeper
+		ics4Wrapper         porttypes.ICS4Wrapper
+		connectionKeeper    types.ConnectionKeeper
+		clientKeeper        types.ClientKeeper
+		icaControllerKeeper types.ICAControllerKeeper
 	}
 )
 
@@ -48,17 +52,23 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper,
 	interqueryKeeper types.InterqueryKeeper,
 	brokerKeeper types.BrokerKeeper,
+	connectionKeeper types.ConnectionKeeper,
+	clientKeeper types.ClientKeeper,
+	iaKeeper types.ICAControllerKeeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
 		memKey:   memKey,
 
-		accountKeeper: accountKeeper,
-		bankKeeper:    bankKeeper,
-		channelKeeper: channelKeeper,
-		queryKeeper:   interqueryKeeper,
-		brokerKeeper:  brokerKeeper,
+		accountKeeper:       accountKeeper,
+		bankKeeper:          bankKeeper,
+		channelKeeper:       channelKeeper,
+		queryKeeper:         interqueryKeeper,
+		brokerKeeper:        brokerKeeper,
+		connectionKeeper:    connectionKeeper,
+		clientKeeper:        clientKeeper,
+		icaControllerKeeper: iaKeeper,
 	}
 }
 
@@ -96,34 +106,86 @@ func sum(items []sdk.Dec) sdk.Dec {
 	return sum
 }
 
-// CreateShares sends an IBC transfer to the account specified and creates a pending create store.
-// Initializes the investment process which continues in Broker module in OnAckRec.
-func (k Keeper) CreateShares(ctx sdk.Context, id string, sendFrom string, fund types.Fund, channel string, amount sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
-	portid, err := icatypes.NewControllerPortID(fund.Address)
+// CreateShares sends a multi-send of assets to create ETF shares from creator to the module account
+// which then sends an IBC transfer to the fund account on the broker chain and creates a pending transfer store.
+// Initializes the create shares process which continues in Broker module in OnAckRec.
+func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, tokens []*sdk.Coin, creator string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+	// Need to convert the coins to plain coins for multi send
+	coins := sdk.Coins{}
+	for _, token := range tokens {
+		coins = append(coins, *token)
+	}
+	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
-		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
+		return err
 	}
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, portid, channel)
+	fundAcc, err := sdk.AccAddressFromBech32(fund.Address)
+	if err != nil {
+		return err
+	}
+
+	// get the ica account for the fund on the broker chain
+	portID, err := icatypes.NewControllerPortID(fund.Address)
+	if err != nil {
+		return err
+	}
+	fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, fund.ConnectionId, portID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portid)
+		return sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, fund.ConnectionId, portID)
 	}
-	create := types.Create{
-		Id:       id,
-		Creator:  sender,
-		Fund:     &fund,
-		Amount:   &amount,
-		Channel:  channel,
-		Sequence: strconv.FormatUint(sequence, 10),
-		Status:   "pending",
+
+	// send the tokens to the Defund fund account to ensure that we receive the
+	// tokens correctly.
+	err = k.bankKeeper.SendCoins(ctx, creatorAcc, fundAcc, sdk.NewCoins(coins...))
+	if err != nil {
+		return err
 	}
-	k.SetCreate(ctx, create)
-	k.brokerKeeper.SendTransfer(ctx, fund.Address, channel, amount, sender, receiver, timeoutHeight, timeoutTimestamp)
+
+	// for each token send IBC transfer to move funds to broker chain. logic continues in ibc callbacks
+	for _, token := range tokens {
+		sequence, err := k.brokerKeeper.SendTransfer(ctx, channel, *token, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
+		if err != nil {
+			return err
+		}
+		transfer := brokertypes.Transfer{
+			Id:       fmt.Sprintf("%s-%d", channel, sequence),
+			Channel:  channel,
+			Sequence: sequence,
+			Status:   "tranferring",
+			Token:    token,
+			Sender:   fund.Address,
+			Receiver: fundBrokerAddress,
+		}
+		k.brokerKeeper.SetTransfer(ctx, transfer)
+	}
+
+	// compute the amount of etf shares this creator is given
+	numETFShares, err := k.GetAmountETFSharesForTokens(ctx, fund, tokens)
+	if err != nil {
+		return err
+	}
+	newETFCoins := sdk.NewCoins(numETFShares)
+
+	// finally mint coins (to module account) and then send them to the creator of the create
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, newETFCoins)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creatorAcc, newETFCoins)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// RedeemShares sends an IBC transfer to the account specified and creates a pending redeem store.
-// Initializes the uninvestment process which continues in Broker module in OnAckRec.
+// RedeemShares sends an ICA MultiSend message to the broker chain to be run on that chain.
+// Initializes the redemption of shares process which continues in Broker module in OnAckRec.
 func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, receiver string) error {
+	receiverAcc, err := sdk.AccAddressFromBech32(receiver)
+	if err != nil {
+		return err
+	}
 	portid, err := icatypes.NewControllerPortID(fund.Address)
 	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "could not find account: %s", err)
@@ -141,12 +203,25 @@ func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channe
 		Sequence: strconv.FormatUint(sequence, 10),
 		Status:   "pending",
 	}
-	msg, err := k.brokerKeeper.CreateIBCTransferMsg(ctx, portid, redeem.Channel, *redeem.Amount, fundAccount, receiver)
+
+	// get the amount of tokens that these shares represent
+	ownership, err := k.GetOwnershipSharesInFund(ctx, fund, amount)
 	if err != nil {
 		return err
 	}
-	k.brokerKeeper.SendIBCTransfer(ctx, []*transfertypes.MsgTransfer{msg}, fund.Address, fund.ConnectionId)
+
+	msg, err := k.brokerKeeper.CreateMultiSendMsg(ctx, fundAccount, receiver, sdk.NewCoins(ownership...))
+	if err != nil {
+		return err
+	}
+	// take the fund etf shares and escrow them in the module account. in the ack callback, on success
+	// we will burn these shares. If unsuccessful we will send them back to the user (same on timeout).
+	k.bankKeeper.SendCoinsFromAccountToModule(ctx, receiverAcc, types.ModuleName, sdk.NewCoins(amount))
+	// create the ica multi send message
+	k.brokerKeeper.SendIBCSend(ctx, []*banktypes.MsgSend{msg}, fund.Address, fund.ConnectionId)
+
 	k.SetRedeem(ctx, redeem)
+
 	return nil
 }
 

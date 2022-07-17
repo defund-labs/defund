@@ -88,88 +88,6 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 	return strconv.Itoa(count)
 }
 
-// GetNextCreateID gets the count of all creates and then adds 1 for the next create id
-func (k Keeper) GetNextCreateID(ctx sdk.Context) (id string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close()
-
-	count := 0
-
-	for ; iterator.Valid(); iterator.Next() {
-		count = count + 1
-	}
-
-	return strconv.Itoa(count)
-}
-
-// SetCreate set a specific create in the store from its index
-func (k Keeper) SetCreate(ctx sdk.Context, create types.Create) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
-	b := k.cdc.MustMarshal(&create)
-	store.Set(types.CreateKey(
-		create.Id,
-	), b)
-}
-
-// GetCreate returns a increatevest from its index
-func (k Keeper) GetCreate(
-	ctx sdk.Context,
-	index string,
-
-) (val types.Create, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.CreateKeyPrefix))
-
-	b := store.Get(types.CreateKey(
-		index,
-	))
-	if b == nil {
-		return val, false
-	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
-}
-
-// GetAllCreate returns all creates from store
-func (k Keeper) GetAllCreate(ctx sdk.Context) (list []types.Create) {
-	store := ctx.KVStore(k.storeKey)
-	createStore := prefix.NewStore(store, []byte(types.CreateKeyPrefix))
-
-	iterator := createStore.Iterator(nil, nil)
-
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Create
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-// GetAllCreatebySymbol returns all creates from store based on symbol
-func (k Keeper) GetAllCreatebySymbol(ctx sdk.Context, symbol string) (list []types.Create) {
-	store := ctx.KVStore(k.storeKey)
-	createStore := prefix.NewStore(store, []byte(types.CreateKeyPrefix))
-
-	iterator := createStore.Iterator(nil, nil)
-
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Create
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.Fund.Symbol == symbol {
-			list = append(list, val)
-		}
-	}
-
-	return
-}
-
 // GetNextRedeemID gets the count of all redeems and then adds 1 for the next redeem id
 func (k Keeper) GetNextRedeemID(ctx sdk.Context) (id string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
@@ -212,6 +130,18 @@ func (k Keeper) GetRedeem(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+// RemoveRedeem removes an redeem from the store
+func (k Keeper) RemoveRedeem(
+	ctx sdk.Context,
+	id string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	store.Delete(types.RedeemKey(
+		id,
+	))
 }
 
 // GetAllRedeem returns all redeems from store
@@ -269,4 +199,16 @@ func (k Keeper) GetRebalance(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+// RemoveRebalance removes an rebalance from the store
+func (k Keeper) RemoveRebalance(
+	ctx sdk.Context,
+	id string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+	store.Delete(types.RebalanceKey(
+		id,
+	))
 }

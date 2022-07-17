@@ -101,12 +101,12 @@ func CmdCreateFund() *cobra.Command {
 
 func CmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [fund] [amount] [channel]",
-		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied.",
+		Use:   "create [fund] [tokens] [channel]",
+		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied (comma seperated list of coins i.e 1000000uosmo,1000000uatom).",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
-			argAmount := args[1]
+			argTokens := args[1]
 			argChannel := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -114,7 +114,7 @@ func CmdCreate() *cobra.Command {
 				return err
 			}
 
-			amount, err := sdk.ParseCoinNormalized(argAmount)
+			rawTokens, err := sdk.ParseCoinsNormalized(argTokens)
 			if err != nil {
 				return err
 			}
@@ -133,10 +133,16 @@ func CmdCreate() *cobra.Command {
 				return err
 			}
 
+			tokensList := []*sdk.Coin{}
+
+			for _, token := range rawTokens {
+				tokensList = append(tokensList, &token)
+			}
+
 			msg := types.NewMsgCreate(
 				clientCtx.GetFromAddress().String(),
 				argFund,
-				&amount,
+				tokensList,
 				argChannel,
 				timeoutHeight.String(),
 				timeoutTimestamp,

@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
@@ -153,24 +152,12 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
 	}
 
-	portID, err := icatypes.NewControllerPortID(fund.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	acc, found := k.brokerKeeper.GetBrokerAccount(ctx, fund.ConnectionId, portID)
-	if !found {
-		return nil, sdkerrors.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account for owner %s", fund.Address)
-	}
-
-	id := k.GetNextCreateID(ctx)
-
 	timeoutHeight, err := clienttypes.ParseHeight(msg.TimeoutHeight)
 	if err != nil {
 		return nil, err
 	}
 
-	err = k.Keeper.CreateShares(ctx, id, acc, fund, msg.Channel, *msg.Amount, msg.Creator, fund.Address, timeoutHeight, msg.TimeoutTimestamp)
+	err = k.Keeper.CreateShares(ctx, fund, msg.Channel, msg.Tokens, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}

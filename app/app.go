@@ -431,6 +431,9 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.QueryKeeper,
 		app.BrokerKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.ICAControllerKeeper,
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 

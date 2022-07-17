@@ -7,32 +7,29 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/defund-labs/defund/x/broker/types"
 )
 
 // Helper function that creates and returns a MsgTransfer msg type to be run via ICA
-func (k Keeper) CreateIBCTransferMsg(ctx sdk.Context, sourcePort string, sourceChannel string, token sdk.Coin, fundAccount string, receiver string) (*transfertypes.MsgTransfer, error) {
-	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
-	transfer := transfertypes.MsgTransfer{
-		SourcePort:       sourcePort,
-		SourceChannel:    sourceChannel,
-		Token:            token,
-		Sender:           fundAccount,
-		Receiver:         receiver,
-		TimeoutTimestamp: timeoutTimestamp,
+func (k Keeper) CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddress string, amount sdk.Coins) (*banktypes.MsgSend, error) {
+	send := banktypes.MsgSend{
+		FromAddress: fromAddress,
+		ToAddress:   toAddress,
+		Amount:      amount,
 	}
-	transfer.ValidateBasic()
-	return &transfer, nil
+	send.ValidateBasic()
+	return &send, nil
 }
 
-// Creates an ICA Transfer msg on a host/broker ICA chain to
-// send funds from that chain back to Defund address
-func (k Keeper) SendIBCTransfer(ctx sdk.Context, msgs []*transfertypes.MsgTransfer, owner string, connectionID string) (sequence uint64, err error) {
+// Creates an ICA Bank Send msg on a host/broker ICA chain to
+// send funds from an account on the host chain to someone
+func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, err error) {
 	seralizeMsgs := []sdk.Msg{}
 	for _, msg := range msgs {
 		msg.ValidateBasic()
@@ -75,22 +72,24 @@ func (k Keeper) SendIBCTransfer(ctx sdk.Context, msgs []*transfertypes.MsgTransf
 	return sequence, nil
 }
 
-// Sends an IBC transfer to a broker chain
-func (k Keeper) SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
-	portID, err := icatypes.NewControllerPortID(owner)
-	if err != nil {
-		return err
-	}
+// Sends an IBC transfer to another chain
+func (k Keeper) SendTransfer(ctx sdk.Context, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) (sequence uint64, err error) {
+	portID := "transfer"
 
 	senderAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return err
+		return sequence, err
+	}
+
+	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, portID, channel)
+	if !found {
+		return sequence, sdkerrors.Wrapf(types.ErrNextSequenceNotFound, "failed to retrieve the next sequence for channel %s and port %s", channel, portID)
 	}
 
 	err = k.transferKeeper.SendTransfer(ctx, portID, channel, token, senderAddr, receiver, timeoutHeight, uint64(timeoutTimestamp))
 	if err != nil {
-		return err
+		return sequence, err
 	}
 
-	return nil
+	return sequence, nil
 }

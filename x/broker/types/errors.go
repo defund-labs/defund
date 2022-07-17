@@ -12,4 +12,5 @@ var (
 	ErrBrokerActive           = sdkerrors.Register(ModuleName, 5, "broker is active")
 	ErrInvalidPool            = sdkerrors.Register(ModuleName, 6, "pool query does not exist")
 	ErrMarshallingError       = sdkerrors.Register(ModuleName, 7, "Marshalling error")
+	ErrNextSequenceNotFound   = sdkerrors.Register(ModuleName, 8, "Next Sequence not found")
 )

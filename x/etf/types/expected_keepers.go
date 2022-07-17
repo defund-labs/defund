@@ -4,9 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
@@ -62,12 +63,18 @@ type BrokerKeeper interface {
 	GetBroker(ctx sdk.Context, id string) (val brokertypes.Broker, found bool)
 	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
 	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
-	SendTransfer(ctx sdk.Context, owner string, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
+	SetTransfer(ctx sdk.Context, transfer brokertypes.Transfer)
+	GetAllTransfer(ctx sdk.Context) (list []brokertypes.Transfer)
+	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
+	RemoveTransfer(ctx sdk.Context, id string)
+	SendTransfer(ctx sdk.Context, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) (sequence uint64, err error)
 	GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error)
+	GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Pool, found bool)
-	SendIBCTransfer(ctx sdk.Context, msgs []*transfertypes.MsgTransfer, owner string, connectionID string) (sequence uint64, err error)
-	CreateIBCTransferMsg(ctx sdk.Context, sourcePort string, sourceChannel string, token sdk.Coin, fundAccount string, receiver string) (*transfertypes.MsgTransfer, error)
+	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, err error)
+	CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddress string, amount sdk.Coins) (*banktypes.MsgSend, error)
+	CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
 }
 
 type ChannelKeeper interface {
@@ -77,4 +84,16 @@ type ChannelKeeper interface {
 
 type InterqueryKeeper interface {
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
+}
+
+type ConnectionKeeper interface {
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+}
+
+type ClientKeeper interface {
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+}
+
+type ICAControllerKeeper interface {
+	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
 }

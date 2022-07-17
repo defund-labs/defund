@@ -16,6 +16,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
@@ -81,6 +82,26 @@ func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	return nil
 }
 
+// CreateQueryOsmosisBalance sets an interquery request in store for a Osmosis account balance to be run by relayers
+func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, account string) error {
+	path := "/store/bank/key/"
+	connectionid := "connection-0"
+	accAddr, err := sdk.AccAddressFromBech32(account)
+	if err != nil {
+		return err
+	}
+	key := banktypes.CreateAccountBalancesPrefix(accAddr.Bytes())
+	timeoutHeight := uint64(ctx.BlockHeight() + 10)
+	storeid := fmt.Sprintf("account-%s", account)
+	chainid := "osmosis-1"
+
+	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // ChangeBrokerPoolStatus finds the pool via poolid for broker specifed and changes the status
 // of the pool to the status provided
 func (k Keeper) ChangeBrokerPoolStatus(ctx sdk.Context, broker types.Broker, poolId uint64, status string) error {
@@ -122,6 +143,20 @@ func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancert
 		return osmosisbalancertypes.Pool{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
 	}
 	return pool, nil
+}
+
+// GetOsmosisBalance gets an osmosis bank balance from the interquery store and returns the unmarshalled balance
+func (k Keeper) GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error) {
+	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("account-%s", account))
+	if !found {
+		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find account query for %s", fmt.Sprintf("account-%s", account))
+	}
+	var balance = banktypes.Balance{}
+	err := json.Unmarshal(query.Data, &balance)
+	if err != nil {
+		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis account query (%s)", strings.Split(query.Storeid, "-")[1])
+	}
+	return balance, nil
 }
 
 // CalculateOsmosisSpotPrice gets a pool from an interquery result and computes the price of that pool pair

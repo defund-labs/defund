@@ -37,7 +37,7 @@ message MsgCreate {
   string creator = 1;
 
   string fund = 2;
-  cosmos.base.v1beta1.Coin amount = 3;
+  repeated cosmos.base.v1beta1.Coin tokens = 3;
   string channel = 4;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.

@@ -3,6 +3,8 @@ package defundlabs.defund.broker;
 
 import "gogoproto/gogo.proto";
 
+import "cosmos/base/v1beta1/coin.proto";
+
 option go_package = "github.com/defund-labs/defund/x/broker/types";
 
 message Pool {
@@ -17,4 +19,14 @@ message Broker {
     repeated Pool pools = 3;
     string baseDenom = 4;
     string status = 5;
+}
+
+message Transfer {
+    string id = 1;
+    string channel = 2;
+    uint64 sequence = 3;
+    string status = 4;
+    cosmos.base.v1beta1.Coin token = 5;
+    string sender = 6;
+    string receiver = 7;
 }

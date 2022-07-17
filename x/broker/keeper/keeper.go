@@ -21,6 +21,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
@@ -98,10 +99,13 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 // OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares
 // and burns them.
 func (k Keeper) OnRedeemSuccess(ctx sdk.Context, redeem etftypes.Redeem) error {
+	// Burn escrowed shares in the etf module
 	err := k.bankKeeper.BurnCoins(ctx, etftypes.ModuleName, sdk.NewCoins(*redeem.Amount))
 	if err != nil {
 		return err
 	}
+	// Remove the redeem from store. Clean up store
+	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
 	return nil
 }
 
@@ -112,24 +116,33 @@ func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem) error {
 	if err != nil {
 		return err
 	}
+	// Send back the escrowed etf shares from the etf module
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, etftypes.ModuleName, addr, sdk.NewCoins(*redeem.Amount))
 	if err != nil {
 		return err
 	}
+	// Remove the redeem from store. Clean up store
+	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
 	return nil
 }
 
 // OnRebalanceSuccess runs the rebalance etf logic which just deletes the rebalance
-// in the store.
-func (k Keeper) OnRebalanceSuccess(ctx sdk.Context, fund *etftypes.Fund) error {
+// in the store and updates the funds last rebalance height.
+func (k Keeper) OnRebalanceSuccess(ctx sdk.Context, rebalance etftypes.Rebalance, fund *etftypes.Fund) error {
+	fund.LastRebalanceHeight = int64(ctx.BlockHeight())
+	k.etfKeeper.SetFund(ctx, *fund)
+	// Remove the rebalance from store. Clean up store
+	k.etfKeeper.RemoveRebalance(ctx, rebalance.Id)
 	return nil
 }
 
-// OnRebalanceFailure runs the rebalance etf failure logic which logs an error and then deletes
-// the rebalance in the store.
+// OnRebalanceFailure runs the rebalance etf failure logic which just deletes the rebalance
+// from store.
 //
 // NOTE: Potentially add a timeout/retry for failed rebalances?
-func (k Keeper) OnRebalanceFailure(ctx sdk.Context, fund *etftypes.Fund) error {
+func (k Keeper) OnRebalanceFailure(ctx sdk.Context, rebalance etftypes.Rebalance, fund *etftypes.Fund) error {
+	// Remove the rebalance from store. Clean up store
+	k.etfKeeper.RemoveRebalance(ctx, rebalance.Id)
 	return nil
 }
 
@@ -148,13 +161,13 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 	// loop through each ICA msg in the tx (one ack respresents one tx)
 	for _, msgData := range txMsgData.Data {
 		switch msgData.MsgType {
-		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
+		case sdk.MsgTypeURL(&banktypes.MsgMultiSend{}):
 			// get the redeem from the store. If not found return nil and do not run logic
 			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
 			}
-			msgResponse := &transfertypes.MsgTransferResponse{}
+			msgResponse := &banktypes.MsgMultiSendResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}
@@ -176,7 +189,7 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.", "response", msgResponse.String())
 			// Run rebalance success logic
-			k.OnRebalanceSuccess(ctx, fund)
+			k.OnRebalanceSuccess(ctx, rebalance, fund)
 
 			return nil
 		default:
@@ -220,7 +233,7 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			k.Logger(ctx).Info("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response", msgResponse.String()) // Run rebalance failure logic
 
 			// Run rebalance failure logic
-			k.OnRebalanceFailure(ctx, fund)
+			k.OnRebalanceFailure(ctx, rebalance, fund)
 
 			return nil
 		default:
