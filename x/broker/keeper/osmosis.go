@@ -132,10 +132,10 @@ func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 }
 
 // GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
-func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error) {
-	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%s", poolId))
+func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancertypes.Pool, error) {
+	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%d", poolId))
 	if !found {
-		return osmosisbalancertypes.Pool{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%s", poolId))
+		return osmosisbalancertypes.Pool{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
 	}
 	var pool = osmosisbalancertypes.Pool{}
 	err := json.Unmarshal(query.Data, &pool)
@@ -184,7 +184,7 @@ func (k Keeper) CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenI
 		inPoolAsset.Weight.ToDec(),
 		outPoolAsset.Token.Amount.ToDec(),
 		outPoolAsset.Weight.ToDec(),
-		sdk.ZeroDec(),
+		pool.PoolParams.SwapFee,
 	), nil
 }
 

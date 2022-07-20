@@ -98,8 +98,8 @@ func (k Keeper) GetAmountETFSharesForTokens(ctx sdk.Context, fund types.Fund, to
 	// turn list of coin into coins type
 	oneETFShareOwnership := sdk.NewCoins(oneETFShareOwnershipRaw...)
 
-	// compute the amount of tokens the first amount of tokens represents in list. this is next used to check
-	// if the rest of the tokens represent the same amount of ownership or it errors out
+	// compute the amount of etf tokens the first amount of tokens supplied represents in list.
+	// this is next used to check if the rest of the tokens represent the same amount of ownership or it errors out
 	etfSharesRaw := tokens[0].Amount.Quo(oneETFShareOwnership.AmountOf(tokens[0].Denom))
 	etfShares = sdk.NewCoin(fund.Shares.Denom, etfSharesRaw)
 
@@ -107,7 +107,7 @@ func (k Keeper) GetAmountETFSharesForTokens(ctx sdk.Context, fund types.Fund, to
 	for _, token := range tokens {
 		etfSharesCheck := token.Amount.Quo(oneETFShareOwnership.AmountOf(token.Denom))
 		if etfSharesCheck != etfSharesRaw {
-			return etfShares, sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "all tokens do not represent the same ownership amount in this fund (denom %s with amount %d represents %d shares while it should represent %d shares)", token.Denom, token.Amount, etfSharesCheck, etfSharesRaw)
+			return etfShares, sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "all tokens do not represent the same ownership amount in this fund (denom: %s with amount: %d represents %d shares while it should represent %d shares)", token.Denom, token.Amount, etfSharesCheck, etfSharesRaw)
 		}
 	}
 

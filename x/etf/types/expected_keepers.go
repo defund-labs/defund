@@ -11,6 +11,7 @@ import (
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 type AccountKeeper interface {
@@ -68,13 +69,15 @@ type BrokerKeeper interface {
 	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
 	RemoveTransfer(ctx sdk.Context, id string)
 	SendTransfer(ctx sdk.Context, channel string, token sdk.Coin, sender string, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) (sequence uint64, err error)
-	GetOsmosisPool(ctx sdk.Context, poolId string) (osmosisbalancertypes.Pool, error)
+	GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancertypes.Pool, error)
 	GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Pool, found bool)
 	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, err error)
 	CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddress string, amount sdk.Coins) (*banktypes.MsgSend, error)
 	CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
+	CreateOsmosisTrade(ctx sdk.Context, trader string, routes []osmosisgammtypes.SwapAmountInRoute, tokenin sdk.Coin, tokenoutminamount sdk.Int) (*osmosisgammtypes.MsgSwapExactAmountIn, error)
+	SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (sequence uint64, err error)
 }
 
 type ChannelKeeper interface {
