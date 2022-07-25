@@ -12,6 +12,7 @@ message Interquery {
   bytes  key = 4; 
   uint64 timeoutHeight = 5; 
   string connectionId = 6;
+  string clientId = 7;
 }
 
 message InterqueryResult {

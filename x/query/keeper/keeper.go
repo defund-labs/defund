@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	"github.com/defund-labs/defund/x/query/types"
 )
 
@@ -61,6 +63,11 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 }
 
 func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
+	// get the connection from store
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionid)
+	if !found {
+		return sdkerrors.Wrapf(connectiontypes.ErrConnectionNotFound, "connection %s not found", connectionid)
+	}
 	interquery := types.Interquery{
 		Storeid:       storeid,
 		Chainid:       chainid,
@@ -68,6 +75,7 @@ func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid
 		Key:           key,
 		TimeoutHeight: timeoutheight,
 		ConnectionId:  connectionid,
+		ClientId:      connection.ClientId,
 	}
 	k.SetInterquery(ctx, interquery)
 

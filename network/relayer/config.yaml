@@ -5,7 +5,7 @@ global:
 chains:
     - type: cosmos
       value:
-        key: rly1
+        key: rly
         chain-id: defund
         rpc-addr: http://localhost:26657
         account-prefix: defund
@@ -18,7 +18,7 @@ chains:
         sign-mode: direct
     - type: cosmos
       value:
-        key: rly2
+        key: rly
         chain-id: osmo-test-4
         rpc-addr: http://143.198.139.33:26657
         account-prefix: osmo
