@@ -45,7 +45,6 @@ func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateI
 	}
 
 	var interquery = types.Interquery{
-		Creator:       msg.Creator,
 		Storeid:       msg.Storeid,
 		Chainid:       msg.Chainid,
 		Path:          msg.Path,
@@ -169,7 +168,6 @@ func (k msgServer) CreateInterqueryTimeout(goCtx context.Context, msg *types.Msg
 	}
 
 	var interquerytimeoutresult = types.InterqueryTimeoutResult{
-		Creator:       msg.Creator,
 		Storeid:       msg.Storeid,
 		TimeoutHeight: msg.TimeoutHeight,
 	}

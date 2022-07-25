@@ -27,3 +27,27 @@ func TestFundMsgServerCreate(t *testing.T) {
 		require.NoError(t, err)
 	}
 }
+
+func TestSharesMsgServerCreate(t *testing.T) {
+	k, ctx := keepertest.EtfKeeper(t)
+	srv := keeper.NewMsgServerImpl(*k)
+	wctx := sdk.WrapSDKContext(ctx)
+	creator := "A"
+	for i := 0; i < 5; i++ {
+		expected := &types.MsgCreateFund{Creator: creator}
+		_, err := srv.CreateFund(wctx, expected)
+		require.NoError(t, err)
+	}
+}
+
+func TestSharesMsgServerRedeem(t *testing.T) {
+	k, ctx := keepertest.EtfKeeper(t)
+	srv := keeper.NewMsgServerImpl(*k)
+	wctx := sdk.WrapSDKContext(ctx)
+	creator := "A"
+	for i := 0; i < 5; i++ {
+		expected := &types.MsgCreateFund{Creator: creator}
+		_, err := srv.CreateFund(wctx, expected)
+		require.NoError(t, err)
+	}
+}

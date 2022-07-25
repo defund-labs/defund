@@ -28,7 +28,6 @@ export interface ProtobufAny {
 }
 
 export interface QueryInterquery {
-  creator?: string;
   storeid?: string;
   chainid?: string;
   path?: string;
@@ -56,7 +55,6 @@ export interface QueryInterqueryResult {
 }
 
 export interface QueryInterqueryTimeoutResult {
-  creator?: string;
   storeid?: string;
 
   /** @format uint64 */

@@ -53,6 +53,9 @@ export interface EtfFund {
    */
   startingPrice?: V1Beta1Coin;
   creator?: string;
+
+  /** @format int64 */
+  lastRebalanceHeight?: string;
 }
 
 export interface EtfFundPrice {
@@ -89,21 +92,6 @@ export type EtfMsgCreateFundResponse = object;
 export type EtfMsgCreateResponse = object;
 
 export type EtfMsgRedeemResponse = object;
-
-export interface EtfQueryAllFundPriceResponse {
-  price?: EtfFundPrice[];
-
-  /**
-   * PageResponse is to be embedded in gRPC response messages where the
-   * corresponding request message has used PageRequest.
-   *
-   *  message SomeResponse {
-   *          repeated Bar results = 1;
-   *          PageResponse page = 2;
-   *  }
-   */
-  pagination?: V1Beta1PageResponse;
-}
 
 export interface EtfQueryAllFundResponse {
   fund?: EtfFund[];
@@ -462,33 +450,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryFundPrice = (query?: { symbol?: string }, params: RequestParams = {}) =>
     this.request<EtfQueryFundPriceResponse, RpcStatus>({
       path: `/defund-labs/defund/etf/fundPrice`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
-   * @name QueryFundPriceAll
-   * @summary Queries a list of fund price items.
-   * @request GET:/defund-labs/defund/etf/fundprice/{symbol}
-   */
-  queryFundPriceAll = (
-    symbol: string,
-    query?: {
-      "pagination.key"?: string;
-      "pagination.offset"?: string;
-      "pagination.limit"?: string;
-      "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<EtfQueryAllFundPriceResponse, RpcStatus>({
-      path: `/defund-labs/defund/etf/fundprice/${symbol}`,
       method: "GET",
       query: query,
       format: "json",

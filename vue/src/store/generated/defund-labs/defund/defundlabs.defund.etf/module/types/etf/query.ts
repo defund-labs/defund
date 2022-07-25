@@ -33,16 +33,6 @@ export interface QueryFundPriceResponse {
   price: FundPrice | undefined;
 }
 
-export interface QueryAllFundPriceRequest {
-  symbol: string;
-  pagination: PageRequest | undefined;
-}
-
-export interface QueryAllFundPriceResponse {
-  price: FundPrice[];
-  pagination: PageResponse | undefined;
-}
-
 const baseQueryGetFundRequest: object = { symbol: "" };
 
 export const QueryGetFundRequest = {
@@ -430,196 +420,6 @@ export const QueryFundPriceResponse = {
   },
 };
 
-const baseQueryAllFundPriceRequest: object = { symbol: "" };
-
-export const QueryAllFundPriceRequest = {
-  encode(
-    message: QueryAllFundPriceRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
-    if (message.symbol !== "") {
-      writer.uint32(10).string(message.symbol);
-    }
-    if (message.pagination !== undefined) {
-      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): QueryAllFundPriceRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryAllFundPriceRequest,
-    } as QueryAllFundPriceRequest;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.symbol = reader.string();
-          break;
-        case 2:
-          message.pagination = PageRequest.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryAllFundPriceRequest {
-    const message = {
-      ...baseQueryAllFundPriceRequest,
-    } as QueryAllFundPriceRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = String(object.symbol);
-    } else {
-      message.symbol = "";
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
-  },
-
-  toJSON(message: QueryAllFundPriceRequest): unknown {
-    const obj: any = {};
-    message.symbol !== undefined && (obj.symbol = message.symbol);
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageRequest.toJSON(message.pagination)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<QueryAllFundPriceRequest>
-  ): QueryAllFundPriceRequest {
-    const message = {
-      ...baseQueryAllFundPriceRequest,
-    } as QueryAllFundPriceRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = object.symbol;
-    } else {
-      message.symbol = "";
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
-  },
-};
-
-const baseQueryAllFundPriceResponse: object = {};
-
-export const QueryAllFundPriceResponse = {
-  encode(
-    message: QueryAllFundPriceResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
-    for (const v of message.price) {
-      FundPrice.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.pagination !== undefined) {
-      PageResponse.encode(
-        message.pagination,
-        writer.uint32(18).fork()
-      ).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): QueryAllFundPriceResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryAllFundPriceResponse,
-    } as QueryAllFundPriceResponse;
-    message.price = [];
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.price.push(FundPrice.decode(reader, reader.uint32()));
-          break;
-        case 2:
-          message.pagination = PageResponse.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryAllFundPriceResponse {
-    const message = {
-      ...baseQueryAllFundPriceResponse,
-    } as QueryAllFundPriceResponse;
-    message.price = [];
-    if (object.price !== undefined && object.price !== null) {
-      for (const e of object.price) {
-        message.price.push(FundPrice.fromJSON(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
-  },
-
-  toJSON(message: QueryAllFundPriceResponse): unknown {
-    const obj: any = {};
-    if (message.price) {
-      obj.price = message.price.map((e) =>
-        e ? FundPrice.toJSON(e) : undefined
-      );
-    } else {
-      obj.price = [];
-    }
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageResponse.toJSON(message.pagination)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<QueryAllFundPriceResponse>
-  ): QueryAllFundPriceResponse {
-    const message = {
-      ...baseQueryAllFundPriceResponse,
-    } as QueryAllFundPriceResponse;
-    message.price = [];
-    if (object.price !== undefined && object.price !== null) {
-      for (const e of object.price) {
-        message.price.push(FundPrice.fromPartial(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
-  },
-};
-
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Queries a fund by symbol. */
@@ -628,10 +428,6 @@ export interface Query {
   FundAll(request: QueryAllFundRequest): Promise<QueryAllFundResponse>;
   /** Queries a list of fundPrice items. */
   FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse>;
-  /** Queries a list of fund price items. */
-  FundPriceAll(
-    request: QueryAllFundPriceRequest
-  ): Promise<QueryAllFundPriceResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -672,20 +468,6 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryFundPriceResponse.decode(new Reader(data))
-    );
-  }
-
-  FundPriceAll(
-    request: QueryAllFundPriceRequest
-  ): Promise<QueryAllFundPriceResponse> {
-    const data = QueryAllFundPriceRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.etf.Query",
-      "FundPriceAll",
-      data
-    );
-    return promise.then((data) =>
-      QueryAllFundPriceResponse.decode(new Reader(data))
     );
   }
 }

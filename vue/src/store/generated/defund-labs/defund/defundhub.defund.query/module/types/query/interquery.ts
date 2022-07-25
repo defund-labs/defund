@@ -5,7 +5,6 @@ import { util, configure, Writer, Reader } from "protobufjs/minimal";
 export const protobufPackage = "defundhub.defund.query";
 
 export interface Interquery {
-  creator: string;
   storeid: string;
   chainid: string;
   path: string;
@@ -25,13 +24,11 @@ export interface InterqueryResult {
 }
 
 export interface InterqueryTimeoutResult {
-  creator: string;
   storeid: string;
   timeoutHeight: number;
 }
 
 const baseInterquery: object = {
-  creator: "",
   storeid: "",
   chainid: "",
   path: "",
@@ -41,26 +38,23 @@ const baseInterquery: object = {
 
 export const Interquery = {
   encode(message: Interquery, writer: Writer = Writer.create()): Writer {
-    if (message.creator !== "") {
-      writer.uint32(10).string(message.creator);
-    }
     if (message.storeid !== "") {
-      writer.uint32(18).string(message.storeid);
+      writer.uint32(10).string(message.storeid);
     }
     if (message.chainid !== "") {
-      writer.uint32(26).string(message.chainid);
+      writer.uint32(18).string(message.chainid);
     }
     if (message.path !== "") {
-      writer.uint32(34).string(message.path);
+      writer.uint32(26).string(message.path);
     }
     if (message.key.length !== 0) {
-      writer.uint32(42).bytes(message.key);
+      writer.uint32(34).bytes(message.key);
     }
     if (message.timeoutHeight !== 0) {
-      writer.uint32(48).uint64(message.timeoutHeight);
+      writer.uint32(40).uint64(message.timeoutHeight);
     }
     if (message.connectionId !== "") {
-      writer.uint32(58).string(message.connectionId);
+      writer.uint32(50).string(message.connectionId);
     }
     return writer;
   },
@@ -73,24 +67,21 @@ export const Interquery = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creator = reader.string();
-          break;
-        case 2:
           message.storeid = reader.string();
           break;
-        case 3:
+        case 2:
           message.chainid = reader.string();
           break;
-        case 4:
+        case 3:
           message.path = reader.string();
           break;
-        case 5:
+        case 4:
           message.key = reader.bytes();
           break;
-        case 6:
+        case 5:
           message.timeoutHeight = longToNumber(reader.uint64() as Long);
           break;
-        case 7:
+        case 6:
           message.connectionId = reader.string();
           break;
         default:
@@ -103,11 +94,6 @@ export const Interquery = {
 
   fromJSON(object: any): Interquery {
     const message = { ...baseInterquery } as Interquery;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
     if (object.storeid !== undefined && object.storeid !== null) {
       message.storeid = String(object.storeid);
     } else {
@@ -141,7 +127,6 @@ export const Interquery = {
 
   toJSON(message: Interquery): unknown {
     const obj: any = {};
-    message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.chainid !== undefined && (obj.chainid = message.chainid);
     message.path !== undefined && (obj.path = message.path);
@@ -158,11 +143,6 @@ export const Interquery = {
 
   fromPartial(object: DeepPartial<Interquery>): Interquery {
     const message = { ...baseInterquery } as Interquery;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
     if (object.storeid !== undefined && object.storeid !== null) {
       message.storeid = object.storeid;
     } else {
@@ -362,25 +342,18 @@ export const InterqueryResult = {
   },
 };
 
-const baseInterqueryTimeoutResult: object = {
-  creator: "",
-  storeid: "",
-  timeoutHeight: 0,
-};
+const baseInterqueryTimeoutResult: object = { storeid: "", timeoutHeight: 0 };
 
 export const InterqueryTimeoutResult = {
   encode(
     message: InterqueryTimeoutResult,
     writer: Writer = Writer.create()
   ): Writer {
-    if (message.creator !== "") {
-      writer.uint32(10).string(message.creator);
-    }
     if (message.storeid !== "") {
-      writer.uint32(18).string(message.storeid);
+      writer.uint32(10).string(message.storeid);
     }
     if (message.timeoutHeight !== 0) {
-      writer.uint32(24).uint64(message.timeoutHeight);
+      writer.uint32(16).uint64(message.timeoutHeight);
     }
     return writer;
   },
@@ -395,12 +368,9 @@ export const InterqueryTimeoutResult = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creator = reader.string();
-          break;
-        case 2:
           message.storeid = reader.string();
           break;
-        case 3:
+        case 2:
           message.timeoutHeight = longToNumber(reader.uint64() as Long);
           break;
         default:
@@ -415,11 +385,6 @@ export const InterqueryTimeoutResult = {
     const message = {
       ...baseInterqueryTimeoutResult,
     } as InterqueryTimeoutResult;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
     if (object.storeid !== undefined && object.storeid !== null) {
       message.storeid = String(object.storeid);
     } else {
@@ -435,7 +400,6 @@ export const InterqueryTimeoutResult = {
 
   toJSON(message: InterqueryTimeoutResult): unknown {
     const obj: any = {};
-    message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.timeoutHeight !== undefined &&
       (obj.timeoutHeight = message.timeoutHeight);
@@ -448,11 +412,6 @@ export const InterqueryTimeoutResult = {
     const message = {
       ...baseInterqueryTimeoutResult,
     } as InterqueryTimeoutResult;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
     if (object.storeid !== undefined && object.storeid !== null) {
       message.storeid = object.storeid;
     } else {

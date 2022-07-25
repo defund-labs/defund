@@ -29,11 +29,6 @@ type AccountKeeper interface {
 	UnmarshalAccount(bz []byte) (authtypes.AccountI, error)
 }
 
-type BrokerKeeper interface {
-	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId string) (string, bool)
-	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
-}
-
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 }

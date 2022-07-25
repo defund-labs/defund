@@ -31,7 +31,7 @@ func TestInterqueryMsgServerCreate(t *testing.T) {
 			expected.Storeid,
 		)
 		require.True(t, found)
-		require.Equal(t, expected.Creator, rst.Creator)
+		require.Equal(t, expected.Storeid, rst.Storeid)
 	}
 }
 
@@ -83,7 +83,7 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 					expected.Storeid,
 				)
 				require.True(t, found)
-				require.Equal(t, expected.Creator, rst.Creator)
+				require.Equal(t, expected.Storeid, rst.Storeid)
 			}
 		})
 	}

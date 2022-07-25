@@ -274,7 +274,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 		percentCheck = percentCheck + uint64(holding.Percent)
 		poolQuery, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprint(holding.PoolId))
 		if !found {
-			return sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool details for (broker: %s, pool: %s)", brokerId, holding.PoolId)
+			return sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool details for (broker: %s, pool: %d)", brokerId, holding.PoolId)
 		}
 		pool, err := k.DecodeLiquiditySourceQuery(ctx, poolQuery)
 		if err != nil {
@@ -282,12 +282,12 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, brokerId string, holdings []types
 		}
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
 		if !containsAssets(pool.PoolAssets, holding.Token) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%s)", holding.Token, holding.PoolId)
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%d)", holding.Token, holding.PoolId)
 		}
 	}
 	// Make sure all fund holdings add up to 100%
 	if percentCheck != uint64(100) {
-		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up to 100%")
+		return sdkerrors.Wrapf(types.ErrPercentComp, "percent composition must add up to 100 percent")
 	}
 	return nil
 }

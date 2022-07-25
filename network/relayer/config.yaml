@@ -37,8 +37,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2087
-            connection-id: connection-1624
+            client-id: 07-tendermint-2144
+            connection-id: connection-1667
         src-channel-filter:
             rule: ""
             channel-list: []
@@ -47,8 +47,8 @@ paths:
     osmosisdefund:
         src:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2087
-            connection-id: connection-1624
+            client-id: 07-tendermint-2144
+            connection-id: connection-1667
         dst:
             chain-id: defund
             client-id: 07-tendermint-0

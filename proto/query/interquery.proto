@@ -6,14 +6,12 @@ option go_package = "github.com/defund-labs/defund/x/query/types";
 import "tendermint/crypto/proof.proto";
 
 message Interquery {
-  string creator = 1;
-
-  string storeid = 2;
-  string chainid = 3; 
-  string path = 4; 
-  bytes  key = 5; 
-  uint64 timeoutHeight = 6; 
-  string connectionId = 7;
+  string storeid = 1;
+  string chainid = 2; 
+  string path = 3; 
+  bytes  key = 4; 
+  uint64 timeoutHeight = 5; 
+  string connectionId = 6;
 }
 
 message InterqueryResult {
@@ -28,9 +26,7 @@ message InterqueryResult {
 }
 
 message InterqueryTimeoutResult {
-  string creator = 1;
-
-  string storeid = 2; 
-  uint64 timeoutHeight = 3;
+  string storeid = 1;
+  uint64 timeoutHeight = 2;
 }
 

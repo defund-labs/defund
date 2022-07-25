@@ -7,11 +7,6 @@ import { Broker } from "../broker/broker";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
-export interface FundPrices {
-  id: string;
-  prices: FundPrice[];
-}
-
 export interface FundPrice {
   id: string;
   height: number;
@@ -40,16 +35,7 @@ export interface Fund {
   connectionId: string;
   startingPrice: Coin | undefined;
   creator: string;
-}
-
-export interface Create {
-  id: string;
-  creator: string;
-  fund: Fund | undefined;
-  amount: Coin | undefined;
-  channel: string;
-  sequence: string;
-  status: string;
+  lastRebalanceHeight: number;
 }
 
 export interface Redeem {
@@ -62,86 +48,12 @@ export interface Redeem {
   status: string;
 }
 
-const baseFundPrices: object = { id: "" };
-
-export const FundPrices = {
-  encode(message: FundPrices, writer: Writer = Writer.create()): Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    for (const v of message.prices) {
-      FundPrice.encode(v!, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): FundPrices {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseFundPrices } as FundPrices;
-    message.prices = [];
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        case 2:
-          message.prices.push(FundPrice.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): FundPrices {
-    const message = { ...baseFundPrices } as FundPrices;
-    message.prices = [];
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.prices !== undefined && object.prices !== null) {
-      for (const e of object.prices) {
-        message.prices.push(FundPrice.fromJSON(e));
-      }
-    }
-    return message;
-  },
-
-  toJSON(message: FundPrices): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    if (message.prices) {
-      obj.prices = message.prices.map((e) =>
-        e ? FundPrice.toJSON(e) : undefined
-      );
-    } else {
-      obj.prices = [];
-    }
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<FundPrices>): FundPrices {
-    const message = { ...baseFundPrices } as FundPrices;
-    message.prices = [];
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.prices !== undefined && object.prices !== null) {
-      for (const e of object.prices) {
-        message.prices.push(FundPrice.fromPartial(e));
-      }
-    }
-    return message;
-  },
-};
+export interface Rebalance {
+  id: string;
+  fund: Fund | undefined;
+  /** the height the rebalance was created */
+  height: number;
+}
 
 const baseFundPrice: object = { id: "", height: 0, symbol: "" };
 
@@ -372,6 +284,7 @@ const baseFund: object = {
   baseDenom: "",
   connectionId: "",
   creator: "",
+  lastRebalanceHeight: 0,
 };
 
 export const Fund = {
@@ -411,6 +324,9 @@ export const Fund = {
     }
     if (message.creator !== "") {
       writer.uint32(98).string(message.creator);
+    }
+    if (message.lastRebalanceHeight !== 0) {
+      writer.uint32(104).int64(message.lastRebalanceHeight);
     }
     return writer;
   },
@@ -458,6 +374,9 @@ export const Fund = {
           break;
         case 12:
           message.creator = reader.string();
+          break;
+        case 13:
+          message.lastRebalanceHeight = longToNumber(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -530,6 +449,14 @@ export const Fund = {
     } else {
       message.creator = "";
     }
+    if (
+      object.lastRebalanceHeight !== undefined &&
+      object.lastRebalanceHeight !== null
+    ) {
+      message.lastRebalanceHeight = Number(object.lastRebalanceHeight);
+    } else {
+      message.lastRebalanceHeight = 0;
+    }
     return message;
   },
 
@@ -560,6 +487,8 @@ export const Fund = {
         ? Coin.toJSON(message.startingPrice)
         : undefined);
     message.creator !== undefined && (obj.creator = message.creator);
+    message.lastRebalanceHeight !== undefined &&
+      (obj.lastRebalanceHeight = message.lastRebalanceHeight);
     return obj;
   },
 
@@ -626,170 +555,13 @@ export const Fund = {
     } else {
       message.creator = "";
     }
-    return message;
-  },
-};
-
-const baseCreate: object = {
-  id: "",
-  creator: "",
-  channel: "",
-  sequence: "",
-  status: "",
-};
-
-export const Create = {
-  encode(message: Create, writer: Writer = Writer.create()): Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    if (message.creator !== "") {
-      writer.uint32(18).string(message.creator);
-    }
-    if (message.fund !== undefined) {
-      Fund.encode(message.fund, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.amount !== undefined) {
-      Coin.encode(message.amount, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.channel !== "") {
-      writer.uint32(42).string(message.channel);
-    }
-    if (message.sequence !== "") {
-      writer.uint32(50).string(message.sequence);
-    }
-    if (message.status !== "") {
-      writer.uint32(58).string(message.status);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): Create {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCreate } as Create;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        case 2:
-          message.creator = reader.string();
-          break;
-        case 3:
-          message.fund = Fund.decode(reader, reader.uint32());
-          break;
-        case 4:
-          message.amount = Coin.decode(reader, reader.uint32());
-          break;
-        case 5:
-          message.channel = reader.string();
-          break;
-        case 6:
-          message.sequence = reader.string();
-          break;
-        case 7:
-          message.status = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Create {
-    const message = { ...baseCreate } as Create;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
+    if (
+      object.lastRebalanceHeight !== undefined &&
+      object.lastRebalanceHeight !== null
+    ) {
+      message.lastRebalanceHeight = object.lastRebalanceHeight;
     } else {
-      message.id = "";
-    }
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
-    if (object.fund !== undefined && object.fund !== null) {
-      message.fund = Fund.fromJSON(object.fund);
-    } else {
-      message.fund = undefined;
-    }
-    if (object.amount !== undefined && object.amount !== null) {
-      message.amount = Coin.fromJSON(object.amount);
-    } else {
-      message.amount = undefined;
-    }
-    if (object.channel !== undefined && object.channel !== null) {
-      message.channel = String(object.channel);
-    } else {
-      message.channel = "";
-    }
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = String(object.sequence);
-    } else {
-      message.sequence = "";
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = String(object.status);
-    } else {
-      message.status = "";
-    }
-    return message;
-  },
-
-  toJSON(message: Create): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    message.creator !== undefined && (obj.creator = message.creator);
-    message.fund !== undefined &&
-      (obj.fund = message.fund ? Fund.toJSON(message.fund) : undefined);
-    message.amount !== undefined &&
-      (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
-    message.channel !== undefined && (obj.channel = message.channel);
-    message.sequence !== undefined && (obj.sequence = message.sequence);
-    message.status !== undefined && (obj.status = message.status);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<Create>): Create {
-    const message = { ...baseCreate } as Create;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
-    if (object.fund !== undefined && object.fund !== null) {
-      message.fund = Fund.fromPartial(object.fund);
-    } else {
-      message.fund = undefined;
-    }
-    if (object.amount !== undefined && object.amount !== null) {
-      message.amount = Coin.fromPartial(object.amount);
-    } else {
-      message.amount = undefined;
-    }
-    if (object.channel !== undefined && object.channel !== null) {
-      message.channel = object.channel;
-    } else {
-      message.channel = "";
-    }
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = object.sequence;
-    } else {
-      message.sequence = "";
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = object.status;
-    } else {
-      message.status = "";
+      message.lastRebalanceHeight = 0;
     }
     return message;
   },
@@ -955,6 +727,96 @@ export const Redeem = {
       message.status = object.status;
     } else {
       message.status = "";
+    }
+    return message;
+  },
+};
+
+const baseRebalance: object = { id: "", height: 0 };
+
+export const Rebalance = {
+  encode(message: Rebalance, writer: Writer = Writer.create()): Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.fund !== undefined) {
+      Fund.encode(message.fund, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.height !== 0) {
+      writer.uint32(24).int64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Rebalance {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseRebalance } as Rebalance;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = reader.string();
+          break;
+        case 2:
+          message.fund = Fund.decode(reader, reader.uint32());
+          break;
+        case 3:
+          message.height = longToNumber(reader.int64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Rebalance {
+    const message = { ...baseRebalance } as Rebalance;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = String(object.id);
+    } else {
+      message.id = "";
+    }
+    if (object.fund !== undefined && object.fund !== null) {
+      message.fund = Fund.fromJSON(object.fund);
+    } else {
+      message.fund = undefined;
+    }
+    if (object.height !== undefined && object.height !== null) {
+      message.height = Number(object.height);
+    } else {
+      message.height = 0;
+    }
+    return message;
+  },
+
+  toJSON(message: Rebalance): unknown {
+    const obj: any = {};
+    message.id !== undefined && (obj.id = message.id);
+    message.fund !== undefined &&
+      (obj.fund = message.fund ? Fund.toJSON(message.fund) : undefined);
+    message.height !== undefined && (obj.height = message.height);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Rebalance>): Rebalance {
+    const message = { ...baseRebalance } as Rebalance;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = object.id;
+    } else {
+      message.id = "";
+    }
+    if (object.fund !== undefined && object.fund !== null) {
+      message.fund = Fund.fromPartial(object.fund);
+    } else {
+      message.fund = undefined;
+    }
+    if (object.height !== undefined && object.height !== null) {
+      message.height = object.height;
+    } else {
+      message.height = 0;
     }
     return message;
   },

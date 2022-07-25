@@ -22,7 +22,7 @@ export interface MsgCreateFundResponse {}
 export interface MsgCreate {
   creator: string;
   fund: string;
-  amount: Coin | undefined;
+  tokens: Coin[];
   channel: string;
   /**
    * Timeout height relative to the current block height.
@@ -43,16 +43,6 @@ export interface MsgRedeem {
   fund: string;
   amount: Coin | undefined;
   channel: string;
-  /**
-   * Timeout height relative to the current block height.
-   * The timeout is disabled when set to 0.
-   */
-  timeout_height: string;
-  /**
-   * Timeout timestamp in absolute nanoseconds since unix epoch.
-   * The timeout is disabled when set to 0.
-   */
-  timeout_timestamp: number;
 }
 
 export interface MsgRedeemResponse {}
@@ -314,8 +304,8 @@ export const MsgCreate = {
     if (message.fund !== "") {
       writer.uint32(18).string(message.fund);
     }
-    if (message.amount !== undefined) {
-      Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
+    for (const v of message.tokens) {
+      Coin.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.channel !== "") {
       writer.uint32(34).string(message.channel);
@@ -333,6 +323,7 @@ export const MsgCreate = {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseMsgCreate } as MsgCreate;
+    message.tokens = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -343,7 +334,7 @@ export const MsgCreate = {
           message.fund = reader.string();
           break;
         case 3:
-          message.amount = Coin.decode(reader, reader.uint32());
+          message.tokens.push(Coin.decode(reader, reader.uint32()));
           break;
         case 4:
           message.channel = reader.string();
@@ -364,6 +355,7 @@ export const MsgCreate = {
 
   fromJSON(object: any): MsgCreate {
     const message = { ...baseMsgCreate } as MsgCreate;
+    message.tokens = [];
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
@@ -374,10 +366,10 @@ export const MsgCreate = {
     } else {
       message.fund = "";
     }
-    if (object.amount !== undefined && object.amount !== null) {
-      message.amount = Coin.fromJSON(object.amount);
-    } else {
-      message.amount = undefined;
+    if (object.tokens !== undefined && object.tokens !== null) {
+      for (const e of object.tokens) {
+        message.tokens.push(Coin.fromJSON(e));
+      }
     }
     if (object.channel !== undefined && object.channel !== null) {
       message.channel = String(object.channel);
@@ -404,8 +396,11 @@ export const MsgCreate = {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.fund !== undefined && (obj.fund = message.fund);
-    message.amount !== undefined &&
-      (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
+    if (message.tokens) {
+      obj.tokens = message.tokens.map((e) => (e ? Coin.toJSON(e) : undefined));
+    } else {
+      obj.tokens = [];
+    }
     message.channel !== undefined && (obj.channel = message.channel);
     message.timeout_height !== undefined &&
       (obj.timeout_height = message.timeout_height);
@@ -416,6 +411,7 @@ export const MsgCreate = {
 
   fromPartial(object: DeepPartial<MsgCreate>): MsgCreate {
     const message = { ...baseMsgCreate } as MsgCreate;
+    message.tokens = [];
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
@@ -426,10 +422,10 @@ export const MsgCreate = {
     } else {
       message.fund = "";
     }
-    if (object.amount !== undefined && object.amount !== null) {
-      message.amount = Coin.fromPartial(object.amount);
-    } else {
-      message.amount = undefined;
+    if (object.tokens !== undefined && object.tokens !== null) {
+      for (const e of object.tokens) {
+        message.tokens.push(Coin.fromPartial(e));
+      }
     }
     if (object.channel !== undefined && object.channel !== null) {
       message.channel = object.channel;
@@ -491,13 +487,7 @@ export const MsgCreateResponse = {
   },
 };
 
-const baseMsgRedeem: object = {
-  creator: "",
-  fund: "",
-  channel: "",
-  timeout_height: "",
-  timeout_timestamp: 0,
-};
+const baseMsgRedeem: object = { creator: "", fund: "", channel: "" };
 
 export const MsgRedeem = {
   encode(message: MsgRedeem, writer: Writer = Writer.create()): Writer {
@@ -512,12 +502,6 @@ export const MsgRedeem = {
     }
     if (message.channel !== "") {
       writer.uint32(34).string(message.channel);
-    }
-    if (message.timeout_height !== "") {
-      writer.uint32(42).string(message.timeout_height);
-    }
-    if (message.timeout_timestamp !== 0) {
-      writer.uint32(48).uint64(message.timeout_timestamp);
     }
     return writer;
   },
@@ -540,12 +524,6 @@ export const MsgRedeem = {
           break;
         case 4:
           message.channel = reader.string();
-          break;
-        case 5:
-          message.timeout_height = reader.string();
-          break;
-        case 6:
-          message.timeout_timestamp = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -577,19 +555,6 @@ export const MsgRedeem = {
     } else {
       message.channel = "";
     }
-    if (object.timeout_height !== undefined && object.timeout_height !== null) {
-      message.timeout_height = String(object.timeout_height);
-    } else {
-      message.timeout_height = "";
-    }
-    if (
-      object.timeout_timestamp !== undefined &&
-      object.timeout_timestamp !== null
-    ) {
-      message.timeout_timestamp = Number(object.timeout_timestamp);
-    } else {
-      message.timeout_timestamp = 0;
-    }
     return message;
   },
 
@@ -600,10 +565,6 @@ export const MsgRedeem = {
     message.amount !== undefined &&
       (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     message.channel !== undefined && (obj.channel = message.channel);
-    message.timeout_height !== undefined &&
-      (obj.timeout_height = message.timeout_height);
-    message.timeout_timestamp !== undefined &&
-      (obj.timeout_timestamp = message.timeout_timestamp);
     return obj;
   },
 
@@ -628,19 +589,6 @@ export const MsgRedeem = {
       message.channel = object.channel;
     } else {
       message.channel = "";
-    }
-    if (object.timeout_height !== undefined && object.timeout_height !== null) {
-      message.timeout_height = object.timeout_height;
-    } else {
-      message.timeout_height = "";
-    }
-    if (
-      object.timeout_timestamp !== undefined &&
-      object.timeout_timestamp !== null
-    ) {
-      message.timeout_timestamp = object.timeout_timestamp;
-    } else {
-      message.timeout_timestamp = 0;
     }
     return message;
   },

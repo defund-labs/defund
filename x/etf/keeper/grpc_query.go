@@ -11,7 +11,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = Querier{}
+
+// Querier implements a QueryServer for the x/leverage module.
+type Querier struct {
+	Keeper
+}
+
+func NewQuerier(k Keeper) Querier {
+	return Querier{Keeper: k}
+}
 
 func (k Keeper) FundAll(c context.Context, req *types.QueryAllFundRequest) (*types.QueryAllFundResponse, error) {
 	if req == nil {

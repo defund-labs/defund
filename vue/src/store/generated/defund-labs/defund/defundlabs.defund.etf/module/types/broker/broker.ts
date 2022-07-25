@@ -1,6 +1,7 @@
 /* eslint-disable */
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
+import { Coin } from "../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
@@ -16,6 +17,16 @@ export interface Broker {
   pools: Pool[];
   baseDenom: string;
   status: string;
+}
+
+export interface Transfer {
+  id: string;
+  channel: string;
+  sequence: number;
+  status: string;
+  token: Coin | undefined;
+  sender: string;
+  receiver: string;
 }
 
 const basePool: object = { pool_id: 0, interquery_id: "", status: "" };
@@ -239,6 +250,171 @@ export const Broker = {
       message.status = object.status;
     } else {
       message.status = "";
+    }
+    return message;
+  },
+};
+
+const baseTransfer: object = {
+  id: "",
+  channel: "",
+  sequence: 0,
+  status: "",
+  sender: "",
+  receiver: "",
+};
+
+export const Transfer = {
+  encode(message: Transfer, writer: Writer = Writer.create()): Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.channel !== "") {
+      writer.uint32(18).string(message.channel);
+    }
+    if (message.sequence !== 0) {
+      writer.uint32(24).uint64(message.sequence);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
+    }
+    if (message.token !== undefined) {
+      Coin.encode(message.token, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.sender !== "") {
+      writer.uint32(50).string(message.sender);
+    }
+    if (message.receiver !== "") {
+      writer.uint32(58).string(message.receiver);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Transfer {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseTransfer } as Transfer;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.id = reader.string();
+          break;
+        case 2:
+          message.channel = reader.string();
+          break;
+        case 3:
+          message.sequence = longToNumber(reader.uint64() as Long);
+          break;
+        case 4:
+          message.status = reader.string();
+          break;
+        case 5:
+          message.token = Coin.decode(reader, reader.uint32());
+          break;
+        case 6:
+          message.sender = reader.string();
+          break;
+        case 7:
+          message.receiver = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Transfer {
+    const message = { ...baseTransfer } as Transfer;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = String(object.id);
+    } else {
+      message.id = "";
+    }
+    if (object.channel !== undefined && object.channel !== null) {
+      message.channel = String(object.channel);
+    } else {
+      message.channel = "";
+    }
+    if (object.sequence !== undefined && object.sequence !== null) {
+      message.sequence = Number(object.sequence);
+    } else {
+      message.sequence = 0;
+    }
+    if (object.status !== undefined && object.status !== null) {
+      message.status = String(object.status);
+    } else {
+      message.status = "";
+    }
+    if (object.token !== undefined && object.token !== null) {
+      message.token = Coin.fromJSON(object.token);
+    } else {
+      message.token = undefined;
+    }
+    if (object.sender !== undefined && object.sender !== null) {
+      message.sender = String(object.sender);
+    } else {
+      message.sender = "";
+    }
+    if (object.receiver !== undefined && object.receiver !== null) {
+      message.receiver = String(object.receiver);
+    } else {
+      message.receiver = "";
+    }
+    return message;
+  },
+
+  toJSON(message: Transfer): unknown {
+    const obj: any = {};
+    message.id !== undefined && (obj.id = message.id);
+    message.channel !== undefined && (obj.channel = message.channel);
+    message.sequence !== undefined && (obj.sequence = message.sequence);
+    message.status !== undefined && (obj.status = message.status);
+    message.token !== undefined &&
+      (obj.token = message.token ? Coin.toJSON(message.token) : undefined);
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.receiver !== undefined && (obj.receiver = message.receiver);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Transfer>): Transfer {
+    const message = { ...baseTransfer } as Transfer;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = object.id;
+    } else {
+      message.id = "";
+    }
+    if (object.channel !== undefined && object.channel !== null) {
+      message.channel = object.channel;
+    } else {
+      message.channel = "";
+    }
+    if (object.sequence !== undefined && object.sequence !== null) {
+      message.sequence = object.sequence;
+    } else {
+      message.sequence = 0;
+    }
+    if (object.status !== undefined && object.status !== null) {
+      message.status = object.status;
+    } else {
+      message.status = "";
+    }
+    if (object.token !== undefined && object.token !== null) {
+      message.token = Coin.fromPartial(object.token);
+    } else {
+      message.token = undefined;
+    }
+    if (object.sender !== undefined && object.sender !== null) {
+      message.sender = object.sender;
+    } else {
+      message.sender = "";
+    }
+    if (object.receiver !== undefined && object.receiver !== null) {
+      message.receiver = object.receiver;
+    } else {
+      message.receiver = "";
     }
     return message;
   },

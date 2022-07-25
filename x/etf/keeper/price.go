@@ -33,7 +33,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 	for _, holding := range fund.Holdings {
 		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, fund.Broker.Id, holding.PoolId)
 		if !found {
-			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %s not found on broker %s", holding.PoolId, fund.Broker.Id)
+			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, fund.Broker.Id)
 		}
 		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.Broker.BaseDenom)
 		if err != nil {

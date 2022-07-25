@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/defund-labs/defund/x/query/types"
 )
 
@@ -19,7 +18,6 @@ type (
 		memKey   sdk.StoreKey
 
 		accountKeeper    types.AccountKeeper
-		brokerKeeper     types.BrokerKeeper
 		connectionKeeper types.ConnectionKeeper
 		clientKeeper     types.ClientKeeper
 	}
@@ -38,7 +36,6 @@ func NewKeeper(
 	memKey sdk.StoreKey,
 
 	accountkeeper types.AccountKeeper,
-	brokerkeeper types.BrokerKeeper,
 	connectionkeeper types.ConnectionKeeper,
 	clientkeeper types.ClientKeeper,
 
@@ -49,7 +46,6 @@ func NewKeeper(
 		memKey:   memKey,
 
 		accountKeeper:    accountkeeper,
-		brokerKeeper:     brokerkeeper,
 		connectionKeeper: connectionkeeper,
 		clientKeeper:     clientkeeper,
 	}
@@ -65,21 +61,7 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 }
 
 func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
-	var queryModuleAddress authtypes.ModuleAccountI
-	if k.accountKeeper.GetModuleAccount(ctx, "query") == nil {
-		queryAddress := k.NewQueryAddress(1)
-		queryModuleAddress = authtypes.NewModuleAccount(
-			authtypes.NewBaseAccountWithAddress(
-				queryAddress,
-			),
-			"query",
-		)
-		k.accountKeeper.SetModuleAccount(ctx, queryModuleAddress)
-	} else {
-		queryModuleAddress = k.accountKeeper.GetModuleAccount(ctx, "query")
-	}
 	interquery := types.Interquery{
-		Creator:       queryModuleAddress.GetAddress().String(),
 		Storeid:       storeid,
 		Chainid:       chainid,
 		Path:          path,
@@ -102,7 +84,6 @@ func (k Keeper) TimeoutInterqueries(ctx sdk.Context) {
 	for _, query := range interqueries {
 		if uint64(ctx.BlockHeight()) > query.TimeoutHeight {
 			queryTimeout := types.InterqueryTimeoutResult{
-				Creator:       query.Creator,
 				Storeid:       query.Storeid,
 				TimeoutHeight: query.TimeoutHeight,
 			}

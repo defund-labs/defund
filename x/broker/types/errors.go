@@ -6,7 +6,7 @@ import (
 
 var (
 	ErrIBCAccountAlreadyExist = sdkerrors.Register(ModuleName, 1, "interchain account already registered")
-	ErrIBCAccountNotExist     = sdkerrors.Register(ModuleName, 2, "interchain account not exist")
+	ErrIBCAccountNotExist     = sdkerrors.Register(ModuleName, 2, "interchain account does not exist")
 	ErrBrokerNotFound         = sdkerrors.Register(ModuleName, 3, "broker could not be found")
 	ErrConnectionNotFound     = sdkerrors.Register(ModuleName, 4, "connection does not exist")
 	ErrBrokerActive           = sdkerrors.Register(ModuleName, 5, "broker is active")
