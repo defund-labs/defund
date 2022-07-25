@@ -7,4 +7,6 @@ const (
 	AttributeKeyQueryClientId = "clientid"
 	AttributeKeyQueryPath     = "path"
 	AttributeKeyQueryStoreid  = "storeid"
+	AttributeKeyQueryKey      = "key"
+	AttributeKeyQueryTimeout  = "timeoutheight"
 )

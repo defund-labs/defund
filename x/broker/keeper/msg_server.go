@@ -2,13 +2,10 @@ package keeper
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/defund-labs/defund/x/broker/types"
 )
 
@@ -23,53 +20,50 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-// RegisterAccount implements the Msg/RegisterAccount interface
-func (k msgServer) RegisterBrokerAccount(goCtx context.Context, msg *types.MsgRegisterBrokerAccount) (*types.MsgRegisterBrokerAccountResponse, error) {
+func (k msgServer) AddLiquiditySource(goCtx context.Context, msg *types.MsgAddLiquiditySource) (*types.MsgAddLiquiditySourceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionId, msg.Owner); err != nil {
-		return nil, err
+	// Get the broker from the store
+	broker, found := k.GetBroker(ctx, msg.BrokerId)
+	if !found {
+		return nil, sdkerrors.Wrap(types.ErrBrokerNotFound, fmt.Sprintf("broker not found: %s", msg.BrokerId))
 	}
 
-	return &types.MsgRegisterBrokerAccountResponse{}, nil
+	// Create pool to be added to brokers list of pools
+	addPool := types.Pool{
+		PoolId:       msg.PoolId,
+		InterqueryId: fmt.Sprintf("%s-%d", msg.BrokerId, msg.PoolId),
+	}
+
+	// Append new pool to brokers
+	broker.Pools = append(broker.Pools, &addPool)
+
+	k.SetBroker(ctx, broker)
+
+	return &types.MsgAddLiquiditySourceResponse{}, nil
 }
 
-// SubmitTx implements the Msg/SubmitTx interface
-func (k msgServer) CosmosSwap(goCtx context.Context, msg *types.MsgCosmosSwap) (*types.MsgCosmosSwapResponse, error) {
+func (k msgServer) AddConnectionBroker(goCtx context.Context, msg *types.MsgAddConnectionBroker) (*types.MsgAddConnectionBrokerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	portID, err := icatypes.NewControllerPortID(msg.Owner)
-	if err != nil {
-		return nil, err
-	}
-
-	channelID, found := k.icaControllerKeeper.GetActiveChannelID(ctx, msg.ConnectionId, portID)
+	broker, found := k.GetBroker(ctx, msg.BrokerId)
 	if !found {
-		return nil, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
+		return nil, sdkerrors.Wrap(types.ErrBrokerNotFound, fmt.Sprintf("broker not found: %s", msg.BrokerId))
 	}
 
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	if broker.Status == "active" {
+		return nil, sdkerrors.Wrap(types.ErrBrokerActive, fmt.Sprintf("broker %s has connection set", msg.BrokerId))
+	}
+
+	_, found = k.connectionKeeper.GetConnection(ctx, msg.ConnectionId)
 	if !found {
-		return nil, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return nil, sdkerrors.Wrap(types.ErrConnectionNotFound, fmt.Sprintf("(%s)", msg.ConnectionId))
 	}
 
-	data, err := icatypes.SerializeCosmosTx(k.cdc, []sdk.Msg{msg.GetTxMsg()})
-	if err != nil {
-		return nil, err
-	}
+	broker.ConnectionId = msg.ConnectionId
+	broker.Status = "active"
 
-	packetData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: data,
-	}
+	k.SetBroker(ctx, broker)
 
-	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
-	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := time.Now().Add(time.Minute).UnixNano()
-	_, err = k.icaControllerKeeper.SendTx(ctx, chanCap, msg.ConnectionId, portID, packetData, uint64(timeoutTimestamp))
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgCosmosSwapResponse{}, nil
+	return &types.MsgAddConnectionBrokerResponse{}, nil
 }

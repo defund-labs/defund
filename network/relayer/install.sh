@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd $HOME
-git clone https://github.com/schnetzlerjoe/relayer
+git clone https://github.com/defund-labs/relayer
 make install

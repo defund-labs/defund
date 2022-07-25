@@ -210,8 +210,8 @@ proto-update-deps:
 
 create-connection:
 	@echo "Making Relayer Connection"
-	@echo "Creating Defund -> Theta Connection"
-	hermes -c ./network/hermes/config.toml create connection defund theta-testnet-001
+	@echo "Creating Defund -> Osmosis Connection"
+	hermes -c ./network/hermes/config.toml create connection defund osmosis
 
 init: kill-dev 
 	@echo "Initializing both blockchains..."
@@ -235,9 +235,38 @@ create-conn:
 start-rly:
 	./network/relayer/start.sh
 
+start-hermes:
+	./network/hermes/start.sh
+
+install-all:
+	./network/osmosis/osmosis.sh
+	./network/hermes/install.sh
+
 kill-dev:
-	@echo "Killing defundd, gaiad and removing previous data"
+	@echo "Killing defundd, osmosis and removing previous data"
 	-@rm -rf ./network/data
 	-@killall defundd 2>/dev/null
-	-@killall gaiad 2>/dev/null
+	-@killall osmosis 2>/dev/null
 	-@killall rly 2>/dev/null
+
+###############################################################################
+###                                  Test                                   ###
+###############################################################################
+
+test-all:
+	@echo "Running all bash tests......."
+	test-create-fund
+	test-create-shares
+	test-redeem-shares
+
+test-create-fund:
+	@echo "Running create fund bash test......."
+	./test/create-fund.sh
+
+test-create-shares:
+	@echo "Running create shares bash test......."
+	./test/create-shares.sh
+
+test-redeem-shares:
+	@echo "Running redeem shares bash test......."
+	./test/redeem-shares.sh

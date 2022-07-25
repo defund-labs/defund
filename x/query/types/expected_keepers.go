@@ -3,7 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 type AccountKeeper interface {
@@ -28,10 +29,11 @@ type AccountKeeper interface {
 	UnmarshalAccount(bz []byte) (authtypes.AccountI, error)
 }
 
-type EtfKeeper interface {
-	GetAllFund(ctx sdk.Context) (list []etftypes.Fund)
+type ConnectionKeeper interface {
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 }
 
-type BrokerKeeper interface {
-	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId string) (string, bool)
+type ClientKeeper interface {
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 }

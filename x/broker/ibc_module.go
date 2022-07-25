@@ -1,22 +1,16 @@
-package inter_tx
+package broker
 
 import (
-	"fmt"
-
-	proto "github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/defund-labs/defund/x/broker/keeper"
-	"github.com/defund-labs/defund/x/broker/types"
+	proto "github.com/gogo/protobuf/proto"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
-	liquiditytypes "github.com/tendermint/liquidity/x/liquidity/types"
 )
 
 var _ porttypes.IBCModule = IBCModule{}
@@ -103,7 +97,8 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// Disallow user-initiated channel closing for broker channels
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -114,7 +109,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement("cannot receive packet via interchain accounts authentication module")
+	return channeltypes.NewErrorAcknowledgement("cannot receive packet via broker module")
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -124,11 +119,26 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	// unmarshal the ack to be used later
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker packet acknowledgement: %v", err)
 	}
-	ctx.Logger().Info(fmt.Sprintf("Received Acknowledgement In Broker Module on Source Port %s and Dest Port %s", packet.SourcePort, packet.DestinationPort))
+	// unmarshal the msg data from the tx to be used later
+	txMsgData := &sdk.TxMsgData{}
+	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker tx message data: %v", err)
+	}
+	// if the length of the msg data is 0 skip/return, otherwise run through logic
+	switch len(txMsgData.Data) {
+	case 0:
+		return nil
+	default:
+		err := im.keeper.OnAcknowledgementPacket(ctx, packet, ack, txMsgData)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -151,32 +161,4 @@ func (im IBCModule) NegotiateAppVersion(
 	proposedVersion string,
 ) (string, error) {
 	return "", nil
-}
-
-func (im IBCModule) handleMsgData(ctx sdk.Context, msgData *sdk.MsgData, packet channeltypes.Packet, ackErr bool, timeout bool) error {
-	switch msgData.MsgType {
-	case sdk.MsgTypeURL(&liquiditytypes.MsgSwapWithinBatch{}):
-		msgResponse := &liquiditytypes.MsgSwapWithinBatch{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "cannot unmarshal send response message for swap: %s", err.Error())
-		}
-		err := im.keeper.HandleICASwap(ctx, msgResponse, packet, ackErr, timeout)
-		if err != nil {
-			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "error handling ica swap logic: %s", err.Error())
-		}
-
-		return nil
-	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
-		msgResponse := &ibctransfertypes.MsgTransfer{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message for transfer: %s", err.Error())
-		}
-		err := im.keeper.HandleICASend(ctx, msgResponse, packet, ackErr, timeout)
-		if err != nil {
-			return sdkerrors.Wrapf(types.ErrHandlingICAMsg, "error handling ica transfer logic: %s", err.Error())
-		}
-	default:
-		return nil
-	}
-	return nil
 }

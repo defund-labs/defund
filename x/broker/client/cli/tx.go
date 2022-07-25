@@ -2,17 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/defund-labs/defund/x/broker/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // GetTxCmd creates and returns the broker tx command
@@ -26,84 +22,75 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		getRegisterAccountCmd(),
-		getSubmitTxCmd(),
+		CmdAddLiquiditySource(),
+		CmdAddConnectionBroker(),
 	)
+	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
 
-func getRegisterAccountCmd() *cobra.Command {
+func CmdAddLiquiditySource() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "register-broker-account",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Use:   "add-liquidity-source [broker-id] [pool-id]",
+		Short: "Add a new liquidity source for the broker specified.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBrokerId := args[0]
+			argPoolId := args[1]
+
+			poolid, err := strconv.ParseUint(argPoolId, 10, 64)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRegisterAccount(
+			msg := types.NewMsgAddLiquiditySource(
 				clientCtx.GetFromAddress().String(),
-				viper.GetString(FlagConnectionID),
+				argBrokerId,
+				poolid,
 			)
-
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-
-	cmd.Flags().AddFlagSet(fsConnectionID)
-	_ = cmd.MarkFlagRequired(FlagConnectionID)
 
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func getSubmitTxCmd() *cobra.Command {
+func CmdAddConnectionBroker() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "cosmos-swap",
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Use:   "activate-broker [broker-id] [connection-id]",
+		Short: "Activates a broker chain by adding the Connection ID to the broker. Can only activate inactive brokers.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBrokerId := args[0]
+			argConnectionId := args[1]
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
-
-			var txMsg sdk.Msg
-			if err := cdc.UnmarshalInterfaceJSON([]byte(args[0]), &txMsg); err != nil {
-
-				// check for file path if JSON input is not provided
-				contents, err := ioutil.ReadFile(args[0])
-				if err != nil {
-					return errors.Wrap(err, "neither JSON input nor path to .json file for sdk msg were provided")
-				}
-
-				if err := cdc.UnmarshalInterfaceJSON(contents, &txMsg); err != nil {
-					return errors.Wrap(err, "error unmarshalling sdk msg file")
-				}
-			}
-
-			msg, err := types.NewMsgCosmosSwap(txMsg, viper.GetString(FlagConnectionID), clientCtx.GetFromAddress().String())
-			if err != nil {
-				return err
-			}
-
+			msg := types.NewMsgAddConnectionBroker(
+				clientCtx.GetFromAddress().String(),
+				argBrokerId,
+				argConnectionId,
+			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-
-	cmd.Flags().AddFlagSet(fsConnectionID)
-	_ = cmd.MarkFlagRequired(FlagConnectionID)
 
 	flags.AddTxFlagsToCmd(cmd)
 

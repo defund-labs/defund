@@ -3,8 +3,10 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	"github.com/defund-labs/defund/x/etf/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	querytypes "github.com/defund-labs/defund/x/query/types"
 )
 
 type TransferKeeper interface {
@@ -16,7 +18,16 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 }
 
-type EtfKeeper interface {
-	GetUninvestBySequence(ctx sdk.Context, sequence string, channel string) (types.Uninvest, error)
-	GetInvestBySequence(ctx sdk.Context, sequence string, channel string) (types.Invest, error)
+type ConnectionKeeper interface {
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+	ConnOpenInit(ctx sdk.Context, clientID string, counterparty connectiontypes.Counterparty, version *connectiontypes.Version, delayPeriod uint64) (string, error)
+}
+
+type ClientKeeper interface {
+	CreateClient(ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState) (string, error)
+}
+
+type InterqueryKeeper interface {
+	CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error
+	GetInterqueryResult(ctx sdk.Context, storeid string) (querytypes.InterqueryResult, bool)
 }
