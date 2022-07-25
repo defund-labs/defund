@@ -126,6 +126,9 @@ func NewRootCmd(
 ) (*cobra.Command, app.EncodingConfig) {
 	rootOptions := newRootOptions(options...)
 
+	// Set config for prefixes
+	app.SetAddressConfig()
+
 	encodingConfig := app.MakeEncodingConfig(moduleBasics)
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).

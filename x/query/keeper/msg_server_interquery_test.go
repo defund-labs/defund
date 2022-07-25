@@ -50,11 +50,11 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 			},
 		},
 		{
-			desc: "Unauthorized",
+			desc: "Invalid proof",
 			request: &types.MsgCreateInterqueryResult{Creator: "B",
 				Storeid: strconv.Itoa(0),
 			},
-			err: sdkerrors.ErrUnauthorized,
+			err: types.ErInvalidProof,
 		},
 		{
 			desc: "KeyNotFound",

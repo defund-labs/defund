@@ -12,7 +12,7 @@ chains:
         keyring-backend: test
         gas-adjustment: 1.2
         gas-prices: 0.01ufetf
-        debug: false
+        debug: true
         timeout: 20s
         output-format: json
         sign-mode: direct
@@ -25,7 +25,7 @@ chains:
         keyring-backend: test
         gas-adjustment: 1.2
         gas-prices: 0.01uosmo
-        debug: false
+        debug: true
         timeout: 20s
         output-format: json
         sign-mode: direct
@@ -37,24 +37,10 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2144
-            connection-id: connection-1667
+            client-id: 07-tendermint-2148
+            connection-id: connection-1671
         src-channel-filter:
             rule: ""
             channel-list: []
         interquery:
             query: true
-    osmosisdefund:
-        src:
-            chain-id: osmo-test-4
-            client-id: 07-tendermint-2144
-            connection-id: connection-1667
-        dst:
-            chain-id: defund
-            client-id: 07-tendermint-0
-            connection-id: connection-0
-        src-channel-filter:
-            rule: ""
-            channel-list: []
-        interquery:
-            query: false

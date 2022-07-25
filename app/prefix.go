@@ -11,7 +11,7 @@ var (
 	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
 )
 
-// SetAddressConfig sets Umee's address configuration.
+// SetAddressConfig sets Defund's address configuration.
 func SetAddressConfig() {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
