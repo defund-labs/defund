@@ -19,22 +19,44 @@ cd defund
 make install
 ```
 
-## Getting Started in Dev Mode
+## Getting Started in Dev/Local Mode
 
 ```bash
 make init
 
 make create-conn
 
-# Wait for the connection to be acknowledged then
-# start the relayer for interquerying
+# Wait for the connection to be acknowledged then edit ./network/relayer/config.yaml by changing the connection and client ids to match what your relayer returned
+make init-rly
+
+# start the relayer for interchain querying
 make start-rly
+
+# start hermes for ICA tx's
+make start-hermes
+```
+
+## Bash Testing Framework
+```bash
+# test all main commands
+make test-all
+
+# test the create fund command
+make test-create-fund
+
+# test the create shares command
+make test-create-shares
+
+# test the redeem shares command
+make test-redeem-shares
 ```
 
 ## Frontend
 
 ```bash
-#Coming Soon!
+cd vue
+npm i
+npm run dev
 ```
 
 ## Creating A dETF
