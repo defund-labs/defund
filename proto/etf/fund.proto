@@ -58,8 +58,9 @@ message Redeem {
   Fund fund = 3;
   cosmos.base.v1beta1.Coin amount = 4;
   string channel = 5;
-  string sequence = 6;
+  uint64 sequence = 6;
   string status = 7;
+  string error = 8;
 }
 
 message Rebalance {

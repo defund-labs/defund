@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/defund-labs/defund/x/etf/types"
@@ -98,6 +97,17 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	for _, asset := range assets {
 		if asset.Token.Denom == denom {
+			return true
+		}
+	}
+
+	return false
+}
+
+// helper function to check if a list of coins contains a token denom
+func containsdenom(list []sdk.Coin, denom string) bool {
+	for _, value := range list {
+		if value.Denom == denom {
 			return true
 		}
 	}
@@ -223,7 +233,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channe
 		Fund:     &fund,
 		Amount:   &amount,
 		Channel:  channel,
-		Sequence: strconv.FormatUint(sequence, 10),
+		Sequence: sequence,
 		Status:   "pending",
 	}
 

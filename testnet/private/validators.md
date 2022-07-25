@@ -16,20 +16,41 @@ Details on setting up a Defund node and/or validator on Akash are coming very so
 
 ## Joining the Testnet
 
+### Install Dependencies
+
+```
+# basic dependencies
+sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get install make build-essential gcc git jq chrony -y
+
+# install go (v1.18.0+ is required!)
+wget https://golang.org/dl/go1.18.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.18.1.linux-amd64.tar.gz
+
+# source go
+cat <<EOF >> ~/.profile
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export GO111MODULE=on
+export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+EOF
+
+source ~/.profile
+```
+
 ### Install the Defund binary
 
 ```
 git clone https://github.com/defund-labs/defund
-
 cd defund
-
+git checkout v0.0.2
 make install
 ```
 
 ## Initialize Defund Node
 
 ```bash
-defundd init NODE_NAME --chain-id=defund-private-1
+defundd config chain-id defund-private-1
+defundd init NODE_NAME
 ```
 
 Open up the config.toml to edit the seeds and persistent peers:
@@ -42,16 +63,17 @@ nano config.toml
 Use page down or arrow keys to get to the line that says seeds = "" and replace it with the following:
 
 ```bash
-seeds = "1b3e596531dd8f36363b13339beed2364900e4c6:104.131.41.157:26656"
+seeds = "8e1590558d8fede2f8c9405b7ef550ff455ce842@51.79.30.9:26656,bfffaf3b2c38292bd0aa2a3efe59f210f49b5793@51.91.208.71:26656,106c6974096ca8224f20a85396155979dbd2fb09@198.244.141.176:26656"
 ```
 
 Next, add persistent peers:
 
 ```bash
-persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656"
+persistent_peers = "111ba4e5ae97d5f294294ea6ca03c17506465ec5@208.68.39.221:26656,f114c02efc5aa7ee3ee6733d806a1fae2fbfb66b@5.189.178.222:46656,8980faac5295875a5ecd987a99392b9da56c9848@85.10.216.151:26656,3c3170f0bcbdcc1bef12ed7b92e8e03d634adf4e@65.108.103.236:27656"
 ```
 
 Then press ```Ctrl+O``` then enter to save, then ```Ctrl+X``` to exit
+
 
 ## Genesis State
 
@@ -60,7 +82,18 @@ Download and replace the genesis file:
 ```bash
 cd $HOME/.defund/config
 
-wget https://raw.githubusercontent.com/schnetzlerjoe/defund/main/testnet/private/genesis.json
+curl -s https://raw.githubusercontent.com/defund-labs/defund/v0.0.2/testnet/private/genesis.json > ~/.defund/config/genesis.json
+
+Please do not skip the next step. Run this command and ensure the right genesis is being used.
+```
+
+## Check The Genesis File (DO NOT SKIP)
+
+```bash
+# check genesis shasum
+sha256sum ~/.defund/config/genesis.json
+# output must be: 268f625672ed618a844ee32bcfc3a66d51921b12e6a966a0965aa296fb82c032
+# other wise you have an incorrect genesis file
 ```
 
 Reset private validator file to genesis state:
@@ -69,21 +102,27 @@ Reset private validator file to genesis state:
 defundd tendermint unsafe-reset-all
 ```
 
+## Add/Recover Keys
+To create new keypair - make sure you save the mnemonics!
+```bash
+defundd keys add <key-name> 
+```
+Restore existing wallet with mnemonic seed phrase. You will be prompted to enter mnemonic seed. 
+```bash
+defundd keys add <key-name> --recover
+```
+Request tokens in [DeFund Discord](https://discord.com/invite/QuXAdnd7Pc)
+
 ## Set Up Defund Service File
 
 Set up a service to allow Defund node to run in the background as well as restart automatically if it runs into any problems:
 
 ```bash
-echo "[Unit]
+sudo tee /lib/systemd/system/defund.service > /dev/null <<EOF
+[Unit]
 Description=Defund daemon
 After=network-online.target
 [Service]
-Environment="DAEMON_NAME=defundd"
-Environment="DAEMON_HOME=${HOME}/.defundd"
-Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
-Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
-Environment="DAEMON_LOG_BUFFER_SIZE=512"
-Environment="UNSAFE_SKIP_BACKUP=true"
 User=$USER
 ExecStart=${HOME}/go/bin/defundd start
 Restart=always
@@ -92,14 +131,9 @@ LimitNOFILE=infinity
 LimitNPROC=infinity
 [Install]
 WantedBy=multi-user.target
-" >defund.service
+EOF
 ```
 
-Move this new file to the systemd directory:
-
-```bash
-sudo mv defund.service /lib/systemd/system/defund.service
-```
 
 ## Start Defund Service
 
@@ -107,7 +141,7 @@ Reload and start the service:
 
 ```bash
 sudo systemctl daemon-reload
-systemctl restart systemd-journald
+sudo systemctl restart systemd-journald
 sudo systemctl start defund
 ```
 
@@ -120,7 +154,7 @@ sudo systemctl status defund
 To see live logs of the service:
 
 ```bash
-journalctl -u defund -f
+journalctl -f -n 100 -u defund -o cat
 ```
 
 ## Create Validator
@@ -152,5 +186,45 @@ Confirm your validator is running by using this command
 ```bash
 defundd query tendermint-validator-set | grep "$(defundd tendermint show-address)"
 ```
+
+## Useful commands
+
+valoper addr
+```bash
+defundd keys show <key_name> --bech val -a
+```
+
+balance
+```bash
+defundd q bank balances <key_addr>
+```
+
+get commission
+```bash
+defundd tx distribution withdraw-rewards <valoper_addr> --from <key_name> --commission --gas auto -y
+```
+
+get rewards
+```bash
+defundd tx distribution withdraw-all-rewards --from <key_name> --gas auto -y
+```
+
+validators (active set)
+```bash
+defundd q staking validators --limit=2000 -oj \
+| jq -r '.validators[] | select(.status=="BOND_STATUS_BONDED") | [(.tokens|tonumber / pow(10;6)), .description.moniker] | @csv' \
+| column -t -s"," | tr -d '"'| sort -k1 -n -r | nl
+```
+
+delegate
+```bash
+defundd tx staking delegate <valoper_addr> <amout_tokens>ufetf --from <key_name> --gas auto -y
+```
+
+send
+```bash
+defundd tx bank send <key_name> <wallet_addr> <amout_tokens>ufetf --gas auto -y
+```
+
 
 Happy Investing!

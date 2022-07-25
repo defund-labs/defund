@@ -83,7 +83,7 @@ host = '0.0.0.0'
 
 # Specify the port over which the built-in HTTP server will serve the restful API
 # requests. Default: 3000
-port = 3005
+port = 3000
 
 
 # The telemetry section defines parameters for Hermes' built-in telemetry capabilities.
@@ -102,10 +102,10 @@ host = '0.0.0.0'
 port = 3001
 
 [[chains]]
-id = 'defund'
-rpc_addr = 'http://0.0.0.0:26657'
-grpc_addr = 'http://0.0.0.0:9090'
-websocket_addr = 'ws://0.0.0.0:26657/websocket'
+id = 'defund-private-1'
+rpc_addr = 'http://localhost:26657'
+grpc_addr = 'http://localhost:9090'
+websocket_addr = 'ws://localhost:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
 key_name = 'testkey'
@@ -123,17 +123,17 @@ trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
 
 [[chains]]
-id = 'osmo-test-4'
-rpc_addr = 'http://143.198.139.33:26657'
-grpc_addr = 'http://143.198.139.33:9090'
-websocket_addr = 'ws://143.198.139.33:26657/websocket'
+id = 'theta-testnet-001'
+rpc_addr = 'https://rpc-theta.interchain.io'
+grpc_addr = 'https://grpc.state-sync-01.theta-testnet.polypore.xyz'
+websocket_addr = 'wss://rpc-theta.interchain.io/websocket'
 rpc_timeout = '10s'
-account_prefix = 'osmo'
+account_prefix = 'cosmos'
 key_name = 'testkey'
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
-gas_price = { price = 0.001, denom = 'uosmo' }
+gas_price = { price = 0.001, denom = 'uatom' }
 gas_adjustment = 0.1
 max_msg_num = 30
 max_tx_size = 2097152

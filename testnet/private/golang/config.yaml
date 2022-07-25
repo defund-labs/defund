@@ -5,11 +5,11 @@ global:
 chains:
     - type: cosmos
       value:
-        key: rly1
-        chain-id: defund
+        key: <keyname>
+        chain-id: defund-private-1
         rpc-addr: http://localhost:26657
         account-prefix: defund
-        keyring-backend: test
+        keyring-backend: os
         gas-adjustment: 1.2
         gas-prices: 0.01ufetf
         debug: false
@@ -18,39 +18,39 @@ chains:
         sign-mode: direct
     - type: cosmos
       value:
-        key: rly2
-        chain-id: osmo-test-4
-        rpc-addr: http://143.198.139.33:26657
-        account-prefix: osmo
-        keyring-backend: test
+        key: <keyname>
+        chain-id: theta-testnet-001
+        rpc-addr: http://sentry-01.theta-testnet.polypore.xyz:26657
+        account-prefix: cosmos
+        keyring-backend: os
         gas-adjustment: 1.2
-        gas-prices: 0.01uosmo
+        gas-prices: 0.01uatom
         debug: false
         timeout: 20s
         output-format: json
         sign-mode: direct
 paths:
-    defundosmosis:
+    defundhub:
         src:
-            chain-id: defund
+            chain-id: defund-private-1
             client-id: 07-tendermint-0
             connection-id: connection-0
         dst:
-            chain-id: osmo-test-4
-            client-id: 07-tendermint-2144
-            connection-id: connection-1667
+            chain-id: theta-testnet-001
+            client-id: 07-tendermint-688
+            connection-id: connection-578
         src-channel-filter:
             rule: ""
             channel-list: []
         interquery:
             query: true
-    osmosisdefund:
+    hubdefund:
         src:
-            chain-id: osmo-test-4
-            client-id: 07-tendermint-2144
-            connection-id: connection-1667
+            chain-id: theta-testnet-001
+            client-id: 07-tendermint-688
+            connection-id: connection-578
         dst:
-            chain-id: defund
+            chain-id: defund-private-1
             client-id: 07-tendermint-0
             connection-id: connection-0
         src-channel-filter:

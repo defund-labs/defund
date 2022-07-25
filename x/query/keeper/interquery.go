@@ -115,13 +115,13 @@ func (k Keeper) SetInterqueryResult(ctx sdk.Context, interquery types.Interquery
 // GetInterquery returns a interquery from its index
 func (k Keeper) GetInterqueryResult(
 	ctx sdk.Context,
-	index string,
+	storeid string,
 
 ) (val types.InterqueryResult, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryResultKeyPrefix)
 
 	b := store.Get(types.InterqueryResultKey(
-		index,
+		storeid,
 	))
 	if b == nil {
 		return val, false
