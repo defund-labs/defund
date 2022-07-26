@@ -8,21 +8,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgUninvest_ValidateBasic(t *testing.T) {
+func TestMsgRedeem_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgUninvest
+		msg  MsgRedeem
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgUninvest{
+			msg: MsgRedeem{
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgUninvest{
+			msg: MsgRedeem{
 				Creator: sample.AccAddress(),
 			},
 		},

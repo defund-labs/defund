@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
+# Load shell variables
+. ./network/hermes/variables.sh
+
 ### Sleep is needed otherwise the relayer crashes when trying to init
 sleep 1s
 ### Restore Keys
-hermes keys restore defund-private-1 -m "$MNEMONIC"
+$HERMES_BINARY -c ./network/hermes/config.toml keys restore defund -m "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
 sleep 5s
 
-hermes keys restore theta-testnet-001 -m "$MNEMONIC"
+$HERMES_BINARY -c ./network/hermes/config.toml keys restore osmo-test-4 -m "record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset"
 sleep 5s

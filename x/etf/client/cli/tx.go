@@ -39,8 +39,8 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateFund())
-	cmd.AddCommand(CmdInvest())
-	cmd.AddCommand(CmdUninvest())
+	cmd.AddCommand(CmdCreate())
+	cmd.AddCommand(CmdRedeem())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -48,7 +48,7 @@ func GetTxCmd() *cobra.Command {
 
 func CmdCreateFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [connectionId]",
+		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [connectionId] [startingPrice]",
 		Short: "Create a new fund",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -62,6 +62,7 @@ func CmdCreateFund() *cobra.Command {
 			argHoldings := args[5]
 			argRebalance := args[6]
 			argConnection := args[7]
+			argStartingPrice := args[8]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -84,6 +85,7 @@ func CmdCreateFund() *cobra.Command {
 				rebalance,
 				argBaseDenom,
 				argConnection,
+				argStartingPrice,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -97,10 +99,73 @@ func CmdCreateFund() *cobra.Command {
 	return cmd
 }
 
-func CmdInvest() *cobra.Command {
+func CmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "invest [fund] [amount] [channel]",
-		Short: "Invest the specified amount into the dETF ticker using the IBC channel specified.",
+		Use:   "create [fund] [tokens] [channel]",
+		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied (comma seperated list of coins i.e 1000000uosmo,1000000uatom).",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argFund := args[0]
+			argTokens := args[1]
+			argChannel := args[2]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			rawTokens, err := sdk.ParseCoinsNormalized(argTokens)
+			if err != nil {
+				return err
+			}
+
+			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
+			if err != nil {
+				return err
+			}
+			timeoutHeight, err := clienttypes.ParseHeight(timeoutHeightStr)
+			if err != nil {
+				return err
+			}
+
+			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
+			if err != nil {
+				return err
+			}
+
+			tokensList := []*sdk.Coin{}
+
+			for _, token := range rawTokens {
+				tokensList = append(tokensList, &token)
+			}
+
+			msg := types.NewMsgCreate(
+				clientCtx.GetFromAddress().String(),
+				argFund,
+				tokensList,
+				argChannel,
+				timeoutHeight.String(),
+				timeoutTimestamp,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdRedeem() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "redeem [fund] [amount] [channel]",
+		Short: "Redeem shares for the dETF ticker using the IBC channel specified and the tokens supplied.",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
@@ -131,49 +196,13 @@ func CmdInvest() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgInvest(
+			msg := types.NewMsgRedeem(
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
 				argChannel,
 				timeoutHeight.String(),
 				timeoutTimestamp,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdUninvest() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "uninvest [fund] [amount]",
-		Short: "Uninvest the specified amount from the dETF specified.",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argFund := args[0]
-			argAmount := args[1]
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoinNormalized(argAmount)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgUninvest(
-				clientCtx.GetFromAddress().String(),
-				argFund,
-				&amount,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

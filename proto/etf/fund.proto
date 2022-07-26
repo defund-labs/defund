@@ -2,35 +2,41 @@ syntax = "proto3";
 package defundlabs.defund.etf;
 
 import "gogoproto/gogo.proto";
-
+import "broker/broker.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
 message FundPrice {
   string id = 1;
-  uint64 height = 2;
-  cosmos.base.v1beta1.Coin amount = 3;
-  string symbol = 4;
+  int64 height = 2;
+  google.protobuf.Timestamp time = 3 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"time\""
+  ];
+  cosmos.base.v1beta1.Coin amount = 4;
+  string symbol = 5;
 }
 
 message Holding {
   string token = 1;
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
-  string poolId = 3;
+  uint64 poolId = 3;
 }
 
 message Fund {
   string symbol = 1;
-  string address = 2; 
+  string address = 2;
   string name = 3; 
   string description = 4; 
   cosmos.base.v1beta1.Coin shares = 5 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = false
   ];
-  string broker = 6;
+  broker.Broker broker = 6;
   repeated Holding holdings = 7 [
     (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
     (gogoproto.nullable) = false
@@ -38,26 +44,29 @@ message Fund {
   int64 rebalance = 8;
   string baseDenom = 9;
   string connectionId = 10;
-  string creator = 11;
+  cosmos.base.v1beta1.Coin startingPrice = 11 [
+    (gogoproto.moretags) = "yaml:\"starting_price\"",
+    (gogoproto.nullable) = false
+  ];
+  string creator = 12;
+  int64  lastRebalanceHeight = 13;
 }
 
-message Invest {
+message Redeem {
   string id = 1;
   string creator = 2;
   Fund fund = 3;
   cosmos.base.v1beta1.Coin amount = 4;
   string channel = 5;
-  string sequence = 6;
+  uint64 sequence = 6;
   string status = 7;
+  string error = 8;
 }
 
-message Uninvest {
+message Rebalance {
   string id = 1;
-  string creator = 2;
-  Fund fund = 3;
-  cosmos.base.v1beta1.Coin amount = 4;
-  string channel = 5;
-  string sequence = 6;
-  string status = 7;
+  Fund fund = 2;
+  // the height the rebalance was created
+  int64 height = 3;
 }
 

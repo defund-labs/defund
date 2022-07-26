@@ -5,56 +5,42 @@ global:
 chains:
     - type: cosmos
       value:
-        key: <keyname>
-        chain-id: defund-private-1
+        key: rly
+        chain-id: defund
         rpc-addr: http://localhost:26657
         account-prefix: defund
-        keyring-backend: os
+        keyring-backend: test
         gas-adjustment: 1.2
         gas-prices: 0.01ufetf
-        debug: false
+        debug: true
         timeout: 20s
         output-format: json
         sign-mode: direct
     - type: cosmos
       value:
-        key: <keyname>
-        chain-id: theta-testnet-001
-        rpc-addr: http://sentry-01.theta-testnet.polypore.xyz:26657
-        account-prefix: cosmos
-        keyring-backend: os
+        key: rly
+        chain-id: osmo-test-4
+        rpc-addr: http://143.198.139.33:26657
+        account-prefix: osmo
+        keyring-backend: test
         gas-adjustment: 1.2
-        gas-prices: 0.01uatom
-        debug: false
+        gas-prices: 0.01uosmo
+        debug: true
         timeout: 20s
         output-format: json
         sign-mode: direct
 paths:
-    defundhub:
+    defundosmosis:
         src:
-            chain-id: defund-private-1
+            chain-id: defund
             client-id: 07-tendermint-0
             connection-id: connection-0
         dst:
-            chain-id: theta-testnet-001
-            client-id: 07-tendermint-688
-            connection-id: connection-578
+            chain-id: osmo-test-4
+            client-id: 07-tendermint-2149
+            connection-id: connection-1672
         src-channel-filter:
             rule: ""
             channel-list: []
         interquery:
             query: true
-    hubdefund:
-        src:
-            chain-id: theta-testnet-001
-            client-id: 07-tendermint-688
-            connection-id: connection-578
-        dst:
-            chain-id: defund-private-1
-            client-id: 07-tendermint-0
-            connection-id: connection-0
-        src-channel-filter:
-            rule: ""
-            channel-list: []
-        interquery:
-            query: false

@@ -6,7 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
+	_ "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -29,24 +29,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgRegisterBrokerAccount defines the payload for Msg/RegisterBrokerAccount
-type MsgRegisterBrokerAccount struct {
-	Owner        string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	ConnectionId string `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
+type MsgAddLiquiditySource struct {
+	Creator  string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	BrokerId string `protobuf:"bytes,2,opt,name=brokerId,proto3" json:"brokerId,omitempty"`
+	PoolId   uint64 `protobuf:"varint,3,opt,name=poolId,proto3" json:"poolId,omitempty"`
 }
 
-func (m *MsgRegisterBrokerAccount) Reset()         { *m = MsgRegisterBrokerAccount{} }
-func (m *MsgRegisterBrokerAccount) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterBrokerAccount) ProtoMessage()    {}
-func (*MsgRegisterBrokerAccount) Descriptor() ([]byte, []int) {
+func (m *MsgAddLiquiditySource) Reset()         { *m = MsgAddLiquiditySource{} }
+func (m *MsgAddLiquiditySource) String() string { return proto.CompactTextString(m) }
+func (*MsgAddLiquiditySource) ProtoMessage()    {}
+func (*MsgAddLiquiditySource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_46df3159cd568e8e, []int{0}
 }
-func (m *MsgRegisterBrokerAccount) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddLiquiditySource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterBrokerAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddLiquiditySource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterBrokerAccount.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddLiquiditySource.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -56,34 +56,54 @@ func (m *MsgRegisterBrokerAccount) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterBrokerAccount) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterBrokerAccount.Merge(m, src)
+func (m *MsgAddLiquiditySource) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddLiquiditySource.Merge(m, src)
 }
-func (m *MsgRegisterBrokerAccount) XXX_Size() int {
+func (m *MsgAddLiquiditySource) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterBrokerAccount) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterBrokerAccount.DiscardUnknown(m)
+func (m *MsgAddLiquiditySource) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddLiquiditySource.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterBrokerAccount proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddLiquiditySource proto.InternalMessageInfo
 
-// MsgRegisterBrokerAccountResponse defines the response for Msg/RegisterBrokerAccount
-type MsgRegisterBrokerAccountResponse struct {
+func (m *MsgAddLiquiditySource) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
 }
 
-func (m *MsgRegisterBrokerAccountResponse) Reset()         { *m = MsgRegisterBrokerAccountResponse{} }
-func (m *MsgRegisterBrokerAccountResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterBrokerAccountResponse) ProtoMessage()    {}
-func (*MsgRegisterBrokerAccountResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAddLiquiditySource) GetBrokerId() string {
+	if m != nil {
+		return m.BrokerId
+	}
+	return ""
+}
+
+func (m *MsgAddLiquiditySource) GetPoolId() uint64 {
+	if m != nil {
+		return m.PoolId
+	}
+	return 0
+}
+
+type MsgAddLiquiditySourceResponse struct {
+}
+
+func (m *MsgAddLiquiditySourceResponse) Reset()         { *m = MsgAddLiquiditySourceResponse{} }
+func (m *MsgAddLiquiditySourceResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddLiquiditySourceResponse) ProtoMessage()    {}
+func (*MsgAddLiquiditySourceResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_46df3159cd568e8e, []int{1}
 }
-func (m *MsgRegisterBrokerAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddLiquiditySourceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterBrokerAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddLiquiditySourceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterBrokerAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddLiquiditySourceResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -93,37 +113,36 @@ func (m *MsgRegisterBrokerAccountResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterBrokerAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterBrokerAccountResponse.Merge(m, src)
+func (m *MsgAddLiquiditySourceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddLiquiditySourceResponse.Merge(m, src)
 }
-func (m *MsgRegisterBrokerAccountResponse) XXX_Size() int {
+func (m *MsgAddLiquiditySourceResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterBrokerAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterBrokerAccountResponse.DiscardUnknown(m)
+func (m *MsgAddLiquiditySourceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddLiquiditySourceResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterBrokerAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddLiquiditySourceResponse proto.InternalMessageInfo
 
-// MsgCosmosSwap defines the payload for Msg/CosmosSwap
-type MsgCosmosSwap struct {
-	Owner        string     `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	ConnectionId string     `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty" yaml:"connection_id"`
-	Msg          *types.Any `protobuf:"bytes,3,opt,name=msg,proto3" json:"msg,omitempty"`
+type MsgAddConnectionBroker struct {
+	Creator      string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	BrokerId     string `protobuf:"bytes,2,opt,name=brokerId,proto3" json:"brokerId,omitempty"`
+	ConnectionId string `protobuf:"bytes,3,opt,name=connectionId,proto3" json:"connectionId,omitempty"`
 }
 
-func (m *MsgCosmosSwap) Reset()         { *m = MsgCosmosSwap{} }
-func (m *MsgCosmosSwap) String() string { return proto.CompactTextString(m) }
-func (*MsgCosmosSwap) ProtoMessage()    {}
-func (*MsgCosmosSwap) Descriptor() ([]byte, []int) {
+func (m *MsgAddConnectionBroker) Reset()         { *m = MsgAddConnectionBroker{} }
+func (m *MsgAddConnectionBroker) String() string { return proto.CompactTextString(m) }
+func (*MsgAddConnectionBroker) ProtoMessage()    {}
+func (*MsgAddConnectionBroker) Descriptor() ([]byte, []int) {
 	return fileDescriptor_46df3159cd568e8e, []int{2}
 }
-func (m *MsgCosmosSwap) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddConnectionBroker) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCosmosSwap) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddConnectionBroker) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCosmosSwap.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddConnectionBroker.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -133,34 +152,54 @@ func (m *MsgCosmosSwap) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *MsgCosmosSwap) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCosmosSwap.Merge(m, src)
+func (m *MsgAddConnectionBroker) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddConnectionBroker.Merge(m, src)
 }
-func (m *MsgCosmosSwap) XXX_Size() int {
+func (m *MsgAddConnectionBroker) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCosmosSwap) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCosmosSwap.DiscardUnknown(m)
+func (m *MsgAddConnectionBroker) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddConnectionBroker.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCosmosSwap proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddConnectionBroker proto.InternalMessageInfo
 
-// MsgCosmosSwapResponse defines the response for Msg/CosmosSwap
-type MsgCosmosSwapResponse struct {
+func (m *MsgAddConnectionBroker) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
 }
 
-func (m *MsgCosmosSwapResponse) Reset()         { *m = MsgCosmosSwapResponse{} }
-func (m *MsgCosmosSwapResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCosmosSwapResponse) ProtoMessage()    {}
-func (*MsgCosmosSwapResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAddConnectionBroker) GetBrokerId() string {
+	if m != nil {
+		return m.BrokerId
+	}
+	return ""
+}
+
+func (m *MsgAddConnectionBroker) GetConnectionId() string {
+	if m != nil {
+		return m.ConnectionId
+	}
+	return ""
+}
+
+type MsgAddConnectionBrokerResponse struct {
+}
+
+func (m *MsgAddConnectionBrokerResponse) Reset()         { *m = MsgAddConnectionBrokerResponse{} }
+func (m *MsgAddConnectionBrokerResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddConnectionBrokerResponse) ProtoMessage()    {}
+func (*MsgAddConnectionBrokerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_46df3159cd568e8e, []int{3}
 }
-func (m *MsgCosmosSwapResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddConnectionBrokerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCosmosSwapResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddConnectionBrokerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCosmosSwapResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddConnectionBrokerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -170,53 +209,50 @@ func (m *MsgCosmosSwapResponse) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgCosmosSwapResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCosmosSwapResponse.Merge(m, src)
+func (m *MsgAddConnectionBrokerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddConnectionBrokerResponse.Merge(m, src)
 }
-func (m *MsgCosmosSwapResponse) XXX_Size() int {
+func (m *MsgAddConnectionBrokerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCosmosSwapResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCosmosSwapResponse.DiscardUnknown(m)
+func (m *MsgAddConnectionBrokerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddConnectionBrokerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCosmosSwapResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddConnectionBrokerResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgRegisterBrokerAccount)(nil), "defundlabs.defund.broker.MsgRegisterBrokerAccount")
-	proto.RegisterType((*MsgRegisterBrokerAccountResponse)(nil), "defundlabs.defund.broker.MsgRegisterBrokerAccountResponse")
-	proto.RegisterType((*MsgCosmosSwap)(nil), "defundlabs.defund.broker.MsgCosmosSwap")
-	proto.RegisterType((*MsgCosmosSwapResponse)(nil), "defundlabs.defund.broker.MsgCosmosSwapResponse")
+	proto.RegisterType((*MsgAddLiquiditySource)(nil), "defundlabs.defund.broker.MsgAddLiquiditySource")
+	proto.RegisterType((*MsgAddLiquiditySourceResponse)(nil), "defundlabs.defund.broker.MsgAddLiquiditySourceResponse")
+	proto.RegisterType((*MsgAddConnectionBroker)(nil), "defundlabs.defund.broker.MsgAddConnectionBroker")
+	proto.RegisterType((*MsgAddConnectionBrokerResponse)(nil), "defundlabs.defund.broker.MsgAddConnectionBrokerResponse")
 }
 
 func init() { proto.RegisterFile("broker/tx.proto", fileDescriptor_46df3159cd568e8e) }
 
 var fileDescriptor_46df3159cd568e8e = []byte{
-	// 372 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4f, 0x2a, 0xca, 0xcf,
-	0x4e, 0x2d, 0xd2, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x48, 0x49, 0x4d,
-	0x2b, 0xcd, 0x4b, 0xc9, 0x49, 0x4c, 0x2a, 0xd6, 0x83, 0x30, 0xf5, 0x20, 0x4a, 0xa4, 0x44, 0xd2,
-	0xf3, 0xd3, 0xf3, 0xc1, 0x8a, 0xf4, 0x41, 0x2c, 0x88, 0x7a, 0x29, 0xc9, 0xf4, 0xfc, 0xfc, 0xf4,
-	0x9c, 0x54, 0x7d, 0x30, 0x2f, 0xa9, 0x34, 0x4d, 0x3f, 0x31, 0xaf, 0x12, 0x22, 0xa5, 0x54, 0xc9,
-	0x25, 0xe1, 0x5b, 0x9c, 0x1e, 0x94, 0x9a, 0x9e, 0x59, 0x5c, 0x92, 0x5a, 0xe4, 0x04, 0x36, 0xc5,
-	0x31, 0x39, 0x39, 0xbf, 0x34, 0xaf, 0x44, 0x48, 0x84, 0x8b, 0x35, 0xbf, 0x3c, 0x2f, 0xb5, 0x48,
-	0x82, 0x51, 0x81, 0x51, 0x83, 0x33, 0x08, 0xc2, 0x11, 0xb2, 0xe5, 0xe2, 0x4d, 0xce, 0xcf, 0xcb,
-	0x4b, 0x4d, 0x2e, 0xc9, 0xcc, 0xcf, 0x8b, 0xcf, 0x4c, 0x91, 0x60, 0x02, 0xc9, 0x3a, 0x49, 0x7c,
-	0xba, 0x27, 0x2f, 0x52, 0x99, 0x98, 0x9b, 0x63, 0xa5, 0x84, 0x22, 0xad, 0x14, 0xc4, 0x83, 0xe0,
-	0x7b, 0xa6, 0x58, 0x71, 0x74, 0x2c, 0x90, 0x67, 0x78, 0xb1, 0x40, 0x9e, 0x41, 0x49, 0x89, 0x4b,
-	0x01, 0x97, 0xd5, 0x41, 0xa9, 0xc5, 0x05, 0xf9, 0x79, 0xc5, 0xa9, 0x4a, 0xd3, 0x18, 0xb9, 0x78,
-	0x7d, 0x8b, 0xd3, 0x9d, 0xf3, 0x8b, 0x73, 0xf3, 0x8b, 0x83, 0xcb, 0x13, 0x0b, 0x68, 0xe2, 0x28,
-	0x21, 0x35, 0x2e, 0xe6, 0xdc, 0xe2, 0x74, 0x09, 0x66, 0x05, 0x46, 0x0d, 0x6e, 0x23, 0x11, 0x3d,
-	0x48, 0x70, 0xe9, 0xc1, 0x82, 0x4b, 0xcf, 0x31, 0xaf, 0x32, 0x08, 0xa4, 0x00, 0xc9, 0xf1, 0xe2,
-	0x5c, 0xa2, 0x28, 0xee, 0x82, 0xb9, 0xd8, 0xe8, 0x3b, 0x23, 0x17, 0xb3, 0x6f, 0x71, 0xba, 0x50,
-	0x3b, 0x23, 0x97, 0x28, 0xf6, 0x60, 0x35, 0xd2, 0xc3, 0x15, 0x7d, 0x7a, 0xb8, 0xc2, 0x43, 0xca,
-	0x8a, 0x74, 0x3d, 0x30, 0x17, 0x09, 0xa5, 0x71, 0x71, 0x21, 0x85, 0x9f, 0x3a, 0x5e, 0x93, 0x10,
-	0x0a, 0xa5, 0xf4, 0x89, 0x54, 0x08, 0xb3, 0xc7, 0xc9, 0xed, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f,
-	0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b,
-	0x8f, 0xe5, 0x18, 0xa2, 0x74, 0xd2, 0x33, 0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73, 0xf5,
-	0x21, 0x26, 0xe9, 0x82, 0x4c, 0x85, 0xb2, 0xf5, 0x2b, 0xf4, 0x61, 0x09, 0xbc, 0xb2, 0x20, 0xb5,
-	0x38, 0x89, 0x0d, 0x1c, 0xee, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x88, 0xaa, 0xa8, 0x97,
-	0xf7, 0x02, 0x00, 0x00,
+	// 336 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0x41, 0x4b, 0xf3, 0x40,
+	0x10, 0xed, 0xb6, 0x1f, 0xfd, 0xec, 0x20, 0x08, 0xab, 0x96, 0x18, 0x70, 0x2d, 0x39, 0xf5, 0xa0,
+	0x59, 0xd1, 0x83, 0x5e, 0xad, 0x20, 0x14, 0xec, 0x25, 0xde, 0xbc, 0x35, 0xd9, 0xed, 0x1a, 0xac,
+	0x99, 0xb8, 0x49, 0xa0, 0xbd, 0x08, 0x1e, 0xbd, 0xf9, 0xb3, 0x3c, 0xf6, 0xe8, 0x51, 0xda, 0x3f,
+	0x22, 0xcd, 0x26, 0x05, 0x25, 0x22, 0xf5, 0x36, 0x2f, 0xf3, 0xe6, 0xbd, 0x97, 0xd9, 0x81, 0x2d,
+	0x5f, 0xe3, 0xbd, 0xd4, 0x3c, 0x9d, 0xb8, 0xb1, 0xc6, 0x14, 0xa9, 0x25, 0xe4, 0x28, 0x8b, 0xc4,
+	0x78, 0xe8, 0x27, 0xae, 0x29, 0x5d, 0x43, 0xb1, 0x77, 0x14, 0x2a, 0xcc, 0x49, 0x7c, 0x59, 0x19,
+	0xbe, 0xbd, 0xa7, 0x10, 0xd5, 0x58, 0xf2, 0x1c, 0xf9, 0xd9, 0x88, 0x0f, 0xa3, 0xa9, 0x69, 0x39,
+	0x12, 0x76, 0x07, 0x89, 0xba, 0x10, 0xe2, 0x3a, 0x7c, 0xcc, 0x42, 0x11, 0xa6, 0xd3, 0x1b, 0xcc,
+	0x74, 0x20, 0xa9, 0x05, 0xff, 0x03, 0x2d, 0x87, 0x29, 0x6a, 0x8b, 0x74, 0x48, 0xb7, 0xe5, 0x95,
+	0x90, 0xda, 0xb0, 0x61, 0xdc, 0xfa, 0xc2, 0xaa, 0xe7, 0xad, 0x15, 0xa6, 0x6d, 0x68, 0xc6, 0x88,
+	0xe3, 0xbe, 0xb0, 0x1a, 0x1d, 0xd2, 0xfd, 0xe7, 0x15, 0xc8, 0x39, 0x80, 0xfd, 0x4a, 0x1b, 0x4f,
+	0x26, 0x31, 0x46, 0x89, 0x74, 0x34, 0xb4, 0x0d, 0xe1, 0x12, 0xa3, 0x48, 0x06, 0x69, 0x88, 0x51,
+	0x2f, 0x17, 0xfd, 0x63, 0x10, 0x07, 0x36, 0x83, 0x95, 0x52, 0x11, 0xa7, 0xe5, 0x7d, 0xf9, 0xe6,
+	0x74, 0x80, 0x55, 0x7b, 0x96, 0xa9, 0x4e, 0x5e, 0xea, 0xd0, 0x18, 0x24, 0x8a, 0x3e, 0x01, 0xad,
+	0x58, 0x11, 0x77, 0x7f, 0x7a, 0x07, 0xb7, 0xf2, 0x67, 0xed, 0xb3, 0x35, 0x07, 0xca, 0x1c, 0xf4,
+	0x99, 0xc0, 0x76, 0xd5, 0x6e, 0x8e, 0x7f, 0x13, 0xfc, 0x3e, 0x61, 0x9f, 0xaf, 0x3b, 0x51, 0x66,
+	0xe8, 0x5d, 0xbd, 0xcd, 0x19, 0x99, 0xcd, 0x19, 0xf9, 0x98, 0x33, 0xf2, 0xba, 0x60, 0xb5, 0xd9,
+	0x82, 0xd5, 0xde, 0x17, 0xac, 0x76, 0x7b, 0xa8, 0xc2, 0xf4, 0x2e, 0xf3, 0xdd, 0x00, 0x1f, 0xb8,
+	0x91, 0x3c, 0x5a, 0xca, 0x17, 0x35, 0x9f, 0xf0, 0xf2, 0x7e, 0xa7, 0xb1, 0x4c, 0xfc, 0x66, 0x7e,
+	0x78, 0xa7, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x5d, 0xf3, 0x95, 0x1e, 0xd6, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -231,10 +267,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// Register defines a rpc handler for MsgRegisterBrokerAccount
-	RegisterBrokerAccount(ctx context.Context, in *MsgRegisterBrokerAccount, opts ...grpc.CallOption) (*MsgRegisterBrokerAccountResponse, error)
-	// CosmosSwap defines a rpc handler for MsgCosmosSwap
-	CosmosSwap(ctx context.Context, in *MsgCosmosSwap, opts ...grpc.CallOption) (*MsgCosmosSwapResponse, error)
+	// Register defines a rpc handler for MsgAddLiquiditySource
+	AddLiquiditySource(ctx context.Context, in *MsgAddLiquiditySource, opts ...grpc.CallOption) (*MsgAddLiquiditySourceResponse, error)
+	AddConnectionBroker(ctx context.Context, in *MsgAddConnectionBroker, opts ...grpc.CallOption) (*MsgAddConnectionBrokerResponse, error)
 }
 
 type msgClient struct {
@@ -245,18 +280,18 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) RegisterBrokerAccount(ctx context.Context, in *MsgRegisterBrokerAccount, opts ...grpc.CallOption) (*MsgRegisterBrokerAccountResponse, error) {
-	out := new(MsgRegisterBrokerAccountResponse)
-	err := c.cc.Invoke(ctx, "/defundlabs.defund.broker.Msg/RegisterBrokerAccount", in, out, opts...)
+func (c *msgClient) AddLiquiditySource(ctx context.Context, in *MsgAddLiquiditySource, opts ...grpc.CallOption) (*MsgAddLiquiditySourceResponse, error) {
+	out := new(MsgAddLiquiditySourceResponse)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.broker.Msg/AddLiquiditySource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) CosmosSwap(ctx context.Context, in *MsgCosmosSwap, opts ...grpc.CallOption) (*MsgCosmosSwapResponse, error) {
-	out := new(MsgCosmosSwapResponse)
-	err := c.cc.Invoke(ctx, "/defundlabs.defund.broker.Msg/CosmosSwap", in, out, opts...)
+func (c *msgClient) AddConnectionBroker(ctx context.Context, in *MsgAddConnectionBroker, opts ...grpc.CallOption) (*MsgAddConnectionBrokerResponse, error) {
+	out := new(MsgAddConnectionBrokerResponse)
+	err := c.cc.Invoke(ctx, "/defundlabs.defund.broker.Msg/AddConnectionBroker", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,59 +300,58 @@ func (c *msgClient) CosmosSwap(ctx context.Context, in *MsgCosmosSwap, opts ...g
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// Register defines a rpc handler for MsgRegisterBrokerAccount
-	RegisterBrokerAccount(context.Context, *MsgRegisterBrokerAccount) (*MsgRegisterBrokerAccountResponse, error)
-	// CosmosSwap defines a rpc handler for MsgCosmosSwap
-	CosmosSwap(context.Context, *MsgCosmosSwap) (*MsgCosmosSwapResponse, error)
+	// Register defines a rpc handler for MsgAddLiquiditySource
+	AddLiquiditySource(context.Context, *MsgAddLiquiditySource) (*MsgAddLiquiditySourceResponse, error)
+	AddConnectionBroker(context.Context, *MsgAddConnectionBroker) (*MsgAddConnectionBrokerResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) RegisterBrokerAccount(ctx context.Context, req *MsgRegisterBrokerAccount) (*MsgRegisterBrokerAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterBrokerAccount not implemented")
+func (*UnimplementedMsgServer) AddLiquiditySource(ctx context.Context, req *MsgAddLiquiditySource) (*MsgAddLiquiditySourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLiquiditySource not implemented")
 }
-func (*UnimplementedMsgServer) CosmosSwap(ctx context.Context, req *MsgCosmosSwap) (*MsgCosmosSwapResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CosmosSwap not implemented")
+func (*UnimplementedMsgServer) AddConnectionBroker(ctx context.Context, req *MsgAddConnectionBroker) (*MsgAddConnectionBrokerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddConnectionBroker not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_RegisterBrokerAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterBrokerAccount)
+func _Msg_AddLiquiditySource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddLiquiditySource)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RegisterBrokerAccount(ctx, in)
+		return srv.(MsgServer).AddLiquiditySource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundlabs.defund.broker.Msg/RegisterBrokerAccount",
+		FullMethod: "/defundlabs.defund.broker.Msg/AddLiquiditySource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterBrokerAccount(ctx, req.(*MsgRegisterBrokerAccount))
+		return srv.(MsgServer).AddLiquiditySource(ctx, req.(*MsgAddLiquiditySource))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CosmosSwap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCosmosSwap)
+func _Msg_AddConnectionBroker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddConnectionBroker)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CosmosSwap(ctx, in)
+		return srv.(MsgServer).AddConnectionBroker(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/defundlabs.defund.broker.Msg/CosmosSwap",
+		FullMethod: "/defundlabs.defund.broker.Msg/AddConnectionBroker",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CosmosSwap(ctx, req.(*MsgCosmosSwap))
+		return srv.(MsgServer).AddConnectionBroker(ctx, req.(*MsgAddConnectionBroker))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -327,19 +361,19 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterBrokerAccount",
-			Handler:    _Msg_RegisterBrokerAccount_Handler,
+			MethodName: "AddLiquiditySource",
+			Handler:    _Msg_AddLiquiditySource_Handler,
 		},
 		{
-			MethodName: "CosmosSwap",
-			Handler:    _Msg_CosmosSwap_Handler,
+			MethodName: "AddConnectionBroker",
+			Handler:    _Msg_AddConnectionBroker_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "broker/tx.proto",
 }
 
-func (m *MsgRegisterBrokerAccount) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddLiquiditySource) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -349,12 +383,77 @@ func (m *MsgRegisterBrokerAccount) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterBrokerAccount) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddLiquiditySource) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterBrokerAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddLiquiditySource) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.PoolId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.PoolId))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.BrokerId) > 0 {
+		i -= len(m.BrokerId)
+		copy(dAtA[i:], m.BrokerId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BrokerId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgAddLiquiditySourceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddLiquiditySourceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddLiquiditySourceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgAddConnectionBroker) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgAddConnectionBroker) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgAddConnectionBroker) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -363,92 +462,27 @@ func (m *MsgRegisterBrokerAccount) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i -= len(m.ConnectionId)
 		copy(dAtA[i:], m.ConnectionId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.ConnectionId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Owner) > 0 {
-		i -= len(m.Owner)
-		copy(dAtA[i:], m.Owner)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRegisterBrokerAccountResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRegisterBrokerAccountResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRegisterBrokerAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCosmosSwap) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCosmosSwap) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCosmosSwap) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Msg != nil {
-		{
-			size, err := m.Msg.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.ConnectionId) > 0 {
-		i -= len(m.ConnectionId)
-		copy(dAtA[i:], m.ConnectionId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ConnectionId)))
+	if len(m.BrokerId) > 0 {
+		i -= len(m.BrokerId)
+		copy(dAtA[i:], m.BrokerId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BrokerId)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Owner) > 0 {
-		i -= len(m.Owner)
-		copy(dAtA[i:], m.Owner)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCosmosSwapResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddConnectionBrokerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -458,12 +492,12 @@ func (m *MsgCosmosSwapResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCosmosSwapResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddConnectionBrokerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCosmosSwapResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddConnectionBrokerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -482,13 +516,46 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgRegisterBrokerAccount) Size() (n int) {
+func (m *MsgAddLiquiditySource) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Owner)
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.BrokerId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.PoolId != 0 {
+		n += 1 + sovTx(uint64(m.PoolId))
+	}
+	return n
+}
+
+func (m *MsgAddLiquiditySourceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgAddConnectionBroker) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.BrokerId)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -499,37 +566,7 @@ func (m *MsgRegisterBrokerAccount) Size() (n int) {
 	return n
 }
 
-func (m *MsgRegisterBrokerAccountResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgCosmosSwap) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Owner)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.ConnectionId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if m.Msg != nil {
-		l = m.Msg.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgCosmosSwapResponse) Size() (n int) {
+func (m *MsgAddConnectionBrokerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -544,7 +581,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgRegisterBrokerAccount) Unmarshal(dAtA []byte) error {
+func (m *MsgAddLiquiditySource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -567,15 +604,15 @@ func (m *MsgRegisterBrokerAccount) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterBrokerAccount: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddLiquiditySource: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterBrokerAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddLiquiditySource: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -603,11 +640,11 @@ func (m *MsgRegisterBrokerAccount) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Owner = string(dAtA[iNdEx:postIndex])
+			m.Creator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BrokerId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -635,8 +672,27 @@ func (m *MsgRegisterBrokerAccount) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ConnectionId = string(dAtA[iNdEx:postIndex])
+			m.BrokerId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolId", wireType)
+			}
+			m.PoolId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PoolId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -658,7 +714,7 @@ func (m *MsgRegisterBrokerAccount) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRegisterBrokerAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddLiquiditySourceResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -681,10 +737,10 @@ func (m *MsgRegisterBrokerAccountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterBrokerAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddLiquiditySourceResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterBrokerAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddLiquiditySourceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -708,7 +764,7 @@ func (m *MsgRegisterBrokerAccountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
+func (m *MsgAddConnectionBroker) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -731,15 +787,15 @@ func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCosmosSwap: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddConnectionBroker: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCosmosSwap: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddConnectionBroker: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -767,11 +823,11 @@ func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Owner = string(dAtA[iNdEx:postIndex])
+			m.Creator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BrokerId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -799,13 +855,13 @@ func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ConnectionId = string(dAtA[iNdEx:postIndex])
+			m.BrokerId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -815,27 +871,23 @@ func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Msg == nil {
-				m.Msg = &types.Any{}
-			}
-			if err := m.Msg.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.ConnectionId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -858,7 +910,7 @@ func (m *MsgCosmosSwap) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCosmosSwapResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddConnectionBrokerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -881,10 +933,10 @@ func (m *MsgCosmosSwapResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCosmosSwapResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddConnectionBrokerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCosmosSwapResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddConnectionBrokerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

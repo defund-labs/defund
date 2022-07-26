@@ -88,24 +88,40 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 	return strconv.Itoa(count)
 }
 
-// SetInvest set a specific invest in the store from its index
-func (k Keeper) SetInvest(ctx sdk.Context, invest types.Invest) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
-	b := k.cdc.MustMarshal(&invest)
-	store.Set(types.InvestKey(
-		invest.Id,
+// GetNextRedeemID gets the count of all redeems and then adds 1 for the next redeem id
+func (k Keeper) GetNextRedeemID(ctx sdk.Context) (id string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	count := 0
+
+	for ; iterator.Valid(); iterator.Next() {
+		count = count + 1
+	}
+
+	return strconv.Itoa(count)
+}
+
+// SetRedeem set a specific redeem in the store from its index
+func (k Keeper) SetRedeem(ctx sdk.Context, redeem types.Redeem) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	b := k.cdc.MustMarshal(&redeem)
+	store.Set(types.RedeemKey(
+		redeem.Id,
 	), b)
 }
 
-// GetInvest returns a invest from its index
-func (k Keeper) GetInvest(
+// GetRedeem returns a redeem from its index
+func (k Keeper) GetRedeem(
 	ctx sdk.Context,
 	index string,
 
-) (val types.Invest, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.InvestKeyPrefix))
+) (val types.Redeem, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
 
-	b := store.Get(types.InvestKey(
+	b := store.Get(types.RedeemKey(
 		index,
 	))
 	if b == nil {
@@ -116,17 +132,29 @@ func (k Keeper) GetInvest(
 	return val, true
 }
 
-// GetAllInvest returns all invests from store
-func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
-	store := ctx.KVStore(k.storeKey)
-	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+// RemoveRedeem removes an redeem from the store
+func (k Keeper) RemoveRedeem(
+	ctx sdk.Context,
+	id string,
 
-	iterator := investStore.Iterator(nil, nil)
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	store.Delete(types.RedeemKey(
+		id,
+	))
+}
+
+// GetAllRedeem returns all redeems from store
+func (k Keeper) GetAllRedeem(ctx sdk.Context) (list []types.Redeem) {
+	store := ctx.KVStore(k.storeKey)
+	redeemStore := prefix.NewStore(store, []byte(types.RedeemKeyPrefix))
+
+	iterator := redeemStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Invest
+		var val types.Redeem
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
@@ -134,17 +162,17 @@ func (k Keeper) GetAllInvest(ctx sdk.Context) (list []types.Invest) {
 	return
 }
 
-// GetAllInvestbySymbol returns all invests from store based on symbol
-func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []types.Invest) {
+// GetAllRedeembySymbol returns all redeems from store based on symbol
+func (k Keeper) GetAllRedeembySymbol(ctx sdk.Context, symbol string) (list []types.Redeem) {
 	store := ctx.KVStore(k.storeKey)
-	investStore := prefix.NewStore(store, []byte(types.InvestKeyPrefix))
+	redeemStore := prefix.NewStore(store, []byte(types.RedeemKeyPrefix))
 
-	iterator := investStore.Iterator(nil, nil)
+	iterator := redeemStore.Iterator(nil, nil)
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Invest
+		var val types.Redeem
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.Fund.Symbol == symbol {
 			list = append(list, val)
@@ -152,4 +180,35 @@ func (k Keeper) GetAllInvestbySymbol(ctx sdk.Context, symbol string) (list []typ
 	}
 
 	return
+}
+
+// GetRebalance returns a rebalance from its index
+func (k Keeper) GetRebalance(
+	ctx sdk.Context,
+	index string,
+
+) (val types.Rebalance, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+
+	b := store.Get(types.RebalanceKey(
+		index,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// RemoveRebalance removes an rebalance from the store
+func (k Keeper) RemoveRebalance(
+	ctx sdk.Context,
+	id string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+	store.Delete(types.RebalanceKey(
+		id,
+	))
 }

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -45,41 +44,4 @@ func CmdFundPrice() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
-}
-
-func CmdFundPriceAll() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "fund-prices [symbol]",
-		Short: "Get the historical prices of a fund by symbol",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			argSymbol := args[0]
-
-			params := &types.QueryAllFundPriceRequest{
-				Symbol:     argSymbol,
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.FundPriceAll(context.Background(), params)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-
 }

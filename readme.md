@@ -1,5 +1,7 @@
 # Defund
-**Defund** is a blockchain that allows the investment in and creation of diversified, autonomous exchange traded funds.
+**Defund** is a blockchain that allows quantitative developers, financial institutions, ETF providers, financial advisors, and individual investors to build and invest in decentralized exchange traded funds that are completely trustless and decentralized with access to tokens from 60+ blockchains and support for 1000+ assets.
+
+Use our base index fund smart contract to create a dETF from the command line or our UI in minutes. Alternatively, build out your own smart contract based dETF in hours, with direct support for 1000's of assets from 60+ chains.
 
 ## Set Up Validator/Node On Akash
 
@@ -17,22 +19,44 @@ cd defund
 make install
 ```
 
-## Getting Started in Dev Mode
+## Getting Started in Dev/Local Mode
 
 ```bash
 make init
 
 make create-conn
 
-# Wait for the connection to be acknowledged then
-# start the relayer for interquerying
+# Wait for the connection to be acknowledged then edit ./network/relayer/config.yaml by changing the connection and client ids to match what your relayer returned
+make init-rly
+
+# start the relayer for interchain querying
 make start-rly
+
+# start hermes for ICA tx's
+make start-hermes
+```
+
+## Bash Testing Framework
+```bash
+# test all main commands
+make test-all
+
+# test the create fund command
+make test-create-fund
+
+# test the create shares command
+make test-create-shares
+
+# test the redeem shares command
+make test-redeem-shares
 ```
 
 ## Frontend
 
 ```bash
-#Coming Soon!
+cd vue
+npm i
+npm run dev
 ```
 
 ## Creating A dETF
@@ -61,37 +85,30 @@ of that dETF.
 defundd query etf fund-price ATOM2
 ```
 
-## Query dETF Historical Price
-
-```bash
-defundd query etf fund-prices ATOM2
-```
-
-## Invest In A Fund
+## Create Shares In A Fund
 
 The following command is an example on investing in a dETF on Defund via the Defund binary:
 
 ```bash
-#Coming soon!
+# you must have the right portion of each asset in the fund for creating shares
+defundd tx etf create-shares ATOM2
 ```
 
-## Uninvest In A Fund
+## Redeem Shares In A Fund
 
 The following command is an example of redeeming an investment in a dETF on Defund via the Defund binary:
 
 ```bash
-#Coming soon!
+# you will receive each token that represents the funds holdings proportially to your ownership amount being redeemed
+defundd tx etf redeem-shares ATOM2
 ```
 
 ## Planned Roadmap
-`Stage 1`
+* Add Market Cap Weighted to Base Index Contract
+* Fractionalized NFT's
+* Superfluid Staking - Fixed Income dETF's
+* Support for More Chains and Tokens Until All Tokens are Supported :)
 
-Specify crypto assets and weights on creation and autorebalance
-
-`Stage 2` 
-
-Add smart contracts allowing for programmatic trading of underlying assets of funds.
-
-`Potential Other Additions`
-* Superfluid Staking
-* Add the ability to add instructions that power the trading of funds (if this then thats)
+## Potential Roadmap
+* Add Support for More TradFi Based Smart Contract Language Support (Java?, Python?, Julia?)
+* Sub 1s Block Times for HFT?

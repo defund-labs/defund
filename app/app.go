@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -190,10 +191,10 @@ var (
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to get user home directory: %s", err))
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, fmt.Sprintf(".%s", Name))
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -248,7 +249,7 @@ type App struct {
 	mm *module.Manager
 }
 
-// New returns a reference to an initialized Gaia.
+// New returns a reference to an initialized Defund.
 func New(
 	logger log.Logger,
 	db dbm.DB,
@@ -257,10 +258,10 @@ func New(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig cosmoscmd.EncodingConfig,
+	encodingConfig EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) cosmoscmd.App {
+) *App {
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -275,8 +276,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		capabilitytypes.StoreKey, brokermoduletypes.StoreKey, querymoduletypes.StoreKey,
-		etfmoduletypes.StoreKey,
+		capabilitytypes.StoreKey, querymoduletypes.StoreKey, brokermoduletypes.StoreKey, etfmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -382,7 +382,18 @@ func New(
 	)
 	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
-	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper)
+	app.QueryKeeper = *querymodulekeeper.NewKeeper(
+		appCodec,
+		keys[querymoduletypes.StoreKey],
+		keys[querymoduletypes.MemStoreKey],
+
+		app.AccountKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+	)
+	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
+
+	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, app.QueryKeeper, app.EtfKeeper, app.BankKeeper)
 	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
 	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper)
 
@@ -408,18 +419,6 @@ func New(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, govRouter,
 	)
-
-	app.QueryKeeper = *querymodulekeeper.NewKeeper(
-		appCodec,
-		keys[querymoduletypes.StoreKey],
-		keys[querymoduletypes.MemStoreKey],
-
-		app.AccountKeeper,
-		app.EtfKeeper,
-		app.BrokerKeeper,
-	)
-	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
-
 	app.EtfKeeper = *etfmodulekeeper.NewKeeper(
 		appCodec,
 		keys[etfmoduletypes.StoreKey],
@@ -430,6 +429,9 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.QueryKeeper,
 		app.BrokerKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.ICAControllerKeeper,
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 
@@ -465,10 +467,10 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
-		etfModule,
-		queryModule,
 		icaModule,
+		queryModule,
 		brokerModule,
+		etfModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -482,8 +484,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
+		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -492,8 +494,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, etfmoduletypes.ModuleName, icatypes.ModuleName,
-		paramstypes.ModuleName, brokermoduletypes.ModuleName, querymoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
+		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -515,14 +517,14 @@ func New(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		etfmoduletypes.ModuleName,
-		querymoduletypes.ModuleName,
 		icatypes.ModuleName,
-		brokermoduletypes.ModuleName,
+		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		upgradetypes.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
+		querymoduletypes.ModuleName,
+		brokermoduletypes.ModuleName,
+		etfmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 

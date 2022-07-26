@@ -1,15 +1,11 @@
-package inter_tx
+package broker
 
 import (
-	"fmt"
-
-	proto "github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/defund-labs/defund/x/broker/keeper"
+	proto "github.com/gogo/protobuf/proto"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
@@ -101,7 +97,8 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// Disallow user-initiated channel closing for broker channels
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -112,7 +109,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement("cannot receive packet via interchain accounts authentication module")
+	return channeltypes.NewErrorAcknowledgement("cannot receive packet via broker module")
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -122,11 +119,26 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	// unmarshal the ack to be used later
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker packet acknowledgement: %v", err)
 	}
-	ctx.Logger().Info(fmt.Sprintf("Received Acknowledgement In Broker Module on Source Port %s and Dest Port %s", packet.SourcePort, packet.DestinationPort))
+	// unmarshal the msg data from the tx to be used later
+	txMsgData := &sdk.TxMsgData{}
+	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal Broker tx message data: %v", err)
+	}
+	// if the length of the msg data is 0 skip/return, otherwise run through logic
+	switch len(txMsgData.Data) {
+	case 0:
+		return nil
+	default:
+		err := im.keeper.OnAcknowledgementPacket(ctx, packet, ack, txMsgData)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -149,21 +161,4 @@ func (im IBCModule) NegotiateAppVersion(
 	proposedVersion string,
 ) (string, error) {
 	return "", nil
-}
-
-func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	switch msgData.MsgType {
-	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-		msgResponse := &banktypes.MsgSendResponse{}
-		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
-		}
-
-		return msgResponse.String(), nil
-
-	// TODO: handle other messages
-
-	default:
-		return "", nil
-	}
 }

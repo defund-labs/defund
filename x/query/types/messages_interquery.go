@@ -10,22 +10,22 @@ var _ sdk.Msg = &MsgCreateInterquery{}
 
 func NewMsgCreateInterquery(
 	creator string,
-	id string,
-	name string,
+	storeid string,
+	Chainid string,
 	key []byte,
 	path string,
 	timeoutHeight uint64,
-	clientId string,
+	connectionid string,
 
 ) *MsgCreateInterquery {
 	return &MsgCreateInterquery{
 		Creator:       creator,
-		Id:            id,
-		Name:          name,
+		Storeid:       storeid,
+		Chainid:       Chainid,
 		Key:           key,
 		Path:          path,
 		TimeoutHeight: timeoutHeight,
-		ClientId:      clientId,
+		ConnectionId:  connectionid,
 	}
 }
 
@@ -66,19 +66,17 @@ func NewMsgCreateInterqueryResult(
 	key string,
 	data []byte,
 	height uint64,
-	clientid string,
+	connectionid string,
 	success bool,
 	proof *crypto.ProofOps,
 
 ) *MsgCreateInterqueryResult {
 	return &MsgCreateInterqueryResult{
-		Creator:  creator,
-		Storeid:  storeid,
-		Data:     data,
-		Height:   height,
-		ClientId: clientid,
-		Success:  success,
-		Proof:    proof,
+		Creator: creator,
+		Storeid: storeid,
+		Data:    data,
+		Height:  height,
+		Proof:   proof,
 	}
 }
 
@@ -118,7 +116,6 @@ func NewMsgCreateInterqueryTimeout(
 	storeid string,
 	key string,
 	timeoutheight uint64,
-	clientid string,
 	proof *crypto.ProofOps,
 
 ) *MsgCreateInterqueryTimeout {
@@ -126,7 +123,6 @@ func NewMsgCreateInterqueryTimeout(
 		Creator:       creator,
 		Storeid:       storeid,
 		TimeoutHeight: timeoutheight,
-		ClientId:      clientid,
 	}
 }
 func (msg *MsgCreateInterqueryTimeout) Route() string {

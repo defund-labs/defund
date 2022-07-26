@@ -4,18 +4,10 @@
 . ./network/relayer/variables.sh
 
 # Delete defundhub log file if present
-if [ -f  $RELAYER_DIRECTORY/defundhub.log ]; then
-    rm -r $RELAYER_DIRECTORY/defundhub.log
-fi
-
-# Delete hubdefund log file if present
-if [ -f $RELAYER_DIRECTORY/hubdefund.log ]; then
-    rm -r $RELAYER_DIRECTORY/hubdefund.log
+if [ -f  $RELAYER_DIRECTORY/defundosmosis.log ]; then
+    rm -r $RELAYER_DIRECTORY/defundosmosis.log
 fi
 
 # Start the Cosmos relayer for both paths
-echo "Starting Cosmos relayer for Defund-ICA ----> Theta-ICA..."
-$RELAYER_BINARY start defundhub --home $RELAYER_DIRECTORY > $RELAYER_DIRECTORY/defundhub.log 2>&1 &
-
-echo "Starting Cosmos relayer for Defund-Transfer ---> Theta-Transfer..."
-$RELAYER_BINARY start hubdefund --home $RELAYER_DIRECTORY --debug-addr "localhost:7598" > $RELAYER_DIRECTORY/hubdefund.log 2>&1 &
+echo "Starting Cosmos relayer for Defund-ICA ----> Osmosis-ICA..."
+$RELAYER_BINARY start defundosmosis --home $RELAYER_DIRECTORY > $RELAYER_DIRECTORY/defundosmosis.log 2>&1 &
