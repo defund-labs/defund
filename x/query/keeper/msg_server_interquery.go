@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	tmclienttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/defund-labs/defund/x/query/types"
@@ -88,11 +87,11 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		return nil, fmt.Errorf("unable to fetch client state")
 	}
 
-	height := clienttypes.NewHeight(clienttypes.ParseChainID(interquery.Chainid), uint64(msg.Height+2))
+	height := clientState.GetLatestHeight()
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, height)
 
 	if !found {
-		return nil, fmt.Errorf("unable to fetch consensus state for (client id: %s) (msg height: %d) (revision height: %d + revision number: %d)", connection.ClientId, msg.Height+2, height.RevisionHeight, height.RevisionNumber)
+		return nil, fmt.Errorf("unable to fetch consensus state for (client id: %s) (msg height: %d) (revision height: %d + revision number: %d)", connection.ClientId, msg.Height, height.GetRevisionHeight(), height.GetRevisionNumber())
 	}
 
 	path := commitmenttypes.NewMerklePath([]string{pathList[1], url.PathEscape(string(interquery.Key))}...)
