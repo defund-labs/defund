@@ -49,22 +49,26 @@ func (k Keeper) SetInterquery(ctx sdk.Context, interquery types.Interquery) erro
 	return nil
 }
 
-// GetInterquery returns a interquery from its index
+// GetInterquery returns a interquery from its storeid
 func (k Keeper) GetInterquery(
 	ctx sdk.Context,
 	storeid string,
 
 ) (val types.Interquery, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
-	interqueryKey := types.GetKeyPrefixInterquery(storeid)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	b := store.Get(interqueryKey)
-	if b == nil {
-		return val, false
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Interquery
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Storeid == storeid {
+			return val, true
+		}
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return val, false
 }
 
 // RemoveInterquery removes an interquery from the store
