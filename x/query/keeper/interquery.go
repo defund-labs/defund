@@ -74,9 +74,9 @@ func (k Keeper) RemoveInterquery(
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryKeyPrefix)
-	store.Delete(types.InterqueryKey(
-		storeid,
-	))
+	interqueryKey := types.GetKeyPrefixInterquery(storeid)
+
+	store.Delete(interqueryKey)
 }
 
 // GetAllInterquery returns all interquery
