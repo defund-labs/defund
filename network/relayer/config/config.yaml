@@ -4,32 +4,34 @@ global:
     memo: ""
     light-cache-size: 20
 chains:
-    - type: cosmos
-      value:
-        key: defund
-        chain-id: defund
-        rpc-addr: http://localhost:26657
-        account-prefix: defund
-        keyring-backend: test
-        gas-adjustment: 1.2
-        gas-prices: 0.01ufetf
-        debug: true
-        timeout: 20s
-        output-format: json
-        sign-mode: direct
-    - type: cosmos
-      value:
-        key: osmo
-        chain-id: osmo-test-4
-        rpc-addr: http://143.198.139.33:26657
-        account-prefix: osmo
-        keyring-backend: test
-        gas-adjustment: 1.2
-        gas-prices: 0.01uosmo
-        debug: true
-        timeout: 20s
-        output-format: json
-        sign-mode: direct
+    defund:
+        type: cosmos
+        value:
+            key: defund
+            chain-id: defund
+            rpc-addr: http://localhost:26657
+            account-prefix: defund
+            keyring-backend: test
+            gas-adjustment: 1.2
+            gas-prices: 0.01ufetf
+            debug: true
+            timeout: 20s
+            output-format: json
+            sign-mode: direct
+    osmosis:
+        type: cosmos
+        value:
+            key: osmo
+            chain-id: osmo-test-4
+            rpc-addr: http://143.198.139.33:26657
+            account-prefix: osmo
+            keyring-backend: test
+            gas-adjustment: 1.2
+            gas-prices: 0.01uosmo
+            debug: true
+            timeout: 20s
+            output-format: json
+            sign-mode: direct
 paths:
     defundosmosis:
         src:
@@ -38,8 +40,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2219
-            connection-id: connection-1744
+            client-id: 07-tendermint-2221
+            connection-id: connection-1746
         src-channel-filter:
             rule: ""
             channel-list: []
