@@ -94,7 +94,7 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		return nil, fmt.Errorf("unable to fetch consensus state for (client id: %s) (msg height: %d) (revision height: %d + revision number: %d)", connection.ClientId, msg.Height, height.GetRevisionHeight(), height.GetRevisionNumber())
 	}
 
-	path := commitmenttypes.NewMerklePath([]string{pathList[1], url.PathEscape(string(interquery.Key))}...)
+	path := commitmenttypes.NewMerklePath([]string{pathList[2], url.PathEscape(string(interquery.Key))}...)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(msg.Proof)
 	if err != nil {
