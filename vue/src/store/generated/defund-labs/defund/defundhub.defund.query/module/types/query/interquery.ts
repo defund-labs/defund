@@ -11,6 +11,7 @@ export interface Interquery {
   key: Uint8Array;
   timeoutHeight: number;
   connectionId: string;
+  clientId: string;
 }
 
 export interface InterqueryResult {
@@ -34,6 +35,7 @@ const baseInterquery: object = {
   path: "",
   timeoutHeight: 0,
   connectionId: "",
+  clientId: "",
 };
 
 export const Interquery = {
@@ -55,6 +57,9 @@ export const Interquery = {
     }
     if (message.connectionId !== "") {
       writer.uint32(50).string(message.connectionId);
+    }
+    if (message.clientId !== "") {
+      writer.uint32(58).string(message.clientId);
     }
     return writer;
   },
@@ -83,6 +88,9 @@ export const Interquery = {
           break;
         case 6:
           message.connectionId = reader.string();
+          break;
+        case 7:
+          message.clientId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -122,6 +130,11 @@ export const Interquery = {
     } else {
       message.connectionId = "";
     }
+    if (object.clientId !== undefined && object.clientId !== null) {
+      message.clientId = String(object.clientId);
+    } else {
+      message.clientId = "";
+    }
     return message;
   },
 
@@ -138,6 +151,7 @@ export const Interquery = {
       (obj.timeoutHeight = message.timeoutHeight);
     message.connectionId !== undefined &&
       (obj.connectionId = message.connectionId);
+    message.clientId !== undefined && (obj.clientId = message.clientId);
     return obj;
   },
 
@@ -172,6 +186,11 @@ export const Interquery = {
       message.connectionId = object.connectionId;
     } else {
       message.connectionId = "";
+    }
+    if (object.clientId !== undefined && object.clientId !== null) {
+      message.clientId = object.clientId;
+    } else {
+      message.clientId = "";
     }
     return message;
   },

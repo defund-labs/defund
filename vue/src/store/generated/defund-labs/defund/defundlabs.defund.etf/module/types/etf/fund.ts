@@ -44,8 +44,9 @@ export interface Redeem {
   fund: Fund | undefined;
   amount: Coin | undefined;
   channel: string;
-  sequence: string;
+  sequence: number;
   status: string;
+  error: string;
 }
 
 export interface Rebalance {
@@ -571,8 +572,9 @@ const baseRedeem: object = {
   id: "",
   creator: "",
   channel: "",
-  sequence: "",
+  sequence: 0,
   status: "",
+  error: "",
 };
 
 export const Redeem = {
@@ -592,11 +594,14 @@ export const Redeem = {
     if (message.channel !== "") {
       writer.uint32(42).string(message.channel);
     }
-    if (message.sequence !== "") {
-      writer.uint32(50).string(message.sequence);
+    if (message.sequence !== 0) {
+      writer.uint32(48).uint64(message.sequence);
     }
     if (message.status !== "") {
       writer.uint32(58).string(message.status);
+    }
+    if (message.error !== "") {
+      writer.uint32(66).string(message.error);
     }
     return writer;
   },
@@ -624,10 +629,13 @@ export const Redeem = {
           message.channel = reader.string();
           break;
         case 6:
-          message.sequence = reader.string();
+          message.sequence = longToNumber(reader.uint64() as Long);
           break;
         case 7:
           message.status = reader.string();
+          break;
+        case 8:
+          message.error = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -665,14 +673,19 @@ export const Redeem = {
       message.channel = "";
     }
     if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = String(object.sequence);
+      message.sequence = Number(object.sequence);
     } else {
-      message.sequence = "";
+      message.sequence = 0;
     }
     if (object.status !== undefined && object.status !== null) {
       message.status = String(object.status);
     } else {
       message.status = "";
+    }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = String(object.error);
+    } else {
+      message.error = "";
     }
     return message;
   },
@@ -688,6 +701,7 @@ export const Redeem = {
     message.channel !== undefined && (obj.channel = message.channel);
     message.sequence !== undefined && (obj.sequence = message.sequence);
     message.status !== undefined && (obj.status = message.status);
+    message.error !== undefined && (obj.error = message.error);
     return obj;
   },
 
@@ -721,12 +735,17 @@ export const Redeem = {
     if (object.sequence !== undefined && object.sequence !== null) {
       message.sequence = object.sequence;
     } else {
-      message.sequence = "";
+      message.sequence = 0;
     }
     if (object.status !== undefined && object.status !== null) {
       message.status = object.status;
     } else {
       message.status = "";
+    }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = object.error;
+    } else {
+      message.error = "";
     }
     return message;
   },

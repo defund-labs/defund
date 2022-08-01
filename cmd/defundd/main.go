@@ -5,10 +5,11 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/defund-labs/defund/app"
+	"github.com/tendermint/spm/cosmoscmd"
 )
 
 func main() {
-	rootCmd, _ := NewRootCmd(
+	rootCmd, _ := cosmoscmd.NewRootCmd(
 		app.Name,
 		app.AccountAddressPrefix,
 		app.DefaultNodeHome,

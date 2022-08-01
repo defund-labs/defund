@@ -38,6 +38,7 @@ export interface QueryInterquery {
   /** @format uint64 */
   timeoutHeight?: string;
   connectionId?: string;
+  clientId?: string;
 }
 
 export interface QueryInterqueryResult {

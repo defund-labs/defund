@@ -65,19 +65,10 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	var interqueryresult = types.InterqueryResult{}
 
-	// Check if the value already exists
-	_, isFound := k.GetInterqueryResult(
-		ctx,
-		msg.Storeid,
-	)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", msg.Storeid))
-	}
-
 	// Get the interquery from store
 	interquery, isFound := k.GetInterquery(ctx, msg.Storeid)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", msg.Storeid))
+	if !isFound {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Interquery with StoreId %s could not be found.", msg.Storeid))
 	}
 
 	pathList := strings.Split(interquery.Path, "/")
