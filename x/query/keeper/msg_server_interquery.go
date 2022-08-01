@@ -78,9 +78,12 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 	if msg.Proof == nil {
 		return nil, sdkerrors.Wrapf(types.ErInvalidProof, "no proof provided")
 	}
-	connection, _ := k.connectionKeeper.GetConnection(ctx, interquery.ConnectionId)
+	connection, found := k.connectionKeeper.GetConnection(ctx, interquery.ConnectionId)
+	if !found {
+		return nil, fmt.Errorf("unable to find connection %s", interquery.ConnectionId)
+	}
 
-	height := clienttypes.NewHeight(clienttypes.ParseChainID(interquery.Chainid), uint64(msg.Height)+1)
+	height := clienttypes.NewHeight(clienttypes.ParseChainID(interquery.Chainid), uint64(msg.Height))
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, height)
 
 	if !found {
