@@ -116,6 +116,7 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		interqueryresult = types.InterqueryResult{
 			Creator: msg.Creator,
 			Storeid: msg.Storeid,
+			Chainid: interquery.Chainid,
 			Data:    msg.Data,
 			Height:  msg.Height,
 			Success: true,
