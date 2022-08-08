@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -27,11 +28,6 @@ func TestInterqueryMsgServerCreate(t *testing.T) {
 		}
 		_, err := srv.CreateInterquery(wctx, expected)
 		require.NoError(t, err)
-		rst, found := k.GetInterquery(ctx,
-			expected.Storeid,
-		)
-		require.True(t, found)
-		require.Equal(t, expected.Storeid, rst.Storeid)
 	}
 }
 
@@ -51,17 +47,17 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 		},
 		{
 			desc: "Invalid proof",
-			request: &types.MsgCreateInterqueryResult{Creator: "B",
+			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(0),
 			},
-			err: types.ErInvalidProof,
+			err: sdkerrors.Wrapf(types.ErInvalidProof, "no proof provided"),
 		},
 		{
-			desc: "KeyNotFound",
+			desc: "InterqueryNotFound",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(100000),
 			},
-			err: sdkerrors.ErrKeyNotFound,
+			err: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Interquery with StoreId %s could not be found.", strconv.Itoa(0))),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -84,58 +80,6 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 				)
 				require.True(t, found)
 				require.Equal(t, expected.Storeid, rst.Storeid)
-			}
-		})
-	}
-}
-
-func TestInterqueryMsgServerTimeout(t *testing.T) {
-	creator := "A"
-
-	for _, tc := range []struct {
-		desc    string
-		request *types.MsgCreateInterqueryTimeout
-		err     error
-	}{
-		{
-			desc: "Completed",
-			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
-				Storeid: strconv.Itoa(0),
-			},
-		},
-		{
-			desc: "Unauthorized",
-			request: &types.MsgCreateInterqueryTimeout{Creator: "B",
-				Storeid: strconv.Itoa(0),
-			},
-			err: sdkerrors.ErrUnauthorized,
-		},
-		{
-			desc: "KeyNotFound",
-			request: &types.MsgCreateInterqueryTimeout{Creator: creator,
-				Storeid: strconv.Itoa(100000),
-			},
-			err: sdkerrors.ErrKeyNotFound,
-		},
-	} {
-		t.Run(tc.desc, func(t *testing.T) {
-			k, ctx := keepertest.QueryKeeper(t)
-			srv := keeper.NewMsgServerImpl(*k)
-			wctx := sdk.WrapSDKContext(ctx)
-
-			_, err := srv.CreateInterquery(wctx, &types.MsgCreateInterquery{Creator: creator,
-				Storeid: strconv.Itoa(0),
-			})
-			require.NoError(t, err)
-			_, err = srv.CreateInterqueryTimeout(wctx, tc.request)
-			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
-			} else {
-				require.NoError(t, err)
-				_, found := k.GetInterquery(ctx,
-					tc.request.Storeid,
-				)
-				require.False(t, found)
 			}
 		})
 	}

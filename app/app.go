@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -191,10 +190,10 @@ var (
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
-		panic(fmt.Sprintf("failed to get user home directory: %s", err))
+		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, fmt.Sprintf(".%s", Name))
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -258,10 +257,10 @@ func New(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig EncodingConfig,
+	encodingConfig cosmoscmd.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) *App {
+) cosmoscmd.App {
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry

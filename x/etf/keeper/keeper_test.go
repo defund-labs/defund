@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -16,11 +15,9 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/defund-labs/defund/app"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
-	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -85,25 +82,6 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
-	app := app.Setup(s.T(), false, 1)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{
-		ChainID: fmt.Sprintf("test-chain-%s", tmrand.Str(4)),
-		Height:  1,
-		Time:    time.Unix(0, 0),
-	})
-
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EtfKeeper))
-
-	s.app = app
-	s.ctx = ctx
-	s.queryClient = types.NewQueryClient(queryHelper)
-
-	// initialize Osmosis broker
-	s.initOsmosisBroker()
-
-	// initialize a test fund
-	s.initTestFund()
 }
 
 func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Coin, aktCoin sdk.Coin) {
