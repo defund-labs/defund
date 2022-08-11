@@ -124,9 +124,9 @@ address_type = { derivation = 'cosmos' }
 
 [[chains]]
 id = 'osmo-test-4'
-rpc_addr = 'http://143.198.139.33:26657'
-grpc_addr = 'http://143.198.139.33:9090'
-websocket_addr = 'ws://143.198.139.33:26657/websocket'
+rpc_addr = 'http://46.166.172.232:26657'
+grpc_addr = 'http://46.166.172.232:9090'
+websocket_addr = 'http://46.166.172.232:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'osmo'
 key_name = 'testkey'
