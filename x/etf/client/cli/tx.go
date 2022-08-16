@@ -50,7 +50,7 @@ func CmdCreateFund() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [connectionId] [startingPrice]",
 		Short: "Create a new fund",
-		Args:  cobra.ExactArgs(8),
+		Args:  cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// Get value arguments

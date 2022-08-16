@@ -261,12 +261,12 @@ test-all:
 
 test-create-fund:
 	@echo "Running create fund bash test......."
-	./test/create-fund.sh
+	./tests/etf/create-fund.sh
 
 test-create-shares:
 	@echo "Running create shares bash test......."
-	./test/create-shares.sh
+	./tests/etf/create-shares.sh
 
 test-redeem-shares:
 	@echo "Running redeem shares bash test......."
-	./test/redeem-shares.sh
+	./tests/etf/redeem-shares.sh

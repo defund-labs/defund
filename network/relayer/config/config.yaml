@@ -40,8 +40,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2282
-            connection-id: connection-1820
+            client-id: 07-tendermint-2283
+            connection-id: connection-1821
         src-channel-filter:
             rule: ""
             channel-list: []
