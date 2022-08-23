@@ -71,7 +71,7 @@ func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	path := "/store/gamm/key"
 	connectionid := "connection-0"
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
-	timeoutHeight := uint64(ctx.BlockHeight() + 10)
+	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
 	chainid := "osmosis-1"
 
@@ -91,7 +91,7 @@ func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
 		return err
 	}
 	key := banktypes.CreateAccountBalancesPrefix(accAddr.Bytes())
-	timeoutHeight := uint64(ctx.BlockHeight() + 10)
+	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("account-%s", account)
 	chainid := "osmosis-1"
 

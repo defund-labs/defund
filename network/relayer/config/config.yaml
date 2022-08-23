@@ -1,6 +1,6 @@
 global:
     api-listen-addr: :5183
-    timeout: 10s
+    timeout: 60s
     memo: ""
     light-cache-size: 20
 chains:
@@ -15,7 +15,7 @@ chains:
             gas-adjustment: 1.2
             gas-prices: 0.01ufetf
             debug: true
-            timeout: 20s
+            timeout: 60s
             output-format: json
             sign-mode: direct
     osmosis:
@@ -29,7 +29,7 @@ chains:
             gas-adjustment: 1.2
             gas-prices: 0.01uosmo
             debug: true
-            timeout: 20s
+            timeout: 60s
             output-format: json
             sign-mode: direct
 paths:
@@ -40,8 +40,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2283
-            connection-id: connection-1821
+            client-id: 07-tendermint-2315
+            connection-id: connection-1855
         src-channel-filter:
             rule: ""
             channel-list: []
