@@ -16,7 +16,6 @@ func NewMsgCreateFund(
 	holdings string,
 	rebalance int64,
 	basedenom string,
-	connectionid string,
 	startingprice string,
 
 ) *MsgCreateFund {
@@ -60,13 +59,13 @@ func (msg *MsgCreateFund) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	// Ensure that an allowed broker is used. Currently we only support gdex
-	if msg.Broker != "gdex" {
+	// Ensure that an allowed broker is used. Currently we only support osmosis
+	if msg.Broker != "osmosis" {
 		return sdkerrors.Wrapf(ErrWrongBroker, "invalid broker (%s)", msg.Broker)
 	}
 
-	// Ensure that an allowed basedenom is used. Currently we only support uatom for the gravity dex
-	if msg.BaseDenom != "uatom" {
+	// Ensure that an allowed basedenom is used. Currently we only support uosmo
+	if msg.BaseDenom != "uosmo" {
 		return sdkerrors.Wrapf(ErrWrongBaseDenom, "invalid base denom (%s)", msg.BaseDenom)
 	}
 

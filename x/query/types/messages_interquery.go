@@ -34,7 +34,7 @@ func (msg *MsgCreateInterquery) Route() string {
 }
 
 func (msg *MsgCreateInterquery) Type() string {
-	return "CreateInterquery"
+	return "create_interquery"
 }
 
 func (msg *MsgCreateInterquery) GetSigners() []sdk.AccAddress {
@@ -63,11 +63,8 @@ var _ sdk.Msg = &MsgCreateInterqueryResult{}
 func NewMsgCreateInterqueryResult(
 	creator string,
 	storeid string,
-	key string,
 	data []byte,
 	height uint64,
-	connectionid string,
-	success bool,
 	proof *crypto.ProofOps,
 
 ) *MsgCreateInterqueryResult {
@@ -85,7 +82,7 @@ func (msg *MsgCreateInterqueryResult) Route() string {
 }
 
 func (msg *MsgCreateInterqueryResult) Type() string {
-	return "CreateInterqueryResult"
+	return "create_interquery_result"
 }
 
 func (msg *MsgCreateInterqueryResult) GetSigners() []sdk.AccAddress {
@@ -130,7 +127,7 @@ func (msg *MsgCreateInterqueryTimeout) Route() string {
 }
 
 func (msg *MsgCreateInterqueryTimeout) Type() string {
-	return "CreateInterqueryTimeout"
+	return "create_interquery_timeout"
 }
 
 func (msg *MsgCreateInterqueryTimeout) GetSigners() []sdk.AccAddress {
