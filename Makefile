@@ -255,9 +255,14 @@ kill-dev:
 
 test-all:
 	@echo "Running all bash tests......."
+	test-activate-broker
 	test-create-fund
 	test-create-shares
 	test-redeem-shares
+
+test-activate-broker:
+	@echo "Running activate broker bash test......."
+	./tests/broker/activate-broker.sh
 
 test-create-fund:
 	@echo "Running create fund bash test......."

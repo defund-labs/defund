@@ -100,6 +100,11 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		return nil, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", msg.Broker))
 	}
 
+	// ensure the broker is active and has connection id assigned to it
+	if broker.Status != "active" {
+		return nil, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s)", msg.Broker, broker.Status))
+	}
+
 	// Create and save the broker fund ICA account on the broker chain
 	err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc.GetAddress().String())
 	if err != nil {

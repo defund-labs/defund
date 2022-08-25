@@ -19,7 +19,7 @@ service Query {
   };
   // QueryBrokersRequest returns all brokers
   rpc Brokers(QueryBrokersRequest) returns (QueryBrokersResponse) {
-    option (google.api.http).get = "/defund-labs/defund/broker/brokers";
+    option (google.api.http).get = "/defund-labs/defund/broker/broker";
   };
   // this line is used by starport scaffolding # 2
 }

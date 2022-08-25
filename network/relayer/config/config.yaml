@@ -12,6 +12,7 @@ chains:
             rpc-addr: http://localhost:26657
             account-prefix: defund
             keyring-backend: test
+            block-timeout: 6s
             gas-adjustment: 1.2
             gas-prices: 0.01ufetf
             debug: true
@@ -27,6 +28,7 @@ chains:
             account-prefix: osmo
             keyring-backend: test
             gas-adjustment: 1.2
+            block-timeout: 6s
             gas-prices: 0.01uosmo
             debug: true
             timeout: 60s
@@ -40,8 +42,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2318
-            connection-id: connection-1862
+            client-id: 07-tendermint-2320
+            connection-id: connection-1865
         src-channel-filter:
             rule: ""
             channel-list: []
