@@ -17,7 +17,6 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
@@ -258,8 +257,9 @@ func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) error {
 	for _, pool := range osmosisBroker.Pools {
 		// lookup interquery for pool
 		iq, found := k.queryKeeper.GetInterqueryResult(ctx, pool.InterqueryId)
+		// if no interquery result for pool set as inactive
 		if !found {
-			return sdkerrors.Wrap(querytypes.ErrInvalidQuery, fmt.Sprintf("query %s not found", pool.InterqueryId))
+			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "inactive")
 		}
 		// check if interquery was updated within last 30 blocks
 		updated := (uint64(ctx.BlockHeight()) - iq.LocalHeight) < 30
