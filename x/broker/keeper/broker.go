@@ -39,6 +39,36 @@ func (k Keeper) GetBroker(
 	return val, false
 }
 
+// UpdatePoolStatus updates the status for the pool specified for the broker
+func (k Keeper) UpdatePoolStatus(
+	ctx sdk.Context,
+	brokerId string,
+	poolId uint64,
+	status string,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BrokerKeyPrefix))
+
+	var broker types.Broker
+
+	b := store.Get(types.BrokerKey(
+		brokerId,
+	))
+	if b == nil {
+		return
+	}
+
+	k.cdc.MustUnmarshal(b, &broker)
+
+	for i := range broker.Pools {
+		if broker.Pools[i].PoolId == poolId {
+			broker.Pools[i].Status = status
+			return
+		}
+	}
+
+	k.SetBroker(ctx, broker)
+}
+
 // GetAllBrokers returns all brokers in store
 func (k Keeper) GetAllBrokers(ctx sdk.Context) (list []types.Broker) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BrokerKeyPrefix))

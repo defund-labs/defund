@@ -21,9 +21,12 @@ message InterqueryResult {
   string storeid = 2; 
   string chainid = 3; 
   bytes  data = 4;
+  // queried chain height on submission
   uint64 height = 5;
-  bool   success = 6;
-  bool   proved = 7;
+  // querying chain height on submission
+  uint64 localHeight = 6;
+  bool   success = 7;
+  bool   proved = 8;
 }
 
 message InterqueryTimeoutResult {

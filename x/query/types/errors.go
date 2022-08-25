@@ -10,4 +10,5 @@ import (
 var (
 	ErrMarshallingError = sdkerrors.Register(ModuleName, 1101, "marshalling error")
 	ErInvalidProof      = sdkerrors.Register(ModuleName, 1102, "invalid proof")
+	ErrInvalidQuery     = sdkerrors.Register(ModuleName, 1103, "invalid query")
 )

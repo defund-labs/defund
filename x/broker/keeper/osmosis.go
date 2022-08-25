@@ -17,6 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	querytypes "github.com/defund-labs/defund/x/query/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
@@ -243,4 +244,31 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 	}
 
 	return sequence, nil
+}
+
+// SetPoolStatusHook is a hook run at begin blocker to set the status of all pools
+// within each broker depending if the last query is recent. We state recent as updated within
+// last 30 blocks (5 minutes).
+// NOTE: CHANGE RECENT BLOCK PARAM TO MODULE PARAM SET BY GOVERNANCE
+func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) error {
+	osmosisBroker, found := k.GetBroker(ctx, "osmosis")
+	if !found {
+		return sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
+	}
+	for _, pool := range osmosisBroker.Pools {
+		// lookup interquery for pool
+		iq, found := k.queryKeeper.GetInterqueryResult(ctx, pool.InterqueryId)
+		if !found {
+			return sdkerrors.Wrap(querytypes.ErrInvalidQuery, fmt.Sprintf("query %s not found", pool.InterqueryId))
+		}
+		// check if interquery was updated within last 30 blocks
+		updated := (uint64(ctx.BlockHeight()) - iq.LocalHeight) < 30
+		// set the status to inactive or active depending on check
+		if updated {
+			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "active")
+		} else {
+			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "inactive")
+		}
+	}
+	return nil
 }
