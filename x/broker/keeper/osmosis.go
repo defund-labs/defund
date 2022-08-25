@@ -260,6 +260,7 @@ func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) error {
 		// if no interquery result for pool set as inactive
 		if !found {
 			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "inactive")
+			return nil
 		}
 		// check if interquery was updated within last 30 blocks
 		updated := (uint64(ctx.BlockHeight()) - iq.LocalHeight) < 30
