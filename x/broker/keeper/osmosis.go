@@ -249,27 +249,40 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 // within each broker depending if the last query is recent. We state recent as updated within
 // last 30 blocks (5 minutes).
 // NOTE: CHANGE RECENT BLOCK PARAM TO MODULE PARAM SET BY GOVERNANCE
-func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) error {
+func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) {
+	k.Logger(ctx).Debug("SetPoolStatusHookOsmosis: Running Update Osmosis Pool Status Hook")
 	osmosisBroker, found := k.GetBroker(ctx, "osmosis")
 	if !found {
-		return sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
+		err := sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
+		k.Logger(ctx).Error(err.Error())
 	}
 	for _, pool := range osmosisBroker.Pools {
 		// lookup interquery for pool
 		iq, found := k.queryKeeper.GetInterqueryResult(ctx, pool.InterqueryId)
 		// if no interquery result for pool set as inactive
 		if !found {
-			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "inactive")
-			return nil
+			k.Logger(ctx).Debug(fmt.Sprintf("SetPoolStatusHookOsmosis: Osmosis Pool (%d) Interquery Not Found, Updated To Inactive", pool.PoolId))
+			k.ChangeBrokerPoolStatus(ctx, osmosisBroker, pool.PoolId, "inactive")
+			continue
 		}
-		// check if interquery was updated within last 30 blocks
-		updated := (uint64(ctx.BlockHeight()) - iq.LocalHeight) < 30
+		// check if interquery was updated within last 100 blocks
+		updated := (uint64(ctx.BlockHeight()) - iq.LocalHeight) < 100
+		k.Logger(ctx).Debug(fmt.Sprintf("SetPoolStatusHookOsmosis: Running Update Pool Status (%d)", pool.PoolId))
 		// set the status to inactive or active depending on check
 		if updated {
-			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "active")
+			k.Logger(ctx).Debug(fmt.Sprintf("SetPoolStatusHookOsmosis: Osmosis Pool (%d) Updated To Active", pool.PoolId))
+			err := k.ChangeBrokerPoolStatus(ctx, osmosisBroker, pool.PoolId, "active")
+			if err != nil {
+				k.Logger(ctx).Error(err.Error())
+			}
+			continue
 		} else {
-			k.UpdatePoolStatus(ctx, "osmosis", pool.PoolId, "inactive")
+			k.Logger(ctx).Debug(fmt.Sprintf("SetPoolStatusHookOsmosis: Osmosis Pool (%d) Updated To Inactive", pool.PoolId))
+			err := k.ChangeBrokerPoolStatus(ctx, osmosisBroker, pool.PoolId, "inactive")
+			if err != nil {
+				k.Logger(ctx).Error(err.Error())
+			}
+			continue
 		}
 	}
-	return nil
 }

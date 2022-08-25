@@ -151,17 +151,17 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx sdk.Context, areb abci.RequestBeginBlock) {
 	// Run All Broker Hooks
-	err := am.keeper.SetPoolStatusHookOsmosis(ctx)
-	if err != nil {
-		am.keeper.Logger(ctx).Error(err.Error())
-	}
+	am.keeper.SetPoolStatusHookOsmosis(ctx)
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, areb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	_ = am.keeper.CreateDefundQueries(ctx)
+	err := am.keeper.CreateDefundQueries(ctx)
+	if err != nil {
+		am.keeper.Logger(ctx).Debug(err.Error())
+	}
 	return []abci.ValidatorUpdate{}
 }
