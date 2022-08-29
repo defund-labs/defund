@@ -240,7 +240,7 @@ start-hermes:
 
 install-all:
 	./network/osmosis/osmosis.sh
-	./network/hermes/install.sh
+	./network/ts-relayer/install.sh
 
 kill-dev:
 	@echo "Killing defundd, osmosis and removing previous data"
