@@ -233,7 +233,7 @@ create-conn:
 	bash ./network/hermes/create-conn.sh
 
 start-rly:
-	./network/relayer/start.sh
+	./network/ts-relayer/start.sh
 
 start-hermes:
 	./network/hermes/start.sh

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package defundhub.defund.query;
+package defundlabs.defund.query;
 
 import "query/interquery.proto";
 // this line is used by starport scaffolding # genesis/proto/import

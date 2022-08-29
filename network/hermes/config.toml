@@ -113,7 +113,6 @@ store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
 gas_price = { price = 0.001, denom = 'ufetf' }
-gas_adjustment = 0.1
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
@@ -124,9 +123,9 @@ address_type = { derivation = 'cosmos' }
 
 [[chains]]
 id = 'osmo-test-4'
-rpc_addr = 'http://46.166.172.232:26657'
-grpc_addr = 'http://46.166.172.232:9090'
-websocket_addr = 'ws://46.166.172.232:26657/websocket'
+rpc_addr = 'http://222.106.187.14:54802'
+grpc_addr = 'http://222.106.187.14:9090'
+websocket_addr = 'ws://222.106.187.14:54802/websocket'
 rpc_timeout = '10s'
 account_prefix = 'osmo'
 key_name = 'testkey'
@@ -134,7 +133,6 @@ store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
 gas_price = { price = 0.001, denom = 'uosmo' }
-gas_adjustment = 0.1
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'

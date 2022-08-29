@@ -87,7 +87,7 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		return nil, fmt.Errorf("unable to fetch client state")
 	}
 
-	height := clientState.GetLatestHeight()
+	height := msg.Height
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, height)
 
 	if !found {

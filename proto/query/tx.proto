@@ -1,8 +1,9 @@
 syntax = "proto3";
-package defundhub.defund.query;
+package defundlabs.defund.query;
 
 import "query/interquery.proto";
 import "tendermint/crypto/proof.proto";
+import "ibc/core/client/v1/client.proto";
 // this line is used by starport scaffolding # proto/tx/import
 
 option go_package = "github.com/defund-labs/defund/x/query/types";
@@ -32,7 +33,7 @@ message MsgCreateInterqueryResult {
 
   string storeid = 2; 
   bytes  data = 3;
-  uint64 height = 4; 
+  ibc.core.client.v1.Height height = 4; 
   tendermint.crypto.ProofOps proof = 5;
 }
 message MsgCreateInterqueryResultResponse {}
