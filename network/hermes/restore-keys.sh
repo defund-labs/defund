@@ -7,8 +7,8 @@ set -e
 ### Sleep is needed otherwise the relayer crashes when trying to init
 sleep 1s
 ### Restore Keys
-$HERMES_BINARY -c ./network/hermes/config.toml keys restore defund -m "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
+$HERMES_BINARY --config $CONFIG_DIR keys add --key-name defund --mnemonic-file $HERMES_DIRECTORY/mnemonic-defund.txt --chain defund --overwrite
 sleep 5s
 
-$HERMES_BINARY -c ./network/hermes/config.toml keys restore osmo-test-4 -m "record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset"
+$HERMES_BINARY --config $CONFIG_DIR keys add --key-name osmo-test-4 --mnemonic-file $HERMES_DIRECTORY/mnemonic-osmo.txt --chain osmo-test-4 --overwrite
 sleep 5s

@@ -438,25 +438,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
-   * @name QueryBroker
-   * @summary QueryBrokerRequest returns the broker based on the broker id requested
-   * @request GET:/defund-labs/defund/broker/broker/{broker}
-   */
-  queryBroker = (broker: string, params: RequestParams = {}) =>
-    this.request<BrokerQueryBrokerResponse, RpcStatus>({
-      path: `/defund-labs/defund/broker/broker/${broker}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
    * @name QueryBrokers
    * @summary QueryBrokersRequest returns all brokers
-   * @request GET:/defund-labs/defund/broker/brokers
+   * @request GET:/defund-labs/defund/broker/broker
    */
   queryBrokers = (
     query?: {
@@ -469,9 +453,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<BrokerQueryBrokersResponse, RpcStatus>({
-      path: `/defund-labs/defund/broker/brokers`,
+      path: `/defund-labs/defund/broker/broker`,
       method: "GET",
       query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryBroker
+   * @summary QueryBrokerRequest returns the broker based on the broker id requested
+   * @request GET:/defund-labs/defund/broker/broker/{broker}
+   */
+  queryBroker = (broker: string, params: RequestParams = {}) =>
+    this.request<BrokerQueryBrokerResponse, RpcStatus>({
+      path: `/defund-labs/defund/broker/broker/${broker}`,
+      method: "GET",
       format: "json",
       ...params,
     });

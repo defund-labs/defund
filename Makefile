@@ -233,14 +233,14 @@ create-conn:
 	bash ./network/hermes/create-conn.sh
 
 start-rly:
-	./network/relayer/start.sh
+	./network/ts-relayer/start.sh
 
 start-hermes:
 	./network/hermes/start.sh
 
 install-all:
 	./network/osmosis/osmosis.sh
-	./network/hermes/install.sh
+	./network/ts-relayer/install.sh
 
 kill-dev:
 	@echo "Killing defundd, osmosis and removing previous data"
@@ -255,18 +255,23 @@ kill-dev:
 
 test-all:
 	@echo "Running all bash tests......."
+	test-activate-broker
 	test-create-fund
 	test-create-shares
 	test-redeem-shares
 
+test-activate-broker:
+	@echo "Running activate broker bash test......."
+	./tests/broker/activate-broker.sh
+
 test-create-fund:
 	@echo "Running create fund bash test......."
-	./test/create-fund.sh
+	./tests/etf/create-fund.sh
 
 test-create-shares:
 	@echo "Running create shares bash test......."
-	./test/create-shares.sh
+	./tests/etf/create-shares.sh
 
 test-redeem-shares:
 	@echo "Running redeem shares bash test......."
-	./test/redeem-shares.sh
+	./tests/etf/redeem-shares.sh

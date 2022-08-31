@@ -1,9 +1,10 @@
 syntax = "proto3";
-package defundhub.defund.query;
+package defundlabs.defund.query;
 
 option go_package = "github.com/defund-labs/defund/x/query/types";
 
 import "tendermint/crypto/proof.proto";
+import "ibc/core/client/v1/client.proto";
 
 message Interquery {
   string storeid = 1;
@@ -21,9 +22,12 @@ message InterqueryResult {
   string storeid = 2; 
   string chainid = 3; 
   bytes  data = 4;
-  uint64 height = 5;
-  bool   success = 6;
-  bool   proved = 7;
+  // queried chain height on submission
+  ibc.core.client.v1.Height height = 5;
+  // querying chain height on submission
+  uint64 localHeight = 6;
+  bool   success = 7;
+  bool   proved = 8;
 }
 
 message InterqueryTimeoutResult {

@@ -121,17 +121,21 @@ func (k Keeper) GetInterqueryResult(
 	storeid string,
 
 ) (val types.InterqueryResult, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryResultKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(string(types.InterqueryResultKeyPrefix)))
 
-	b := store.Get(types.InterqueryResultKey(
-		storeid,
-	))
-	if b == nil {
-		return val, false
+	iterator := store.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.InterqueryResult
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Storeid == storeid {
+			return val, true
+		}
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return val, false
 }
 
 // RemoveInterqueryResult removes an interquery result from the store

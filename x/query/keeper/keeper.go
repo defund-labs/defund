@@ -106,7 +106,7 @@ func (k Keeper) TimeoutInterqueries(ctx sdk.Context) {
 func (k Keeper) ModuleEndBlocker(ctx sdk.Context) {
 
 	//Timeout all timedout/invalid interqueries at the beginning of the end block
-	k.TimeoutInterqueries(ctx)
+	//k.TimeoutInterqueries(ctx)
 
 	//Get all interqueries that have not been submitted yet
 	pendingqueries := k.GetAllInterquery(ctx)

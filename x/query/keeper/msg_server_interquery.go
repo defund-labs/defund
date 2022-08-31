@@ -87,7 +87,7 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		return nil, fmt.Errorf("unable to fetch client state")
 	}
 
-	height := clientState.GetLatestHeight()
+	height := msg.Height
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, height)
 
 	if !found {
@@ -114,12 +114,14 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 			return nil, fmt.Errorf("unable to verify proof: %s", err)
 		}
 		interqueryresult = types.InterqueryResult{
-			Creator: msg.Creator,
-			Storeid: msg.Storeid,
-			Data:    msg.Data,
-			Height:  msg.Height,
-			Success: true,
-			Proved:  true,
+			Creator:     msg.Creator,
+			Storeid:     msg.Storeid,
+			Chainid:     interquery.Chainid,
+			Data:        msg.Data,
+			Height:      msg.Height,
+			LocalHeight: uint64(ctx.BlockHeight()),
+			Success:     true,
+			Proved:      true,
 		}
 		k.Logger(ctx).Debug("interquery result proof validated", "module", types.ModuleName, "queryId", msg.Storeid)
 

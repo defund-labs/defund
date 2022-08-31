@@ -24,23 +24,25 @@ func (k Keeper) GetBroker(
 ) (val types.Broker, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BrokerKeyPrefix))
 
-	b := store.Get(types.BrokerKey(
-		id,
-	))
-	if b == nil {
-		return val, false
+	iterator := store.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Broker
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Id == id {
+			return val, true
+		}
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return val, false
 }
 
 // GetAllBrokers returns all brokers in store
 func (k Keeper) GetAllBrokers(ctx sdk.Context) (list []types.Broker) {
-	store := ctx.KVStore(k.storeKey)
-	brokerResultStore := prefix.NewStore(store, types.KeyPrefix(types.BrokerKeyPrefix))
-
-	iterator := brokerResultStore.Iterator(nil, nil)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BrokerKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

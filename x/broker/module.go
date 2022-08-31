@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -54,7 +55,7 @@ func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 
 // DefaultGenesis returns the capability module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return nil
+	return cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the capability module.
@@ -68,6 +69,7 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the capability module's root tx command.
@@ -149,11 +151,17 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, areb abci.RequestBeginBlock) {
+	// Run All Broker Hooks
+	am.keeper.SetPoolStatusHookOsmosis(ctx)
+}
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, areb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	_ = am.keeper.CreateDefundQueries(ctx)
+	err := am.keeper.CreateDefundQueries(ctx)
+	if err != nil {
+		am.keeper.Logger(ctx).Debug(err.Error())
+	}
 	return []abci.ValidatorUpdate{}
 }
