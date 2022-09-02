@@ -16,6 +16,9 @@ const (
 
 	// TransferKeyPrefix is the prefix to retrieve all Transfer stores
 	TransferKeyPrefix = "Transfer/value/"
+
+	StatusComplete = "complete"
+	StatusError    = "error"
 )
 
 func KeyPrefix(p string) []byte {

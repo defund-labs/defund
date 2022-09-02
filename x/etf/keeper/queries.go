@@ -1,31 +1,48 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// CreateQueryOsmosisBalances queries all balances for each fund on Osmosis
-func (k Keeper) CreateQueryOsmosisBalances(ctx sdk.Context) {
+// CreateBalances queries all balances for each broker for each funds holdings
+func (k Keeper) CreateBalances(ctx sdk.Context) {
 	funds := k.GetAllFund(ctx)
 	for _, fund := range funds {
-		portID, err := icatypes.NewControllerPortID(fund.Address)
-		if err != nil {
-			ctx.Logger().Debug(err.Error())
+		for _, holding := range fund.Holdings {
+			// get the broker
+			broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
+			if !found {
+				err := sdkerrors.Wrap(brokertypes.ErrBrokerNotFound, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
+				ctx.Logger().Debug(err.Error())
+			}
+
+			portID, err := icatypes.NewControllerPortID(fund.Address)
+			if err != nil {
+				ctx.Logger().Debug(err.Error())
+			}
+			addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
+			if !found {
+				err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
+				ctx.Logger().Debug(err.Error())
+			}
+
+			switch holding.BrokerId {
+			case "osmosis":
+				k.brokerKeeper.CreateQueryOsmosisBalance(ctx, addr)
+			}
 		}
-		addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, fund.ConnectionId, portID)
-		if !found {
-			err := status.Errorf(codes.NotFound, "no account found for portID %s", portID)
-			ctx.Logger().Debug(err.Error())
-		}
-		k.brokerKeeper.CreateQueryOsmosisBalance(ctx, addr)
 	}
 }
 
 // CreateDefundQueries creates all the queries for the ETF module. Run in end blocker
 func (k Keeper) CreateETFQueries(ctx sdk.Context) {
-	// Add Osmosis broker interquery for all pools
-	k.CreateQueryOsmosisBalances(ctx)
+	// Add broker interquery for all fund balance accounts
+	k.CreateBalances(ctx)
 }

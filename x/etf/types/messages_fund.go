@@ -24,7 +24,6 @@ func NewMsgCreateFund(
 		Symbol:        symbol,
 		Name:          name,
 		Description:   description,
-		Broker:        broker,
 		Holdings:      holdings,
 		Rebalance:     rebalance,
 		BaseDenom:     basedenom,
@@ -57,11 +56,6 @@ func (msg *MsgCreateFund) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-
-	// Ensure that an allowed broker is used. Currently we only support osmosis
-	if msg.Broker != "osmosis" {
-		return sdkerrors.Wrapf(ErrWrongBroker, "invalid broker (%s)", msg.Broker)
 	}
 
 	// Ensure that an allowed basedenom is used. Currently we only support uosmo

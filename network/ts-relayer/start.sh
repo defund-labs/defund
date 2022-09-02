@@ -1,6 +1,7 @@
 #!/bin/bash
 
 CHAIN_DIR=./network/data
+RELAY_DIR=./network/ts-relayer
 CHAINID_1=defund
 
 echo "creating Defund relayer account and funding..."
@@ -8,11 +9,13 @@ defundd tx bank send defund1m9l358xunhhwds0568za49mzhvuxx9uxtnevlv defund1y295ky
 
 # create connections
 echo "Creating connections..."
-node $HOME/ts-relayer/build/binary/ibc-setup/index.js connect --mnemonic "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
+ibc-setup connect --log-level debug
 
+echo "What is the source connection to relay?"
 read srcconnection
+echo "What is the destination connection to relay?"
 read destconnection
 
 # start up relayer polling every 6 seconds
-echo "Starting Defund ts-relayer..."
-node $HOME/ts-relayer/build/binary/ibc-relayer/index.js start --mnemonic "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart" --src-connection $srcconnection --dest-connection $destconnection --poll 6
+echo "Starting Defund ts-relayer for src:$srcconnection dest:$destconnection..."
+ibc-relayer start --src-connection $srcconnection --dest-connection $destconnection --poll 6 --log-level debug > ./relayer.log 2>&1 &

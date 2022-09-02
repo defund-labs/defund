@@ -243,9 +243,10 @@ install-all:
 	./network/ts-relayer/install.sh
 
 kill-dev:
-	@echo "Killing defundd, osmosis and removing previous data"
+	@echo "Killing defundd, osmosis, relayer and removing previous data"
 	-@rm -rf ./network/data
 	-@killall defundd 2>/dev/null
+	-@killall node 2>/dev/null
 	-@killall osmosis 2>/dev/null
 	-@killall rly 2>/dev/null
 

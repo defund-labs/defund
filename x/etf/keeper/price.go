@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,24 +34,25 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 	for _, holding := range fund.Holdings {
-		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, fund.Broker.Id, holding.PoolId)
+		// check that a pool with the broker exists
+		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, holding.BrokerId, holding.PoolId)
 		if !found {
-			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, fund.Broker.Id)
+			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
 		}
-		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.Broker.BaseDenom)
+		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
 		if err != nil {
 			return price, err
 		}
-		priceWeighted := priceUnweighted.Mul(sdk.NewDec(holding.Percent))
+		priceWeighted := priceUnweighted.Mul(sdk.NewDec(holding.Percent / 100))
 		comp = append(comp, priceWeighted)
 	}
 	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uosmo for example)
-	if len(comp) == 0 {
+	if fund.Shares.Amount.Uint64() == 0 {
 		price = fund.StartingPrice
 	}
-	if len(comp) > 0 {
+	if fund.Shares.Amount.Uint64() > 0 {
 		total := sum(comp)
-		price = sdk.NewCoin(fund.Broker.BaseDenom, sdk.NewInt(total.RoundInt64()))
+		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.RoundInt64()))
 	}
 	return price, nil
 }
@@ -60,22 +64,29 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 	if fund.Shares.Denom != fundShares.Denom {
 		return ownership, sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid etf denom. looking for %s, received %s", fund.Shares.Denom, fundShares.Denom)
 	}
-	// get the ica account address port
-	portID, err := icatypes.NewControllerPortID(fund.Address)
-	if err != nil {
-		return ownership, err
-	}
-	// get the ica account address
-	accAddress, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, fund.ConnectionId, portID)
-	if !found {
-		return ownership, status.Errorf(codes.NotFound, "no account found for portID %s", portID)
-	}
-	accBalance, err := k.brokerKeeper.GetOsmosisBalance(ctx, accAddress)
-	if err != nil {
-		return ownership, err
-	}
-
 	for _, holding := range fund.Holdings {
+		// get the broker
+		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
+		if !found {
+			return ownership, sdkerrors.Wrap(brokertypes.ErrBrokerNotFound, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
+		}
+
+		// get the ica account address port
+		portID, err := icatypes.NewControllerPortID(fund.Address)
+		if err != nil {
+			return ownership, err
+		}
+		// get the ica account address
+		accAddress, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
+		if !found {
+			return ownership, status.Errorf(codes.NotFound, "no account found for portID %s", portID)
+		}
+		// get the ica accounts token balances
+		accBalance, err := k.brokerKeeper.GetOsmosisBalance(ctx, accAddress)
+		if err != nil {
+			return ownership, err
+		}
+
 		// take holding and find per etf share of holding from fund balance then multiply it by
 		// the amount of fundShares
 		amt := accBalance.Coins.AmountOf(holding.Token).Quo(fund.Shares.Amount).Mul(fundShares.Amount)

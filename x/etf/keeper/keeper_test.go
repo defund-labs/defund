@@ -196,11 +196,9 @@ func (s *IntegrationTestSuite) initTestFund() {
 		Name:          testFundName,
 		Description:   testFundDesc,
 		Shares:        sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.ZeroInt()),
-		Broker:        &broker,
 		Holdings:      holdings,
 		BaseDenom:     baseDenom,
 		Rebalance:     10,
-		ConnectionId:  testConnectionId,
 		StartingPrice: sdk.NewCoin(baseDenom, sdk.NewInt(5000000)),
 	}
 	// set the test fund in store

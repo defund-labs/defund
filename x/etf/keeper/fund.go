@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -113,23 +114,27 @@ func (k Keeper) SetRedeem(ctx sdk.Context, redeem types.Redeem) {
 	), b)
 }
 
-// GetRedeem returns a redeem from its index
+// GetRedeem returns a redeem if the redeem includes the transferId
 func (k Keeper) GetRedeem(
 	ctx sdk.Context,
-	index string,
+	transferId string,
 
-) (val types.Redeem, found bool) {
+) (val types.Redeem, transfer brokertypes.Transfer, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	b := store.Get(types.RedeemKey(
-		index,
-	))
-	if b == nil {
-		return val, false
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Redeem
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		for _, t := range val.Transfers {
+			if t.Id == transferId {
+				return val, t, true
+			}
+		}
 	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return val, transfer, false
 }
 
 // RemoveRedeem removes an redeem from the store
