@@ -13,14 +13,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v11/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v11/x/gamm/types"
 )
 
 type (
@@ -29,6 +31,7 @@ type (
 		storeKey sdk.StoreKey
 		memKey   sdk.StoreKey
 
+		scopedKeeper        capabilitykeeper.ScopedKeeper
 		accountKeeper       types.AccountKeeper
 		bankKeeper          types.BankKeeper
 		brokerKeeper        types.BrokerKeeper
@@ -53,6 +56,7 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 
+	scopedKeeper capabilitykeeper.ScopedKeeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	channelKeeper types.ChannelKeeper,
@@ -67,6 +71,7 @@ func NewKeeper(
 		storeKey: storeKey,
 		memKey:   memKey,
 
+		scopedKeeper:        scopedKeeper,
 		accountKeeper:       accountKeeper,
 		bankKeeper:          bankKeeper,
 		channelKeeper:       channelKeeper,
@@ -76,6 +81,11 @@ func NewKeeper(
 		clientKeeper:        clientKeeper,
 		icaControllerKeeper: iaKeeper,
 	}
+}
+
+// ClaimCapability claims the channel capability passed via the OnOpenChanInit callback
+func (k *Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
+	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // SetICS4Wrapper sets the ICS4 wrapper to the keeper.
@@ -94,7 +104,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // helper function to check if a osmosis pool contains denom specified
-func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
+func containsAssets(assets []osmosisbalancertypes.PoolAsset, denom string) bool {
 	for _, asset := range assets {
 		if asset.Token.Denom == denom {
 			return true
@@ -488,7 +498,7 @@ func (k Keeper) HandleSurplus(ctx sdk.Context, fund types.Fund, holding types.Ho
 						// by the currentSurplus in base denom
 						needToSwapPortion := surplusList[i].BaseDenom.Amount.Quo(currentSurplus.BaseDenom.Amount)
 						// create the tokenin coin by multiplying the portion by currentSurlus we have to much of
-						tokenIn := sdk.NewCoin(currentSurplus.HoldingDenom.Denom, currentSurplus.HoldingDenom.Amount.Mul(needToSwapPortion))
+						tokenIn := sdk.NewCoin(currentSurplus.HoldingDenom.Denom, currentSurplus.HoldingDenom.Amount.Mul(needToSwapPortion).Quo(sdk.NewInt(100)))
 						// create the max amount out by using the full surplusList amount (since we are going to use all of it)
 						// and then creating a 2% slippage on it (potentially add this as fund param?)
 						tokenOut := surplusList[i].HoldingDenom.Amount.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100))
@@ -722,13 +732,16 @@ func (k Keeper) SendRebalanceTx(ctx sdk.Context, fund types.Fund) error {
 			SurplusPercent: overUnderCompPerc,
 		}
 
+		// get the new surplus msgs
 		newMsgs, _, err := k.HandleSurplus(ctx, fund, holding, msgs[holding.BrokerId], surplusList, surplus)
 		if err != nil {
 			return err
 		}
+		// append new msgs for broker into broker map
 		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], newMsgs...)
 	}
 
+	// send msgs for each broker
 	for brokerId, msg := range msgs {
 		broker, found := k.brokerKeeper.GetBroker(ctx, brokerId)
 		if !found {

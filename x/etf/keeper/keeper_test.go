@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -13,49 +14,41 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	tmclient "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/defund-labs/defund/app"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
+	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
+	osmosis "github.com/osmosis-labs/osmosis/v11/app"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+	"github.com/tendermint/tendermint/light"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type IntegrationTestSuite struct {
 	suite.Suite
 
 	ctx         sdk.Context
+	ctxOsmo     sdk.Context
 	app         *app.App
+	osmoApp     *osmosis.OsmosisApp
 	queryClient types.QueryClient
 }
 
-var defaultConsensusParams = &abci.ConsensusParams{
-	Block: &abci.BlockParams{
-		MaxBytes: 200000,
-		MaxGas:   2000000,
-	},
-	Evidence: &tmproto.EvidenceParams{
-		MaxAgeNumBlocks: 302400,
-		MaxAgeDuration:  504 * time.Hour, // 3 weeks is the max duration
-		MaxBytes:        10000,
-	},
-	Validator: &tmproto.ValidatorParams{
-		PubKeyTypes: []string{
-			tmtypes.ABCIPubKeyTypeEd25519,
-		},
-	},
-}
-
 var (
-	setupAccountCounter = sdk.ZeroInt()
-	testFundSymbol      = "test"
-	testFundDesc        = "test"
-	testFundName        = "test"
-	baseDenom           = "uosmo"
-	testConnectionId    = "connection-0"
-	testChannelId       = "channel-0"
-	testPortId          = "icacontroller"
+	setupAccountCounter   = sdk.ZeroInt()
+	testFundSymbol        = "test"
+	testFundDesc          = "test"
+	testFundName          = "test"
+	baseDenom             = "uosmo"
+	testConnectionId      = "connection-0"
+	testClientId          = "07-tendermint-0"
+	testChannelTransferId = "channel-0"
+	testChannelId         = "channel-1"
+	testPortId            = "icacontroller"
 
 	poolsOsmosis = []uint64{
 		1, 678, 704, 712, 497, 674, 604, 9, 498, 584, 3, 10, 601, 2, 722, 611, 719, 585, 738, 13,
@@ -66,6 +59,18 @@ var (
 		549, 716, 624, 731, 718, 642, 721, 640, 734, 713, 725, 710, 737, 729, 700, 707, 717, 676,
 		579, 682, 580, 730,
 	}
+	state        = connectiontypes.OPEN
+	prefix       = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+	counterparty = connectiontypes.NewCounterparty(testClientId, testConnectionId, prefix)
+	versions_raw = []*connectiontypes.Version{}
+	versions     = append(versions_raw, &connectiontypes.Version{
+		Identifier: "1",
+		Features: []string{
+			"ORDER_ORDERED",
+			"ORDER_UNORDERED",
+		},
+	})
+	connection = connectiontypes.NewConnectionEnd(state, testClientId, counterparty, versions, 0)
 )
 
 func NewFundAddress(fundId string) sdk.AccAddress {
@@ -82,6 +87,108 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
+	app, osmoApp := app.Setup(s.T(), false, 1)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{
+		ChainID: fmt.Sprintf("test-chain-%s", tmrand.Str(4)),
+		Height:  1,
+		Time:    time.Unix(0, 0),
+	})
+	osmoCtx := osmoApp.BaseApp.NewContext(false, tmproto.Header{
+		ChainID: fmt.Sprintf("test-chain-%s", tmrand.Str(4)),
+		Height:  1,
+		Time:    time.Unix(0, 0),
+	})
+
+	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EtfKeeper))
+
+	s.app = app
+	s.osmoApp = &osmoApp
+	s.ctx = ctx
+	s.ctxOsmo = osmoCtx
+	s.queryClient = types.NewQueryClient(queryHelper)
+
+	s.initTestConnectionOsmosis()
+
+	// initialize a transfer channel with osmosis
+	s.initTestTransferChannelOsmosis()
+
+	// initialize a ica channel with osmosis
+	s.initTestICAChannelOsmosis()
+
+	// initialize Osmosis broker on defund
+	s.initOsmosisBroker()
+
+	// initialize a test fund
+	s.initTestFund()
+}
+
+func (s *IntegrationTestSuite) CreateClients() {
+	tmHeaderOsmosis := s.ctxOsmo.BlockHeader()
+	params := s.osmoApp.StakingKeeper.GetParams(s.ctxOsmo)
+	tp_raw := params.UnbondingTime / 100 * 85
+	tp := tp_raw.Truncate(time.Hour)
+	clientStateOsmosis := &tmclient.ClientState{
+		ChainId:         tmHeaderOsmosis.GetChainID(),
+		TrustLevel:      tmclient.NewFractionFromTm(light.DefaultTrustLevel),
+		TrustingPeriod:  tp,
+		UnbondingPeriod: params.UnbondingTime,
+		MaxClockDrift:   time.Minute * 10,
+		FrozenHeight:    clienttypes.ZeroHeight(),
+		LatestHeight: clienttypes.Height{
+			RevisionNumber: 0,
+			RevisionHeight: uint64(tmHeaderOsmosis.GetHeight()),
+		},
+		ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
+		UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
+		AllowUpdateAfterExpiry:       true,
+		AllowUpdateAfterMisbehaviour: true,
+	}
+	consensusStateOsmosis := &tmclient.ConsensusState{
+		Timestamp:          tmHeaderOsmosis.Time,
+		Root:               commitmenttypes.NewMerkleRoot(tmHeaderOsmosis.LastCommitHash),
+		NextValidatorsHash: tmHeaderOsmosis.ValidatorsHash,
+	}
+	tmHeaderDefund := s.ctxOsmo.BlockHeader()
+	paramsDefund := s.osmoApp.StakingKeeper.GetParams(s.ctxOsmo)
+	tp_rawDefund := paramsDefund.UnbondingTime / 100 * 85
+	tpDefund := tp_rawDefund.Truncate(time.Hour)
+	clientStateDefund := tmclient.ClientState{
+		ChainId:         tmHeaderDefund.GetChainID(),
+		TrustLevel:      tmclient.NewFractionFromTm(light.DefaultTrustLevel),
+		TrustingPeriod:  tpDefund,
+		UnbondingPeriod: paramsDefund.UnbondingTime,
+		MaxClockDrift:   time.Minute * 10,
+		FrozenHeight:    clienttypes.ZeroHeight(),
+		LatestHeight: clienttypes.Height{
+			RevisionNumber: 0,
+			RevisionHeight: uint64(tmHeaderDefund.GetHeight()),
+		},
+		ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
+		UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
+		AllowUpdateAfterExpiry:       true,
+		AllowUpdateAfterMisbehaviour: true,
+	}
+	consensusStateDefund := tmclient.ConsensusState{
+		Timestamp:          tmHeaderDefund.Time,
+		Root:               commitmenttypes.NewMerkleRoot(tmHeaderDefund.LastCommitHash),
+		NextValidatorsHash: tmHeaderDefund.ValidatorsHash,
+	}
+	s.app.IBCKeeper.ClientKeeper.CreateClient(s.ctx, clientStateOsmosis, consensusStateOsmosis)
+	s.osmoApp.IBCKeeper.ClientKeeper.CreateClient(s.ctx, clientStateDefund, consensusStateDefund)
+}
+
+func (s *IntegrationTestSuite) initTestConnectionOsmosis() {
+	s.osmoApp.IBCKeeper.ClientKeeper
+	s.app.IBCKeeper.ClientKeeper.CreateClient(s.ctx)
+	s.app.IBCKeeper.ConnectionKeeper.ConnOpenInit(s.ctx)
+}
+
+func (s *IntegrationTestSuite) initTestTransferChannelOsmosis() {
+}
+
+func (s *IntegrationTestSuite) initTestICAChannelOsmosis() {
+
 }
 
 func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Coin, aktCoin sdk.Coin) {
@@ -105,7 +212,7 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 
 	// create the ibc akt that lives on osmosis broker
 	denomAkt := ibctransfertypes.DenomTrace{
-		Path:      "transfer/channel-0/transfer/channel-1",
+		Path:      "transfer/channel-0/transfer/channel-0",
 		BaseDenom: "uakt",
 	}
 	// set the new denom trace in store
@@ -123,17 +230,23 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 // initTestFund creates a test fund in store and initializes all the requirements
 // for this fund
 func (s *IntegrationTestSuite) initTestFund() {
-	// create the test connection
-	connection := connectiontypes.ConnectionEnd{}
-	// set the connection in store
-	s.app.IBCKeeper.ConnectionKeeper.SetConnection(s.ctx, testConnectionId, connection)
-
 	// create the test channel
 	TestChannel := channeltypes.Channel{
+		State:          channeltypes.OPEN,
+		Ordering:       channeltypes.ORDERED,
+		Counterparty:   channeltypes.NewCounterparty(testPortId, testChannelId),
+		Version:        "{\"version\":\"ics27-1\",\"controller_connection_id\":\"connection-0\",\"host_connection_id\":\"connection-0\",\"address\":\"osmo1vxxkm0f0s4q05lnlddhfgx3mvm0qf7kf9gqpnxqvhxnh4fe340ysa9kclf\",\"encoding\":\"proto3\",\"tx_type\":\"sdk_multi_msg\"}",
 		ConnectionHops: []string{testConnectionId},
 	}
 	// set the test channel in store
 	s.app.IBCKeeper.ChannelKeeper.SetChannel(s.ctx, testPortId, testChannelId, TestChannel)
+	s.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(s.ctx, testPortId, testChannelId, 1)
+	_, err := s.app.ScopedICAControllerKeeper.NewCapability(s.ctx, host.ChannelCapabilityPath(testPortId, testChannelId))
+	s.Assert().NoError(err)
+	_, err = s.app.ScopedBrokerKeeper.NewCapability(s.ctx, host.ChannelCapabilityPath(testPortId, testChannelId))
+	s.Assert().NoError(err)
+	_, err = s.app.ScopedETFKeeper.NewCapability(s.ctx, host.ChannelCapabilityPath(testPortId, testChannelId))
+	s.Assert().NoError(err)
 
 	// create test account address
 	addr := NewFundAddress(fmt.Sprintf("defund1njx8c8yjfsj5g4xnzej9lfl2ugmhldfh4x8c5%d", setupAccountCounter))
@@ -156,7 +269,7 @@ func (s *IntegrationTestSuite) initTestFund() {
 	s.Assert().True(found)
 
 	// create the ica account
-	err := s.app.BrokerKeeper.RegisterBrokerAccount(s.ctx, broker.ConnectionId, acct.GetAddress().String())
+	err = s.app.BrokerKeeper.RegisterBrokerAccount(s.ctx, broker.ConnectionId, acct.GetAddress().String())
 	s.Assert().NoError(err)
 
 	// generate new portId for ica account
@@ -164,7 +277,7 @@ func (s *IntegrationTestSuite) initTestFund() {
 	s.Assert().NoError(err)
 
 	// set the interchain accounts in store since IBC callback will not
-	s.app.ICAControllerKeeper.SetActiveChannelID(s.ctx, broker.BaseDenom, portID, "channel-7")
+	s.app.ICAControllerKeeper.SetActiveChannelID(s.ctx, broker.BaseDenom, portID, testChannelId)
 	s.app.ICAControllerKeeper.SetInterchainAccountAddress(s.ctx, broker.ConnectionId, portID, acct.GetAddress().String())
 
 	// init all the tokens. returns all the initialized coins that were sent to module
@@ -172,19 +285,22 @@ func (s *IntegrationTestSuite) initTestFund() {
 
 	// create the holdings to add to fund
 	holdingOne := types.Holding{
-		Token:   testOsmoIBC.Denom,
-		Percent: 34,
-		PoolId:  1,
+		Token:    testOsmoIBC.Denom,
+		Percent:  34,
+		PoolId:   1,
+		BrokerId: "osmosis",
 	}
 	holdingTwo := types.Holding{
-		Token:   testAtomIBC.Denom,
-		Percent: 33,
-		PoolId:  1,
+		Token:    testAtomIBC.Denom,
+		Percent:  33,
+		PoolId:   1,
+		BrokerId: "osmosis",
 	}
 	holdingThree := types.Holding{
-		Token:   testAktIBC.Denom,
-		Percent: 33,
-		PoolId:  1,
+		Token:    testAktIBC.Denom,
+		Percent:  33,
+		PoolId:   1,
+		BrokerId: "osmosis",
 	}
 	// add the holdings as slice of holdings
 	holdings := []types.Holding{holdingOne, holdingTwo, holdingThree}
@@ -218,13 +334,16 @@ func (s *IntegrationTestSuite) initOsmosisBroker() {
 	}
 
 	broker := brokertypes.Broker{
-		Id:        "osmosis",
-		Pools:     pools,
-		BaseDenom: "uosmo",
-		Status:    "inactive",
+		Id:           "osmosis",
+		ConnectionId: "connection-0",
+		Pools:        pools,
+		BaseDenom:    "uosmo",
+		Status:       "inactive",
 	}
 
 	s.app.BrokerKeeper.SetBroker(s.ctx, broker)
+
+	s.app.IBCKeeper.ConnectionKeeper.SetConnection(s.ctx, "connection-0", connection)
 }
 
 func (s *IntegrationTestSuite) TestCreateShares_Valid() {
@@ -251,7 +370,7 @@ func (s *IntegrationTestSuite) TestCreateShares_Valid() {
 	tokens := []*sdk.Coin{&testAtomIBC, &testOsmoIBC, &testAktIBC}
 
 	// try to create etf shares with keeper function
-	err := s.app.EtfKeeper.CreateShares(s.ctx, fund, testChannelId, tokens, addr.String(), clienttypes.NewHeight(uint64(0), uint64(s.ctx.BlockHeight()+100)), 0)
+	err := s.app.EtfKeeper.CreateShares(s.ctx, fund, testChannelTransferId, tokens, addr.String(), clienttypes.NewHeight(uint64(0), uint64(s.ctx.BlockHeight()+100)), 0)
 	s.Require().NoError(err)
 }
 

@@ -58,7 +58,7 @@ func (k Keeper) SendPendingTransfersFromRemote(ctx sdk.Context) {
 		// get client and then get current height of the counterparty chain
 		channel, found := k.channelKeeper.GetChannel(ctx, "transfer", transfer.Channel)
 		if !found {
-			err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port: transfer, channel: %s", &transfer.Channel)
+			err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port: transfer, channel: %s", transfer.Channel)
 			ctx.Logger().Debug(err.Error())
 			continue
 		}
@@ -154,7 +154,7 @@ func (k Keeper) CheckRedeemsAndFinishIfDone(ctx sdk.Context) {
 				// get the transfer channel
 				channel, found := k.channelKeeper.GetChannel(ctx, "transfer", transfer.Channel)
 				if !found {
-					err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port: transfer, channel: %s", &transfer.Channel)
+					err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port: transfer, channel: %s", transfer.Channel)
 					ctx.Logger().Error(err.Error())
 					continue
 				}

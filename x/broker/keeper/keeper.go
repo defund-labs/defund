@@ -21,14 +21,13 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v11/x/gamm/types"
 )
 
 type Keeper struct {
@@ -177,7 +176,7 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			if !found {
 				return nil
 			}
-			msgResponse := &banktypes.MsgMultiSendResponse{}
+			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}

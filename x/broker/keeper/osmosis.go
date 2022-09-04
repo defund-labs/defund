@@ -17,8 +17,8 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v11/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v11/x/gamm/types"
 )
 
 type PoolsKey struct {
