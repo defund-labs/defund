@@ -9,6 +9,7 @@ import (
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/require"
+	dbm "github.com/tendermint/tm-db"
 )
 
 // Prevent strconv unused error
@@ -25,7 +26,8 @@ func createNFund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Fund {
 }
 
 func TestFundGet(t *testing.T) {
-	keeper, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	keeper, ctx := keepertest.EtfKeeper(db, t)
 	items := createNFund(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetFund(ctx,
@@ -37,7 +39,8 @@ func TestFundGet(t *testing.T) {
 }
 
 func TestFundGetAll(t *testing.T) {
-	keeper, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	keeper, ctx := keepertest.EtfKeeper(db, t)
 	items := createNFund(keeper, ctx, 10)
 	require.ElementsMatch(t, items, keeper.GetAllFund(ctx))
 }

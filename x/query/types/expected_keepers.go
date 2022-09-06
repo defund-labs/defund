@@ -3,8 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 type AccountKeeper interface {

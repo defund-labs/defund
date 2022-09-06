@@ -1,0 +1,23 @@
+version: 1
+
+chains:
+  osmosis:
+    chain_id: osmo-test-4
+    prefix: osmo
+    gas_price: 1000uosmo
+    hd_path: m/44'/118'/0'/0/0
+    ics20_port: 'transfer'
+    estimated_block_time: 7000
+    estimated_indexer_time: 250
+    rpc:
+      - https://rpc-1.testnet.osmosis.nodes.guru:443
+  defund:
+    chain_id: defund
+    prefix: defund
+    gas_price: 0ufetf
+    hd_path: m/44'/118'/0'/0/0
+    ics20_port: 'transfer'
+    estimated_block_time: 7000
+    estimated_indexer_time: 250
+    rpc:
+      - http://localhost:26657

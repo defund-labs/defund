@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
-	"github.com/tendermint/spm/cosmoscmd"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -15,11 +14,11 @@ import (
 )
 
 // New creates application instance with in-memory database and disabled logging.
-func New() cosmoscmd.App {
+func New() *app.App {
 	db := tmdb.NewMemDB()
 	logger := log.NewNopLogger()
 
-	encoding := cosmoscmd.MakeEncodingConfig(app.ModuleBasics)
+	encoding := app.MakeEncodingConfig(app.ModuleBasics)
 
 	a := app.New(logger, db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding,
 		simapp.EmptyAppOptions{})

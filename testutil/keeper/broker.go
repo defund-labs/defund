@@ -9,23 +9,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/defund-labs/defund/app"
-	"github.com/defund-labs/defund/x/etf/keeper"
-	"github.com/defund-labs/defund/x/etf/types"
+	"github.com/defund-labs/defund/x/broker/keeper"
+	"github.com/defund-labs/defund/x/broker/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 )
 
-func GetSubspace(keeper paramskeeper.Keeper, moduleName string) paramstypes.Subspace {
-	subspace, _ := paramskeeper.Keeper.GetSubspace(keeper, moduleName)
-	return subspace
-}
-
-func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
+func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
@@ -37,23 +31,27 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	encoding := app.MakeEncodingConfig(app.ModuleBasics)
 
+	capKeeper := *capabilitykeeper.NewKeeper(codec.NewProtoCodec(registry), storeKey, memStoreKey)
+
+	scopedBrokerKeeper := capKeeper.ScopeToModule("broker")
+
 	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding,
 		simapp.EmptyAppOptions{})
 
 	k := keeper.NewKeeper(
 		codec.NewProtoCodec(registry),
 		storeKey,
-		memStoreKey,
-		a.AccountKeeper,
-		a.BankKeeper,
+		a.ICAControllerKeeper,
+		scopedBrokerKeeper,
+		a.TransferKeeper,
 		a.IBCKeeper.ChannelKeeper,
-		a.QueryKeeper,
-		a.BrokerKeeper,
 		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ClientKeeper,
-		a.ICAControllerKeeper,
+		a.QueryKeeper,
+		a.EtfKeeper,
+		a.BankKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
-	return k, ctx
+	return &k, ctx
 }

@@ -11,19 +11,19 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
-	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/v3/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
+	clientkeeper "github.com/cosmos/ibc-go/v4/modules/core/02-client/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/v4/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v4/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	"github.com/defund-labs/defund/x/broker/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
@@ -63,6 +63,17 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkee
 	}
 }
 
+// remove removes item from slice at index
+func remove(s []uint64, value uint64) []uint64 {
+	for i, val := range s {
+		if val == value {
+			s = append(s[:i], s[i+1:]...)
+			break
+		}
+	}
+	return s
+}
+
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))
@@ -84,7 +95,7 @@ func (k Keeper) GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId st
 
 // Registers an ICA account on a host chain
 func (k Keeper) RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error {
-	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner); err != nil {
+	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner, "version"); err != nil {
 		return err
 	}
 	return nil
@@ -98,31 +109,29 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 
 // OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares
 // and burns them.
-func (k Keeper) OnRedeemSuccess(ctx sdk.Context, redeem etftypes.Redeem) error {
-	// Burn escrowed shares in the etf module
-	err := k.bankKeeper.BurnCoins(ctx, etftypes.ModuleName, sdk.NewCoins(*redeem.Amount))
-	if err != nil {
-		return err
+func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem, transfer types.Transfer) error {
+	for i, t := range redeem.Transfers {
+		if transfer.Id == t.Id {
+			t.Status = types.StatusComplete
+			redeem.Transfers[i] = t
+			k.etfKeeper.SetRedeem(ctx, redeem)
+			break
+		}
 	}
-	// Remove the redeem from store. Clean up store
-	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
 	return nil
 }
 
 // OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
-// and sends them back to the redeemer them.
-func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem) error {
-	addr, err := sdk.AccAddressFromBech32(redeem.Creator)
-	if err != nil {
-		return err
+// and sends them back to the redeemer.
+func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem, transfer brokertypes.Transfer) error {
+	for i, t := range redeem.Transfers {
+		if transfer.Id == t.Id {
+			t.Status = types.StatusError
+			redeem.Transfers[i] = t
+			k.etfKeeper.SetRedeem(ctx, redeem)
+			break
+		}
 	}
-	// Send back the escrowed etf shares from the etf module
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, etftypes.ModuleName, addr, sdk.NewCoins(*redeem.Amount))
-	if err != nil {
-		return err
-	}
-	// Remove the redeem from store. Clean up store
-	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
 	return nil
 }
 
@@ -161,19 +170,19 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 	// loop through each ICA msg in the tx (one ack respresents one tx)
 	for _, msgData := range txMsgData.Data {
 		switch msgData.MsgType {
-		case sdk.MsgTypeURL(&banktypes.MsgMultiSend{}):
+		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
 			// get the redeem from the store. If not found return nil and do not run logic
-			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			redeem, transfer, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
 			}
-			msgResponse := &banktypes.MsgMultiSendResponse{}
+			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}
 			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
 			// Run redeem success logic
-			k.OnRedeemSuccess(ctx, redeem)
+			k.OnRedeemSuccess(ctx, packet, redeem, transfer)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
@@ -205,7 +214,7 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 		switch msgData.MsgType {
 		case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
 			// get the redeem from the store. If not found return nil and do not run logic
-			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			redeem, transfer, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
 			}
@@ -216,7 +225,7 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			k.Logger(ctx).Debug("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response", msgResponse.String())
 
 			// Run redeem failure logic
-			k.OnRedeemFailure(ctx, redeem)
+			k.OnRedeemFailure(ctx, redeem, transfer)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):

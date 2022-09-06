@@ -25,11 +25,10 @@ message MsgCreateFund {
   string symbol = 2;
   string name = 3;
   string description = 4;
-  string broker = 5;
-  string holdings = 6;
-  int64 rebalance = 7;
-  string baseDenom = 8;
-  string startingPrice = 9;
+  string holdings = 5;
+  int64 rebalance = 6;
+  string baseDenom = 7;
+  string startingPrice = 8;
 }
 message MsgCreateFundResponse {}
 

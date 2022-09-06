@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
+	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -18,7 +19,8 @@ import (
 var _ = strconv.IntSize
 
 func TestFundQuerySingle(t *testing.T) {
-	keeper, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	keeper, ctx := keepertest.EtfKeeper(db, t)
 	wctx := sdk.WrapSDKContext(ctx)
 	msgs := createNFund(keeper, ctx, 2)
 	for _, tc := range []struct {
@@ -65,7 +67,8 @@ func TestFundQuerySingle(t *testing.T) {
 }
 
 func TestFundQueryPaginated(t *testing.T) {
-	keeper, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	keeper, ctx := keepertest.EtfKeeper(db, t)
 	wctx := sdk.WrapSDKContext(ctx)
 	msgs := createNFund(keeper, ctx, 5)
 

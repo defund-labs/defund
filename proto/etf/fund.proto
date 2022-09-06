@@ -25,6 +25,8 @@ message Holding {
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
   uint64 poolId = 3;
+  // Broker Id for the Broker
+  string brokerId = 4;
 }
 
 message Fund {
@@ -36,20 +38,18 @@ message Fund {
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = false
   ];
-  broker.Broker broker = 6;
-  repeated Holding holdings = 7 [
+  repeated Holding holdings = 6 [
     (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
     (gogoproto.nullable) = false
   ];
-  int64 rebalance = 8;
-  string baseDenom = 9;
-  string connectionId = 10;
-  cosmos.base.v1beta1.Coin startingPrice = 11 [
+  int64 rebalance = 7;
+  string baseDenom = 8;
+  cosmos.base.v1beta1.Coin startingPrice = 9 [
     (gogoproto.moretags) = "yaml:\"starting_price\"",
     (gogoproto.nullable) = false
   ];
-  string creator = 12;
-  int64  lastRebalanceHeight = 13;
+  string creator = 10;
+  int64  lastRebalanceHeight = 11;
 }
 
 message Redeem {
@@ -58,9 +58,11 @@ message Redeem {
   Fund fund = 3;
   cosmos.base.v1beta1.Coin amount = 4;
   string channel = 5;
-  uint64 sequence = 6;
-  string status = 7;
-  string error = 8;
+  string status = 6;
+  string error = 7;
+  repeated broker.Transfer transfers = 8[
+    (gogoproto.nullable) = false
+  ];
 }
 
 message Rebalance {

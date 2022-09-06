@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -35,9 +35,33 @@ func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/pool/%s", symbol)
 }
 
-// Helper function that parses a string of holdings in the format "ATOM:50:1,OSMO:50:2" (DENOM:PERCENT:POOL,...) into a slice of type holding
+// RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
+// a fund. If no broker account exists, one is created and then stored in the Broker store
+func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Holding, acc authtypes.AccountI) error {
+	for _, holding := range holdings {
+		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
+		if !found {
+			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
+		}
+
+		// ensure the broker is active and has connection id assigned to it
+		if broker.Status != "active" {
+			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s) for holding %s", holding.BrokerId, broker.Status, holding.Token))
+		}
+
+		// Create and save the broker fund ICA account on the broker chain
+		err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc.GetAddress().String())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Helper function that parses a string of holdings in the format "ATOM:50:osmosis:1,OSMO:50:osmosis:2" (DENOM:PERCENT:BROKER:POOL,...) into a slice of type holding
 // and checks to make sure that the holdings are all supported denoms from the specified broker and pool
-func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings string) ([]types.Holding, error) {
+func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
 	holdingsList := []types.Holding{}
 	for _, holding := range rawHoldings {
@@ -46,18 +70,19 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, broker string, holdings 
 		if err != nil {
 			return nil, err
 		}
-		poolid, err := strconv.ParseUint(sepHoldings[2], 10, 64)
+		poolid, err := strconv.ParseUint(sepHoldings[3], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 		holdingsList = append(holdingsList, types.Holding{
-			Token:   sepHoldings[0],
-			Percent: perc,
-			PoolId:  poolid,
+			Token:    sepHoldings[0],
+			Percent:  perc,
+			PoolId:   poolid,
+			BrokerId: sepHoldings[2],
 		})
 	}
 	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
-	err := k.CheckHoldings(ctx, broker, holdingsList)
+	err := k.CheckHoldings(ctx, holdingsList)
 	if err != nil {
 		return nil, err
 	}
@@ -95,23 +120,13 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
-	broker, found := k.brokerKeeper.GetBroker(ctx, msg.Broker)
-	if !found {
-		return nil, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", msg.Broker))
-	}
-
-	// ensure the broker is active and has connection id assigned to it
-	if broker.Status != "active" {
-		return nil, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s)", msg.Broker, broker.Status))
-	}
-
-	// Create and save the broker fund ICA account on the broker chain
-	err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc.GetAddress().String())
+	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings)
 	if err != nil {
 		return nil, err
 	}
 
-	holdings, err := k.ParseStringHoldings(ctx, msg.Broker, msg.Holdings)
+	// Check and create all broker accounts for fund
+	err = k.RegisterBrokerAccounts(ctx, holdings, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -130,11 +145,9 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Name:          msg.Name,
 		Description:   msg.Description,
 		Shares:        sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
-		Broker:        &broker,
 		Holdings:      holdings,
 		BaseDenom:     msg.BaseDenom,
 		Rebalance:     msg.Rebalance,
-		ConnectionId:  broker.ConnectionId,
 		StartingPrice: startPrice,
 	}
 

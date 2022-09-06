@@ -9,15 +9,18 @@ import (
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/require"
+	dbm "github.com/tendermint/tm-db"
 )
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
-	k, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	k, ctx := keepertest.EtfKeeper(db, t)
 	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
 }
 
 func TestFundMsgServerCreate(t *testing.T) {
-	k, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	k, ctx := keepertest.EtfKeeper(db, t)
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
@@ -29,7 +32,8 @@ func TestFundMsgServerCreate(t *testing.T) {
 }
 
 func TestSharesMsgServerCreate(t *testing.T) {
-	k, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	k, ctx := keepertest.EtfKeeper(db, t)
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
@@ -41,7 +45,8 @@ func TestSharesMsgServerCreate(t *testing.T) {
 }
 
 func TestSharesMsgServerRedeem(t *testing.T) {
-	k, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	k, ctx := keepertest.EtfKeeper(db, t)
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
