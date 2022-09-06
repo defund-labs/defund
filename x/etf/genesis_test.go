@@ -7,6 +7,7 @@ import (
 	"github.com/defund-labs/defund/x/etf"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/require"
+	dbm "github.com/tendermint/tm-db"
 )
 
 func TestGenesis(t *testing.T) {
@@ -22,7 +23,8 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.EtfKeeper(t)
+	db := dbm.NewMemDB()
+	k, ctx := keepertest.EtfKeeper(db, t)
 	etf.InitGenesis(ctx, *k, genesisState)
 	got := etf.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)

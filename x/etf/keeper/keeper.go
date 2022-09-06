@@ -15,14 +15,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v11/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v11/x/gamm/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 type (
@@ -56,7 +56,6 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 
-	scopedKeeper capabilitykeeper.ScopedKeeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	channelKeeper types.ChannelKeeper,
@@ -71,7 +70,6 @@ func NewKeeper(
 		storeKey: storeKey,
 		memKey:   memKey,
 
-		scopedKeeper:        scopedKeeper,
 		accountKeeper:       accountKeeper,
 		bankKeeper:          bankKeeper,
 		channelKeeper:       channelKeeper,
@@ -104,7 +102,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // helper function to check if a osmosis pool contains denom specified
-func containsAssets(assets []osmosisbalancertypes.PoolAsset, denom string) bool {
+func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	for _, asset := range assets {
 		if asset.Token.Denom == denom {
 			return true

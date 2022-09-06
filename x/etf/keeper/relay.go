@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 )
 
 // SendPacket implements the ICS4Wrapper interface from the transfer module. It
@@ -18,4 +18,14 @@ func (k Keeper) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capabili
 // It calls the underlying WriteAcknowledgement function directly to move down the middleware stack.
 func (k Keeper) WriteAcknowledgement(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet exported.PacketI, ack exported.Acknowledgement) error {
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, ack)
+}
+
+// GetAppVersion returns the underlying application version.
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	version, found := k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return "", false
+	}
+
+	return version, true
 }

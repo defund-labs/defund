@@ -2,15 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"strings"
-	"testing"
 	"time"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
-	osmosis "github.com/osmosis-labs/osmosis/v11/app"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -37,44 +32,17 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-var (
-	EnableSpecificWasmProposals = ""
-	EmptyWasmOpts               []wasm.Option
-	WasmProposalsEnabled        = "true"
-)
-
-func GetWasmEnabledProposals() []wasm.ProposalType {
-	if EnableSpecificWasmProposals == "" {
-		if WasmProposalsEnabled == "true" {
-			return wasm.EnableAllProposals
-		}
-
-		return wasm.DisableAllProposals
-	}
-
-	chunks := strings.Split(EnableSpecificWasmProposals, ",")
-
-	proposals, err := wasm.ConvertToProposals(chunks)
-	if err != nil {
-		panic(err)
-	}
-
-	return proposals
-}
-
-func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) (*App, osmosis.OsmosisApp) {
-	t.Helper()
+func Setup(chainId string, isCheckTx bool, invCheckPeriod uint) *App {
 
 	app, genesisState := setup(!isCheckTx, invCheckPeriod)
-	osmoApp, genesisState := setupOsmosis(!isCheckTx, invCheckPeriod)
 	if !isCheckTx {
 		// InitChain must be called to stop deliverState from being nil
-		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-		require.NoError(t, err)
+		stateBytes, _ := json.MarshalIndent(genesisState, "", " ")
 
 		// Initialize the chain
 		app.InitChain(
 			abci.RequestInitChain{
+				ChainId:         chainId,
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
@@ -82,7 +50,7 @@ func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) (*App, osmosis.Osm
 		)
 	}
 
-	return app, *osmoApp
+	return app
 }
 
 func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
@@ -98,29 +66,6 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 		invCheckPeriod,
 		encCdc,
 		EmptyAppOptions{},
-	)
-	if withGenesis {
-		return app, NewDefaultGenesisState(encCdc.Marshaler)
-	}
-
-	return app, GenesisState{}
-}
-
-func setupOsmosis(withGenesis bool, invCheckPeriod uint) (*osmosis.OsmosisApp, GenesisState) {
-	db := dbm.NewMemDB()
-	encCdc := osmosis.MakeEncodingConfig()
-	app := osmosis.NewOsmosisApp(
-		log.NewNopLogger(),
-		db,
-		nil,
-		true,
-		map[int64]bool{},
-		DefaultNodeHome,
-		invCheckPeriod,
-		encCdc,
-		EmptyAppOptions{},
-		GetWasmEnabledProposals(),
-		EmptyWasmOpts,
 	)
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Marshaler)

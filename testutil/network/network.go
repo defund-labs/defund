@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/defund-labs/defund/app"
@@ -59,7 +58,7 @@ func DefaultConfig() network.Config {
 		},
 		GenesisState:   app.ModuleBasics.DefaultGenesis(encoding.Marshaler),
 		TimeoutCommit:  2 * time.Second,
-		ChainID:        "chain-" + tmrand.NewRand().Str(6),
+		ChainID:        "defund-test-chain",
 		NumValidators:  1,
 		BondDenom:      sdk.DefaultBondDenom,
 		MinGasPrices:   fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
