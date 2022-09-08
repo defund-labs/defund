@@ -13,10 +13,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
@@ -363,7 +363,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
 			return err
 		}
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
-		if !containsAssets(pool.PoolAssets, holding.Token) {
+		if !containsAssets(pool.GetAllPoolAssets(), holding.Token) {
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%d)", holding.Token, holding.PoolId)
 		}
 	}
@@ -389,14 +389,14 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 		if err != nil {
 			return routes, err
 		}
-		poolAssets := osmoPool.PoolAssets
+		poolAssets := osmoPool.GetAllPoolAssets()
 
 		currentDenomCheck := containsAssets(poolAssets, currentDenom)
 		wantDenomCheck := containsAssets(poolAssets, needDenom)
 
 		if currentDenomCheck && wantDenomCheck {
 			route := osmosisgammtypes.SwapAmountInRoute{
-				PoolId:        osmoPool.Id,
+				PoolId:        osmoPool.GetId(),
 				TokenOutDenom: needDenom,
 			}
 			routes = append(routes, route)
@@ -410,21 +410,21 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 		if err != nil {
 			return routes, err
 		}
-		poolAssets := osmoPool.PoolAssets
+		poolAssets := osmoPool.GetAllPoolAssets()
 
 		currentDenomCheck := containsAssets(poolAssets, currentDenom)
 		wantDenomCheck := containsAssets(poolAssets, needDenom)
 
 		if currentDenomCheck {
 			route := osmosisgammtypes.SwapAmountInRoute{
-				PoolId:        osmoPool.Id,
+				PoolId:        osmoPool.GetId(),
 				TokenOutDenom: currentDenom,
 			}
 			routes = append(routes, route)
 		}
 		if wantDenomCheck {
 			route := osmosisgammtypes.SwapAmountInRoute{
-				PoolId:        osmoPool.Id,
+				PoolId:        osmoPool.GetId(),
 				TokenOutDenom: needDenom,
 			}
 			routes = append(routes, route)

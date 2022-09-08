@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/defund-labs/defund/app"
 	ibctesting "github.com/defund-labs/defund/testing"
 	"github.com/defund-labs/defund/x/etf/types"
@@ -188,7 +188,7 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 }
 
 func (s *IntegrationTestSuite) TestGetOsmosisPool_Valid() {
-	data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKyAgo/b3NtbzEzanIzcDVwMDcwaDRwdTdzeGh0bGRhZzk4OTlzZXY5cHd4MHIydmx2cGt5cmF2cHhscXNzbnpzdXE5EAcaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC83Ehs5MDc5Njk5NjM3MzA3NjY4Mjg1ODc2OTIwMjMyaQpWCkRpYmMvN0M0RDYwQUE5NUU1QTc1NThCMEEzNjQ4NjA5NzlDQTM0QjdGRjhBQUYyNTVCODdBRjlFODc5Mzc0NDcwQ0VDMBIOMjYyNzI1MjY3MTkzMDYSDzUzNjg3MDkxMjAwMDAwMDIoChUKBXVvc21vEgwyMzM1OTAxMzUyMjMSDzUzNjg3MDkxMjAwMDAwMDoQMTA3Mzc0MTgyNDAwMDAwMA==")
+	data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ4OTk3ODYwMzIxMDQ0ODQ4NTk3MzY0MTQyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY5MDM1NTE1MTMwMxIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjM3OTU5NTA0NjAwEg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 	s.coordinator.Log(data)
 	s.Assert().NoError(err)
 	height := clienttypes.NewHeight(0, 0)

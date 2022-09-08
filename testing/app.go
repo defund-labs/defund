@@ -23,7 +23,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/defund-labs/defund/testing/simapp"
 )
 

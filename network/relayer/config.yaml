@@ -21,7 +21,7 @@ chains:
       value:
         key: osmo
         chain-id: osmo-test-4
-        rpc-addr: http://46.166.172.232:26657
+        rpc-addr: https://rpc-test.osmosis.zone:443
         account-prefix: osmo
         keyring-backend: test
         gas-adjustment: 1.2
@@ -38,8 +38,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2282
-            connection-id: connection-1820
+            client-id: 07-tendermint-2517
+            connection-id: connection-2030
         src-channel-filter:
             rule: ""
             channel-list: []

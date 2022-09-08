@@ -3,7 +3,6 @@ package keeper
 // All Osmosis Logic Lives Here
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -13,9 +12,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/defund-labs/defund/x/broker/types"
 
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
@@ -139,7 +138,7 @@ func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancert
 	if !found {
 		return *pool, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
 	}
-	err := json.Unmarshal(bytes.TrimSuffix(query.Data, []byte("\x1a")), pool)
+	err := pool.Unmarshal(query.Data)
 	if err != nil {
 		return *pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s). %e", query.Storeid, err)
 	}

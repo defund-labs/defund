@@ -11,18 +11,18 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
-	clientkeeper "github.com/cosmos/ibc-go/v4/modules/core/02-client/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/v4/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v4/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
+	clientkeeper "github.com/cosmos/ibc-go/v3/modules/core/02-client/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/v3/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/defund-labs/defund/x/broker/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etftypes "github.com/defund-labs/defund/x/etf/types"
@@ -95,7 +95,7 @@ func (k Keeper) GetBrokerAccount(ctx sdk.Context, ConnectionId string, portId st
 
 // Registers an ICA account on a host chain
 func (k Keeper) RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error {
-	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner, "version"); err != nil {
+	if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner); err != nil {
 		return err
 	}
 	return nil
