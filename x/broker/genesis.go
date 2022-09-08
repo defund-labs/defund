@@ -17,10 +17,10 @@ var poolsOsmosis = []uint64{
 
 // AddOsmosisToBrokers adds Osmosis as a broker to state manually
 func AddOsmosisToBrokers(ctx sdk.Context, k keeper.Keeper) error {
-	var pools []*types.Pool
+	var pools []*types.Source
 
 	for _, pool := range poolsOsmosis {
-		addPool := types.Pool{
+		addPool := types.Source{
 			PoolId:       pool,
 			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", pool),
 			Status:       "active",

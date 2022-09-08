@@ -48,7 +48,7 @@ func (im IBCModule) OnChanOpenInit(
 ) (string, error) {
 	// Claim channel capability passed back by IBC module
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
+		return version, err
 	}
 
 	return version, nil

@@ -14,8 +14,8 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 	"github.com/defund-labs/defund/app"
+	ibctesting "github.com/defund-labs/defund/testing"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/suite"
@@ -265,10 +265,10 @@ func (s *IntegrationTestSuite) initTestFund() {
 }
 
 func (s *IntegrationTestSuite) initOsmosisBroker() {
-	var pools []*brokertypes.Pool
+	var pools []*brokertypes.Source
 
 	for _, pool := range poolsOsmosis {
-		addPool := brokertypes.Pool{
+		addPool := brokertypes.Source{
 			PoolId:       pool,
 			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", pool),
 			Status:       "active",

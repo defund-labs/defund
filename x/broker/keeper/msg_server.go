@@ -30,7 +30,7 @@ func (k msgServer) AddLiquiditySource(goCtx context.Context, msg *types.MsgAddLi
 	}
 
 	// Create pool to be added to brokers list of pools
-	addPool := types.Pool{
+	addPool := types.Source{
 		PoolId:       msg.PoolId,
 		InterqueryId: fmt.Sprintf("%s-%d", msg.BrokerId, msg.PoolId),
 	}

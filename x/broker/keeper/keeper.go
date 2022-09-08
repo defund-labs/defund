@@ -27,7 +27,7 @@ import (
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
 type Keeper struct {

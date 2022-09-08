@@ -13,4 +13,7 @@ var (
 	ErrInvalidPool            = sdkerrors.Register(ModuleName, 6, "pool query does not exist")
 	ErrMarshallingError       = sdkerrors.Register(ModuleName, 7, "Marshalling error")
 	ErrNextSequenceNotFound   = sdkerrors.Register(ModuleName, 8, "Next Sequence not found")
+	ErrNotPositiveWeight      = sdkerrors.Register(ModuleName, 9, "token weight should be greater than 0")
+	ErrWeightTooLarge         = sdkerrors.Register(ModuleName, 10, "user specified token weight should be less than 2^20")
+	ErrDenomNotFoundInPool    = sdkerrors.Register(ModuleName, 11, "denom does not exist in pool")
 )

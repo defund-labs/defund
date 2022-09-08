@@ -7,7 +7,7 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/defund-labs/defund/x/broker/types";
 
-message Pool {
+message Source {
     uint64 pool_id = 1;
     string interquery_id = 2;
     string status = 3;
@@ -16,7 +16,7 @@ message Pool {
 message Broker {
     string id = 1;
     string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-    repeated Pool pools = 3;
+    repeated Source pools = 3;
     string baseDenom = 4;
     string status = 5;
 }

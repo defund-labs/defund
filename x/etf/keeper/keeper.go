@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,9 +18,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
-	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
 type (
@@ -355,23 +351,6 @@ func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channe
 	return nil
 }
 
-// DecodeLiquiditySourceQuery decodes a query based on if/what broker the query is for
-// returns error if not supported/cannot unmarshall
-func (k Keeper) DecodeLiquiditySourceQuery(ctx sdk.Context, query querytypes.InterqueryResult) (osmosisbalancertypes.Pool, error) {
-	switch strings.Split(query.Storeid, "-")[0] {
-	case "osmosis":
-		var pool = osmosisbalancertypes.Pool{}
-		err := json.Unmarshal(query.Data, &pool)
-		if err != nil {
-			return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", strings.Split(query.Storeid, "-")[1])
-		}
-		return pool, nil
-	default:
-		var pool = osmosisbalancertypes.Pool{}
-		return pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode liquidity source query. not supported (%s)", strings.Split(query.Storeid, "-")[0])
-	}
-}
-
 // CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
 // by checking the interchain queried pools for the broker specified
 func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
@@ -379,11 +358,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
 	for _, holding := range holdings {
 		// Add percent composition to percentCheck to later confirm adds to 100%
 		percentCheck = percentCheck + uint64(holding.Percent)
-		poolQuery, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("%s-%d", holding.BrokerId, holding.PoolId))
-		if !found {
-			return sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool details for (broker: %s, pool: %d)", holding.BrokerId, holding.PoolId)
-		}
-		pool, err := k.DecodeLiquiditySourceQuery(ctx, poolQuery)
+		pool, err := k.brokerKeeper.GetOsmosisPool(ctx, holding.PoolId)
 		if err != nil {
 			return err
 		}
@@ -414,7 +389,7 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 		if err != nil {
 			return routes, err
 		}
-		poolAssets := osmoPool.GetAllPoolAssets()
+		poolAssets := osmoPool.PoolAssets
 
 		currentDenomCheck := containsAssets(poolAssets, currentDenom)
 		wantDenomCheck := containsAssets(poolAssets, needDenom)
@@ -435,7 +410,7 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 		if err != nil {
 			return routes, err
 		}
-		poolAssets := osmoPool.GetAllPoolAssets()
+		poolAssets := osmoPool.PoolAssets
 
 		currentDenomCheck := containsAssets(poolAssets, currentDenom)
 		wantDenomCheck := containsAssets(poolAssets, needDenom)

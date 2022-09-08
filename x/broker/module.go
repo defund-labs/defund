@@ -19,6 +19,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/client/cli"
 	"github.com/defund-labs/defund/x/broker/keeper"
 	"github.com/defund-labs/defund/x/broker/types"
+	"github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
 )
 
 var (
@@ -46,11 +47,13 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.LegacyAmino) {
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterCodec(cdc)
+	balancer.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
 func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(reg)
+	balancer.RegisterInterfaces(reg)
 }
 
 // DefaultGenesis returns the capability module's default genesis state.
