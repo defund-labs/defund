@@ -73,7 +73,7 @@ type BrokerKeeper interface {
 	GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancertypes.Pool, error)
 	GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
-	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val osmosisbalancertypes.Pool, found bool)
+	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
 	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, err error)
 	SendIBCTransferICA(ctx sdk.Context, msgs []*ibctransfertypes.MsgTransfer, owner string, connectionID string) (sequence uint64, channel string, err error)
 	CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddress string, amount sdk.Coins) (*banktypes.MsgSend, error)

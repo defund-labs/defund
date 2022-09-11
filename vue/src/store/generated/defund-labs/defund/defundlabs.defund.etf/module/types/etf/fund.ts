@@ -3,7 +3,7 @@ import { Timestamp } from "../google/protobuf/timestamp";
 import * as Long from "long";
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Coin } from "../cosmos/base/v1beta1/coin";
-import { Broker } from "../broker/broker";
+import { Transfer } from "../broker/broker";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
@@ -20,6 +20,8 @@ export interface Holding {
   percent: number;
   /** Pool ID of the Pool for this holding on Broker */
   poolId: number;
+  /** Broker Id for the Broker */
+  brokerId: string;
 }
 
 export interface Fund {
@@ -28,11 +30,9 @@ export interface Fund {
   name: string;
   description: string;
   shares: Coin | undefined;
-  broker: Broker | undefined;
   holdings: Holding[];
   rebalance: number;
   baseDenom: string;
-  connectionId: string;
   startingPrice: Coin | undefined;
   creator: string;
   lastRebalanceHeight: number;
@@ -44,9 +44,9 @@ export interface Redeem {
   fund: Fund | undefined;
   amount: Coin | undefined;
   channel: string;
-  sequence: number;
   status: string;
   error: string;
+  transfers: Transfer[];
 }
 
 export interface Rebalance {
@@ -187,7 +187,7 @@ export const FundPrice = {
   },
 };
 
-const baseHolding: object = { token: "", percent: 0, poolId: 0 };
+const baseHolding: object = { token: "", percent: 0, poolId: 0, brokerId: "" };
 
 export const Holding = {
   encode(message: Holding, writer: Writer = Writer.create()): Writer {
@@ -199,6 +199,9 @@ export const Holding = {
     }
     if (message.poolId !== 0) {
       writer.uint32(24).uint64(message.poolId);
+    }
+    if (message.brokerId !== "") {
+      writer.uint32(34).string(message.brokerId);
     }
     return writer;
   },
@@ -218,6 +221,9 @@ export const Holding = {
           break;
         case 3:
           message.poolId = longToNumber(reader.uint64() as Long);
+          break;
+        case 4:
+          message.brokerId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -244,6 +250,11 @@ export const Holding = {
     } else {
       message.poolId = 0;
     }
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = String(object.brokerId);
+    } else {
+      message.brokerId = "";
+    }
     return message;
   },
 
@@ -252,6 +263,7 @@ export const Holding = {
     message.token !== undefined && (obj.token = message.token);
     message.percent !== undefined && (obj.percent = message.percent);
     message.poolId !== undefined && (obj.poolId = message.poolId);
+    message.brokerId !== undefined && (obj.brokerId = message.brokerId);
     return obj;
   },
 
@@ -272,6 +284,11 @@ export const Holding = {
     } else {
       message.poolId = 0;
     }
+    if (object.brokerId !== undefined && object.brokerId !== null) {
+      message.brokerId = object.brokerId;
+    } else {
+      message.brokerId = "";
+    }
     return message;
   },
 };
@@ -283,7 +300,6 @@ const baseFund: object = {
   description: "",
   rebalance: 0,
   baseDenom: "",
-  connectionId: "",
   creator: "",
   lastRebalanceHeight: 0,
 };
@@ -305,29 +321,23 @@ export const Fund = {
     if (message.shares !== undefined) {
       Coin.encode(message.shares, writer.uint32(42).fork()).ldelim();
     }
-    if (message.broker !== undefined) {
-      Broker.encode(message.broker, writer.uint32(50).fork()).ldelim();
-    }
     for (const v of message.holdings) {
-      Holding.encode(v!, writer.uint32(58).fork()).ldelim();
+      Holding.encode(v!, writer.uint32(50).fork()).ldelim();
     }
     if (message.rebalance !== 0) {
-      writer.uint32(64).int64(message.rebalance);
+      writer.uint32(56).int64(message.rebalance);
     }
     if (message.baseDenom !== "") {
-      writer.uint32(74).string(message.baseDenom);
-    }
-    if (message.connectionId !== "") {
-      writer.uint32(82).string(message.connectionId);
+      writer.uint32(66).string(message.baseDenom);
     }
     if (message.startingPrice !== undefined) {
-      Coin.encode(message.startingPrice, writer.uint32(90).fork()).ldelim();
+      Coin.encode(message.startingPrice, writer.uint32(74).fork()).ldelim();
     }
     if (message.creator !== "") {
-      writer.uint32(98).string(message.creator);
+      writer.uint32(82).string(message.creator);
     }
     if (message.lastRebalanceHeight !== 0) {
-      writer.uint32(104).int64(message.lastRebalanceHeight);
+      writer.uint32(88).int64(message.lastRebalanceHeight);
     }
     return writer;
   },
@@ -356,27 +366,21 @@ export const Fund = {
           message.shares = Coin.decode(reader, reader.uint32());
           break;
         case 6:
-          message.broker = Broker.decode(reader, reader.uint32());
-          break;
-        case 7:
           message.holdings.push(Holding.decode(reader, reader.uint32()));
           break;
-        case 8:
+        case 7:
           message.rebalance = longToNumber(reader.int64() as Long);
           break;
-        case 9:
+        case 8:
           message.baseDenom = reader.string();
           break;
-        case 10:
-          message.connectionId = reader.string();
-          break;
-        case 11:
+        case 9:
           message.startingPrice = Coin.decode(reader, reader.uint32());
           break;
-        case 12:
+        case 10:
           message.creator = reader.string();
           break;
-        case 13:
+        case 11:
           message.lastRebalanceHeight = longToNumber(reader.int64() as Long);
           break;
         default:
@@ -415,11 +419,6 @@ export const Fund = {
     } else {
       message.shares = undefined;
     }
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = Broker.fromJSON(object.broker);
-    } else {
-      message.broker = undefined;
-    }
     if (object.holdings !== undefined && object.holdings !== null) {
       for (const e of object.holdings) {
         message.holdings.push(Holding.fromJSON(e));
@@ -434,11 +433,6 @@ export const Fund = {
       message.baseDenom = String(object.baseDenom);
     } else {
       message.baseDenom = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = String(object.connectionId);
-    } else {
-      message.connectionId = "";
     }
     if (object.startingPrice !== undefined && object.startingPrice !== null) {
       message.startingPrice = Coin.fromJSON(object.startingPrice);
@@ -470,8 +464,6 @@ export const Fund = {
       (obj.description = message.description);
     message.shares !== undefined &&
       (obj.shares = message.shares ? Coin.toJSON(message.shares) : undefined);
-    message.broker !== undefined &&
-      (obj.broker = message.broker ? Broker.toJSON(message.broker) : undefined);
     if (message.holdings) {
       obj.holdings = message.holdings.map((e) =>
         e ? Holding.toJSON(e) : undefined
@@ -481,8 +473,6 @@ export const Fund = {
     }
     message.rebalance !== undefined && (obj.rebalance = message.rebalance);
     message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
     message.startingPrice !== undefined &&
       (obj.startingPrice = message.startingPrice
         ? Coin.toJSON(message.startingPrice)
@@ -521,11 +511,6 @@ export const Fund = {
     } else {
       message.shares = undefined;
     }
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = Broker.fromPartial(object.broker);
-    } else {
-      message.broker = undefined;
-    }
     if (object.holdings !== undefined && object.holdings !== null) {
       for (const e of object.holdings) {
         message.holdings.push(Holding.fromPartial(e));
@@ -540,11 +525,6 @@ export const Fund = {
       message.baseDenom = object.baseDenom;
     } else {
       message.baseDenom = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = object.connectionId;
-    } else {
-      message.connectionId = "";
     }
     if (object.startingPrice !== undefined && object.startingPrice !== null) {
       message.startingPrice = Coin.fromPartial(object.startingPrice);
@@ -572,7 +552,6 @@ const baseRedeem: object = {
   id: "",
   creator: "",
   channel: "",
-  sequence: 0,
   status: "",
   error: "",
 };
@@ -594,14 +573,14 @@ export const Redeem = {
     if (message.channel !== "") {
       writer.uint32(42).string(message.channel);
     }
-    if (message.sequence !== 0) {
-      writer.uint32(48).uint64(message.sequence);
-    }
     if (message.status !== "") {
-      writer.uint32(58).string(message.status);
+      writer.uint32(50).string(message.status);
     }
     if (message.error !== "") {
-      writer.uint32(66).string(message.error);
+      writer.uint32(58).string(message.error);
+    }
+    for (const v of message.transfers) {
+      Transfer.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -610,6 +589,7 @@ export const Redeem = {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseRedeem } as Redeem;
+    message.transfers = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -629,13 +609,13 @@ export const Redeem = {
           message.channel = reader.string();
           break;
         case 6:
-          message.sequence = longToNumber(reader.uint64() as Long);
-          break;
-        case 7:
           message.status = reader.string();
           break;
-        case 8:
+        case 7:
           message.error = reader.string();
+          break;
+        case 8:
+          message.transfers.push(Transfer.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -647,6 +627,7 @@ export const Redeem = {
 
   fromJSON(object: any): Redeem {
     const message = { ...baseRedeem } as Redeem;
+    message.transfers = [];
     if (object.id !== undefined && object.id !== null) {
       message.id = String(object.id);
     } else {
@@ -672,11 +653,6 @@ export const Redeem = {
     } else {
       message.channel = "";
     }
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = Number(object.sequence);
-    } else {
-      message.sequence = 0;
-    }
     if (object.status !== undefined && object.status !== null) {
       message.status = String(object.status);
     } else {
@@ -686,6 +662,11 @@ export const Redeem = {
       message.error = String(object.error);
     } else {
       message.error = "";
+    }
+    if (object.transfers !== undefined && object.transfers !== null) {
+      for (const e of object.transfers) {
+        message.transfers.push(Transfer.fromJSON(e));
+      }
     }
     return message;
   },
@@ -699,14 +680,21 @@ export const Redeem = {
     message.amount !== undefined &&
       (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     message.channel !== undefined && (obj.channel = message.channel);
-    message.sequence !== undefined && (obj.sequence = message.sequence);
     message.status !== undefined && (obj.status = message.status);
     message.error !== undefined && (obj.error = message.error);
+    if (message.transfers) {
+      obj.transfers = message.transfers.map((e) =>
+        e ? Transfer.toJSON(e) : undefined
+      );
+    } else {
+      obj.transfers = [];
+    }
     return obj;
   },
 
   fromPartial(object: DeepPartial<Redeem>): Redeem {
     const message = { ...baseRedeem } as Redeem;
+    message.transfers = [];
     if (object.id !== undefined && object.id !== null) {
       message.id = object.id;
     } else {
@@ -732,11 +720,6 @@ export const Redeem = {
     } else {
       message.channel = "";
     }
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = object.sequence;
-    } else {
-      message.sequence = 0;
-    }
     if (object.status !== undefined && object.status !== null) {
       message.status = object.status;
     } else {
@@ -746,6 +729,11 @@ export const Redeem = {
       message.error = object.error;
     } else {
       message.error = "";
+    }
+    if (object.transfers !== undefined && object.transfers !== null) {
+      for (const e of object.transfers) {
+        message.transfers.push(Transfer.fromPartial(e));
+      }
     }
     return message;
   },

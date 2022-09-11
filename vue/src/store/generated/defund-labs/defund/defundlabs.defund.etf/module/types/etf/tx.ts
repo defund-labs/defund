@@ -10,7 +10,6 @@ export interface MsgCreateFund {
   symbol: string;
   name: string;
   description: string;
-  broker: string;
   holdings: string;
   rebalance: number;
   baseDenom: string;
@@ -52,7 +51,6 @@ const baseMsgCreateFund: object = {
   symbol: "",
   name: "",
   description: "",
-  broker: "",
   holdings: "",
   rebalance: 0,
   baseDenom: "",
@@ -73,20 +71,17 @@ export const MsgCreateFund = {
     if (message.description !== "") {
       writer.uint32(34).string(message.description);
     }
-    if (message.broker !== "") {
-      writer.uint32(42).string(message.broker);
-    }
     if (message.holdings !== "") {
-      writer.uint32(50).string(message.holdings);
+      writer.uint32(42).string(message.holdings);
     }
     if (message.rebalance !== 0) {
-      writer.uint32(56).int64(message.rebalance);
+      writer.uint32(48).int64(message.rebalance);
     }
     if (message.baseDenom !== "") {
-      writer.uint32(66).string(message.baseDenom);
+      writer.uint32(58).string(message.baseDenom);
     }
     if (message.startingPrice !== "") {
-      writer.uint32(74).string(message.startingPrice);
+      writer.uint32(66).string(message.startingPrice);
     }
     return writer;
   },
@@ -111,18 +106,15 @@ export const MsgCreateFund = {
           message.description = reader.string();
           break;
         case 5:
-          message.broker = reader.string();
-          break;
-        case 6:
           message.holdings = reader.string();
           break;
-        case 7:
+        case 6:
           message.rebalance = longToNumber(reader.int64() as Long);
           break;
-        case 8:
+        case 7:
           message.baseDenom = reader.string();
           break;
-        case 9:
+        case 8:
           message.startingPrice = reader.string();
           break;
         default:
@@ -155,11 +147,6 @@ export const MsgCreateFund = {
     } else {
       message.description = "";
     }
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = String(object.broker);
-    } else {
-      message.broker = "";
-    }
     if (object.holdings !== undefined && object.holdings !== null) {
       message.holdings = String(object.holdings);
     } else {
@@ -190,7 +177,6 @@ export const MsgCreateFund = {
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined &&
       (obj.description = message.description);
-    message.broker !== undefined && (obj.broker = message.broker);
     message.holdings !== undefined && (obj.holdings = message.holdings);
     message.rebalance !== undefined && (obj.rebalance = message.rebalance);
     message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
@@ -220,11 +206,6 @@ export const MsgCreateFund = {
       message.description = object.description;
     } else {
       message.description = "";
-    }
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = object.broker;
-    } else {
-      message.broker = "";
     }
     if (object.holdings !== undefined && object.holdings !== null) {
       message.holdings = object.holdings;

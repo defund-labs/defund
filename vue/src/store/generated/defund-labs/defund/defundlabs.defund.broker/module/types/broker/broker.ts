@@ -5,7 +5,7 @@ import { Coin } from "../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
-export interface Pool {
+export interface Source {
   pool_id: number;
   interquery_id: string;
   status: string;
@@ -14,7 +14,7 @@ export interface Pool {
 export interface Broker {
   id: string;
   connection_id: string;
-  pools: Pool[];
+  pools: Source[];
   baseDenom: string;
   status: string;
 }
@@ -29,10 +29,10 @@ export interface Transfer {
   receiver: string;
 }
 
-const basePool: object = { pool_id: 0, interquery_id: "", status: "" };
+const baseSource: object = { pool_id: 0, interquery_id: "", status: "" };
 
-export const Pool = {
-  encode(message: Pool, writer: Writer = Writer.create()): Writer {
+export const Source = {
+  encode(message: Source, writer: Writer = Writer.create()): Writer {
     if (message.pool_id !== 0) {
       writer.uint32(8).uint64(message.pool_id);
     }
@@ -45,10 +45,10 @@ export const Pool = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Pool {
+  decode(input: Reader | Uint8Array, length?: number): Source {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePool } as Pool;
+    const message = { ...baseSource } as Source;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -69,8 +69,8 @@ export const Pool = {
     return message;
   },
 
-  fromJSON(object: any): Pool {
-    const message = { ...basePool } as Pool;
+  fromJSON(object: any): Source {
+    const message = { ...baseSource } as Source;
     if (object.pool_id !== undefined && object.pool_id !== null) {
       message.pool_id = Number(object.pool_id);
     } else {
@@ -89,7 +89,7 @@ export const Pool = {
     return message;
   },
 
-  toJSON(message: Pool): unknown {
+  toJSON(message: Source): unknown {
     const obj: any = {};
     message.pool_id !== undefined && (obj.pool_id = message.pool_id);
     message.interquery_id !== undefined &&
@@ -98,8 +98,8 @@ export const Pool = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Pool>): Pool {
-    const message = { ...basePool } as Pool;
+  fromPartial(object: DeepPartial<Source>): Source {
+    const message = { ...baseSource } as Source;
     if (object.pool_id !== undefined && object.pool_id !== null) {
       message.pool_id = object.pool_id;
     } else {
@@ -135,7 +135,7 @@ export const Broker = {
       writer.uint32(18).string(message.connection_id);
     }
     for (const v of message.pools) {
-      Pool.encode(v!, writer.uint32(26).fork()).ldelim();
+      Source.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.baseDenom !== "") {
       writer.uint32(34).string(message.baseDenom);
@@ -161,7 +161,7 @@ export const Broker = {
           message.connection_id = reader.string();
           break;
         case 3:
-          message.pools.push(Pool.decode(reader, reader.uint32()));
+          message.pools.push(Source.decode(reader, reader.uint32()));
           break;
         case 4:
           message.baseDenom = reader.string();
@@ -192,7 +192,7 @@ export const Broker = {
     }
     if (object.pools !== undefined && object.pools !== null) {
       for (const e of object.pools) {
-        message.pools.push(Pool.fromJSON(e));
+        message.pools.push(Source.fromJSON(e));
       }
     }
     if (object.baseDenom !== undefined && object.baseDenom !== null) {
@@ -214,7 +214,7 @@ export const Broker = {
     message.connection_id !== undefined &&
       (obj.connection_id = message.connection_id);
     if (message.pools) {
-      obj.pools = message.pools.map((e) => (e ? Pool.toJSON(e) : undefined));
+      obj.pools = message.pools.map((e) => (e ? Source.toJSON(e) : undefined));
     } else {
       obj.pools = [];
     }
@@ -238,7 +238,7 @@ export const Broker = {
     }
     if (object.pools !== undefined && object.pools !== null) {
       for (const e of object.pools) {
-        message.pools.push(Pool.fromPartial(e));
+        message.pools.push(Source.fromPartial(e));
       }
     }
     if (object.baseDenom !== undefined && object.baseDenom !== null) {

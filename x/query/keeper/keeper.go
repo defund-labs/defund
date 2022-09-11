@@ -62,7 +62,7 @@ func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {
 	return address.Module("query", key)
 }
 
-func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, grpc bool, key []byte, timeoutheight uint64, connectionid string) error {
+func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error {
 	// get the connection from store
 	connection, found := k.connectionKeeper.GetConnection(ctx, connectionid)
 	if !found {
@@ -72,7 +72,6 @@ func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid
 		Storeid:       storeid,
 		Chainid:       chainid,
 		Path:          path,
-		Grpc:          grpc,
 		Key:           key,
 		TimeoutHeight: timeoutheight,
 		ConnectionId:  connectionid,

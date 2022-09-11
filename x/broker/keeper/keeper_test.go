@@ -16,6 +16,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/defund-labs/defund/app"
 	ibctesting "github.com/defund-labs/defund/testing"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	"github.com/stretchr/testify/suite"
@@ -54,13 +55,22 @@ var (
 	testChannelId       = "channel-0"
 
 	poolsOsmosis = []uint64{
-		1, 678, 704, 712, 497, 674, 604, 9, 498, 584, 3, 10, 601, 2, 722, 611, 719, 585, 738, 13,
-		4, 482, 481, 6, 577, 5, 463, 629, 641, 690, 15, 461, 560, 586, 587, 42, 600, 627, 608, 571,
-		631, 548, 7, 605, 572, 648, 606, 643, 8, 597, 619, 553, 625, 602, 618, 574, 578, 651, 626, 573,
-		22, 555, 637, 681, 464, 645, 644, 596, 547, 616, 558, 621, 613, 197, 679, 617, 670, 612, 638, 561,
-		567, 649, 732, 653, 633, 557, 706, 662, 615, 701, 565, 669, 562, 592, 693, 151, 183, 695, 726, 673,
-		549, 716, 624, 731, 718, 642, 721, 640, 734, 713, 725, 710, 737, 729, 700, 707, 717, 676,
-		579, 682, 580, 730,
+		1, 497, 674, 604, 9, 498, 584, 3, 10, 601, 2, 611, 585, 13, 4, 482, 481, 6, 577, 5, 463,
+		629, 641, 15, 461, 560, 586, 587, 42, 600, 627, 608, 571, 631, 548, 7, 605, 572, 648,
+		606, 643, 8, 597, 619, 553, 625, 602, 618, 574, 578, 651, 626, 573, 22, 555, 637, 464,
+		645, 644, 596, 547, 616, 558, 621, 613, 197, 617, 670, 612, 638, 561, 567, 649, 653,
+		633, 557, 662, 615, 565, 562, 592, 151, 183, 673, 549, 624, 642,
+	}
+	poolsOsmosisAppend = []string{
+		"CtIC", "Cs0C", "Cs0C", "CsIC", "CtUC", "CokD", "CtEC", "Cs8C", "CpQD", "Cs8C", "Co4C",
+		"CpED", "Co8D", "CosD", "Co4D", "CosD", "Cs4C", "CpID", "Cs4C", "CtQC", "Cs8C", "CtoC",
+		"CsIC", "CtEC", "Co0D", "CtQC", "Cs8C", "CowD", "Cs0C", "CvwC", "Cs8C", "Cr0C", "Cs8C",
+		"CssC", "CosD", "CtEC", "CtcC", "CowD", "Co0D", "CpUD", "CsAC", "Co8D", "Ct0C", "CtAC",
+		"CtwC", "CsIC", "CtAC", "Co4D", "Co0D", "CowD", "CssC", "CssC", "Cs4C", "Co0D", "CpYD",
+		"CswC", "CooD", "CrwC", "CvoC", "CpsD", "CosD", "CvoC", "Co0D", "CsIC", "CssC", "Cs8C",
+		"Co0D", "Cs0C", "CpAD", "CooD", "CtEC", "CpAD", "CsUC", "CooD", "CswC", "CswC", "CooC",
+		"CvwC", "CooD", "CpID", "Co4D", "CsMC", "Co0D", "Cs4C", "CoYD", "CsgC", "CsEC", "CscC",
+		"CocD", "CooD",
 	}
 )
 
@@ -187,9 +197,35 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 	return atomCoin, osmoCoin, aktCoin
 }
 
+func (s *IntegrationTestSuite) initOsmosisBroker() {
+	var pools []*brokertypes.Source
+
+	for i := range poolsOsmosis {
+		app, err := base64.StdEncoding.DecodeString(poolsOsmosisAppend[i])
+		s.Assert().NoError(err)
+		addPool := brokertypes.Source{
+			PoolId:       poolsOsmosis[i],
+			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", poolsOsmosis[i]),
+			Status:       "active",
+			Append:       app,
+		}
+		pools = append(pools, &addPool)
+	}
+
+	broker := brokertypes.Broker{
+		Id:           "osmosis",
+		ConnectionId: "connection-0",
+		Pools:        pools,
+		BaseDenom:    "uosmo",
+		Status:       "inactive",
+	}
+
+	s.GetDefundApp(s.chainA).BrokerKeeper.SetBroker(s.chainActx, broker)
+}
+
 func (s *IntegrationTestSuite) TestGetOsmosisPool_Valid() {
-	data, err := base64.StdEncoding.DecodeString("CtwCChovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBK9Ago/b3NtbzFtODBmbnF2dnNkODN3ZThnbmg5OThyZTU1anE4Y3EybWRrY2NjbHFtdXF3OHhwbTY5YWdzbThmZmQ2EKkEGiQKEDIwMDAwMDAwMDAwMDAwMDASEDEwMDAwMDAwMDAwMDAwMDAiAzI0aCoyCg1nYW1tL3Bvb2wvNTUzEiEyNTM3OTU2NjA0MzcwOTEwOTIzNTU0NDQwNTYwODQxNjEyZwpZCkRpYmMvOTk4OUFENkNDQTM5RDExMzE1MjNEQjA2MTdCNTBGNjQ0MjA4MTE2MjI5NEI0Nzk1RTI2NzQ2MjkyNDY3QjUyNRIRMjkwMzM2MDg5MTM2OTk4NzkSCjUzNjg3MDkxMjAyIgoUCgV1b3NtbxILNzIzMDg4Mzc2MTISCjUzNjg3MDkxMjA6CzEwNzM3NDE4MjQw")
-	s.coordinator.Log(string(data))
+	s.initOsmosisBroker()
+	data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ4OTk3OTEzNDAyMzI0NjU1NzkzNjk0NjIyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY5MDA2NjIzODY0ORIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjM4OTEwOTUxNjQ1Eg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 	s.Assert().NoError(err)
 	height := clienttypes.NewHeight(0, 0)
 	interquery := querytypes.InterqueryResult{

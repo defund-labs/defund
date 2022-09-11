@@ -68,18 +68,14 @@ func calcSpotPriceWithSwapFee(
 
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
-	path := "/osmosis.gamm.v1beta1.Query/Pool"
+	path := "/store/gamm/key"
 	connectionid := "connection-0"
-	pr := osmosisgammtypes.QueryPoolRequest{PoolId: poolId}
-	key, err := pr.Marshal()
-	if err != nil {
-		return err
-	}
+	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
 	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
 	chainid := "osmosis-1"
 
-	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, true, key, timeoutHeight, connectionid)
+	err := k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
@@ -99,7 +95,7 @@ func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
 	storeid := fmt.Sprintf("account-%s", account)
 	chainid := "osmosis-1"
 
-	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, false, key, timeoutHeight, connectionid)
+	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
@@ -138,9 +134,19 @@ func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 // GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
 func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancertypes.Pool, error) {
 	pool := &osmosisbalancertypes.Pool{}
+	// get the pool source from broker
+	brokerPool, found := k.GetPoolFromBroker(ctx, "osmosis", poolId)
+	if !found {
+		return *pool, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker osmosis", poolId)
+	}
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%d", poolId))
 	if !found {
 		return *pool, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
+	}
+	// we must append an append to the data if it is osmosis pool due to store error
+	// whichr results in failed unmarshalling for osmosis pools
+	if len(brokerPool.Append) > 0 {
+		query.Data = append(brokerPool.Append, query.Data...)
 	}
 	err := pool.Unmarshal(query.Data)
 	if err != nil {
