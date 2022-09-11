@@ -9,11 +9,12 @@ import "ibc/core/client/v1/client.proto";
 message Interquery {
   string storeid = 1;
   string chainid = 2; 
-  string path = 3; 
-  bytes  key = 4; 
-  uint64 timeoutHeight = 5; 
-  string connectionId = 6;
-  string clientId = 7;
+  string path = 3;
+  bool   grpc = 4;
+  bytes  key = 5; 
+  uint64 timeoutHeight = 6; 
+  string connectionId = 7;
+  string clientId = 8;
 }
 
 message InterqueryResult {

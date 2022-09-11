@@ -68,14 +68,18 @@ func calcSpotPriceWithSwapFee(
 
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
-	path := "/store/gamm/key"
+	path := "/osmosis.gamm.v1beta1.Query/Pool"
 	connectionid := "connection-0"
-	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
+	pr := osmosisgammtypes.QueryPoolRequest{PoolId: poolId}
+	key, err := pr.Marshal()
+	if err != nil {
+		return err
+	}
 	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
 	chainid := "osmosis-1"
 
-	err := k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
+	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, true, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
@@ -95,7 +99,7 @@ func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
 	storeid := fmt.Sprintf("account-%s", account)
 	chainid := "osmosis-1"
 
-	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
+	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, false, key, timeoutHeight, connectionid)
 	if err != nil {
 		return err
 	}
