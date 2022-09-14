@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
@@ -64,7 +64,7 @@ var _ sdk.Msg = &MsgCreateInterqueryResult{}
 func NewMsgCreateInterqueryResult(
 	creator string,
 	storeid string,
-	data []byte,
+	data string,
 	height *clienttypes.Height,
 	proof *crypto.ProofOps,
 

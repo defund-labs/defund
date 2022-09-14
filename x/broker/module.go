@@ -15,7 +15,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	transferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	"github.com/defund-labs/defund/x/broker/client/cli"
 	"github.com/defund-labs/defund/x/broker/keeper"
 	"github.com/defund-labs/defund/x/broker/types"

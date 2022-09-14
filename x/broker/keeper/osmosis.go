@@ -12,9 +12,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/defund-labs/defund/x/broker/types"
 
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
@@ -131,28 +131,22 @@ func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
 	}
 }
 
+func (k Keeper) UnmarshalPool(bz []byte) (osmosisgammtypes.PoolI, error) {
+	var acc osmosisgammtypes.PoolI
+	return acc, k.cdc.UnmarshalInterface(bz, &acc)
+}
+
 // GetOsmosisPool gets an osmosis pool from the interquery store and returns the unmarshalled pool
-func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (osmosisbalancertypes.Pool, error) {
-	pool := &osmosisbalancertypes.Pool{}
-	// get the pool source from broker
-	brokerPool, found := k.GetPoolFromBroker(ctx, "osmosis", poolId)
-	if !found {
-		return *pool, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker osmosis", poolId)
-	}
+func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgammtypes.PoolI, err error) {
 	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%d", poolId))
 	if !found {
-		return *pool, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
+		return pool, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
 	}
-	// we must append an append to the data if it is osmosis pool due to store error
-	// whichr results in failed unmarshalling for osmosis pools
-	if len(brokerPool.Append) > 0 {
-		query.Data = append(brokerPool.Append, query.Data...)
-	}
-	err := pool.Unmarshal(query.Data)
+	pool, err = k.UnmarshalPool(query.Data)
 	if err != nil {
-		return *pool, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s). %e", query.Storeid, err)
+		return pool, err
 	}
-	return *pool, nil
+	return pool, nil
 }
 
 // GetOsmosisBalance gets an osmosis bank balance from the interquery store and returns the unmarshalled balance

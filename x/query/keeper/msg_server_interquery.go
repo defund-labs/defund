@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	tmclienttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
+	tmclienttypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 	"github.com/defund-labs/defund/x/query/types"
 )
 
@@ -64,6 +65,9 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	var interqueryresult = types.InterqueryResult{}
 
+	// replace the base64 encoded data with bytes
+	data, err := base64.StdEncoding.DecodeString(msg.Data)
+
 	// Get the interquery from store
 	interquery, isFound := k.GetInterquery(ctx, msg.Storeid)
 	if !isFound {
@@ -108,16 +112,16 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 
 	///////////////////////////////////////////////////////////////////////////////
 
-	if len(msg.Data) != 0 {
+	if len(data) != 0 {
 		// if we got a non-nil response, verify inclusion proof.
-		if err := merkleProof.VerifyMembership(tmclientstate.ProofSpecs, consensusState.GetRoot(), path, msg.Data); err != nil {
+		if err := merkleProof.VerifyMembership(tmclientstate.ProofSpecs, consensusState.GetRoot(), path, data); err != nil {
 			return nil, fmt.Errorf("unable to verify proof: %s", err)
 		}
 		interqueryresult = types.InterqueryResult{
 			Creator:     msg.Creator,
 			Storeid:     msg.Storeid,
 			Chainid:     interquery.Chainid,
-			Data:        msg.Data,
+			Data:        data,
 			Height:      msg.Height,
 			LocalHeight: uint64(ctx.BlockHeight()),
 			Success:     true,
@@ -133,7 +137,7 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 		interqueryresult = types.InterqueryResult{
 			Creator: msg.Creator,
 			Storeid: msg.Storeid,
-			Data:    msg.Data,
+			Data:    data,
 			Height:  msg.Height,
 			Success: false,
 			Proved:  true,

@@ -3,9 +3,9 @@ package etf
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 	"github.com/defund-labs/defund/x/etf/keeper"
 )
 
@@ -47,7 +47,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
-	return im.keeper.SendPacket(ctx, chanCap, packet)
+	return nil
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -57,7 +57,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -70,8 +70,8 @@ func (im IBCMiddleware) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
-	return nil
+) (string, error) {
+	return "", nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -87,7 +87,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	return "", nil
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
@@ -96,7 +96,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -107,7 +107,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -116,7 +116,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -125,7 +125,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
@@ -134,8 +134,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.Acknowledgement {
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+) (ack exported.Acknowledgement) {
+	return ack
 }
 
 func (im IBCMiddleware) OnTimeoutPacket(
@@ -143,5 +143,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	return nil
+}
+
+// GetAppVersion returns the application version of the underlying application
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }

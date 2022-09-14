@@ -9,6 +9,7 @@ export interface Source {
   pool_id: number;
   interquery_id: string;
   status: string;
+  append: Uint8Array;
 }
 
 export interface Broker {
@@ -42,6 +43,9 @@ export const Source = {
     if (message.status !== "") {
       writer.uint32(26).string(message.status);
     }
+    if (message.append.length !== 0) {
+      writer.uint32(34).bytes(message.append);
+    }
     return writer;
   },
 
@@ -60,6 +64,9 @@ export const Source = {
           break;
         case 3:
           message.status = reader.string();
+          break;
+        case 4:
+          message.append = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -86,6 +93,9 @@ export const Source = {
     } else {
       message.status = "";
     }
+    if (object.append !== undefined && object.append !== null) {
+      message.append = bytesFromBase64(object.append);
+    }
     return message;
   },
 
@@ -95,6 +105,10 @@ export const Source = {
     message.interquery_id !== undefined &&
       (obj.interquery_id = message.interquery_id);
     message.status !== undefined && (obj.status = message.status);
+    message.append !== undefined &&
+      (obj.append = base64FromBytes(
+        message.append !== undefined ? message.append : new Uint8Array()
+      ));
     return obj;
   },
 
@@ -114,6 +128,11 @@ export const Source = {
       message.status = object.status;
     } else {
       message.status = "";
+    }
+    if (object.append !== undefined && object.append !== null) {
+      message.append = object.append;
+    } else {
+      message.append = new Uint8Array();
     }
     return message;
   },
@@ -429,6 +448,29 @@ var globalThis: any = (() => {
   if (typeof global !== "undefined") return global;
   throw "Unable to locate global object";
 })();
+
+const atob: (b64: string) => string =
+  globalThis.atob ||
+  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
+function bytesFromBase64(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; ++i) {
+    arr[i] = bin.charCodeAt(i);
+  }
+  return arr;
+}
+
+const btoa: (bin: string) => string =
+  globalThis.btoa ||
+  ((bin) => globalThis.Buffer.from(bin, "binary").toString("base64"));
+function base64FromBytes(arr: Uint8Array): string {
+  const bin: string[] = [];
+  for (let i = 0; i < arr.byteLength; ++i) {
+    bin.push(String.fromCharCode(arr[i]));
+  }
+  return btoa(bin.join(""));
+}
 
 type Builtin = Date | Function | Uint8Array | string | number | undefined;
 export type DeepPartial<T> = T extends Builtin

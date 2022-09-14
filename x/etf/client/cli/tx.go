@@ -14,7 +14,7 @@ import (
 
 	// "github.com/cosmos/cosmos-sdk/client/flags"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
