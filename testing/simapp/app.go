@@ -228,12 +228,14 @@ type SimApp struct {
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
+	ScopedETFMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedBrokerKeeper        capabilitykeeper.ScopedKeeper
 	ScopedETFKeeper           capabilitykeeper.ScopedKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
 	ICAAuthModule ibcmock.IBCModule
+	ETFMockModule ibcmock.IBCModule
 
 	// the module manager
 	mm *module.Manager
@@ -307,10 +309,11 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedETFMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + etfmoduletypes.ModuleName)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
 	// seal capability keeper after scoping modules
-	app.CapabilityKeeper.Seal()
+	//app.CapabilityKeeper.Seal()
 
 	// SDK module keepers
 
@@ -432,25 +435,11 @@ func NewSimApp(
 
 	// Mock Module Stack
 
-	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// not replicate if you do not need to test core IBC or light clients.
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
-
-	// Create Transfer Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
-
-	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
-
-	// transfer stack contains (from top to bottom):
-	// - IBC Fee Middleware
-	// - Transfer
 
 	// create IBC module from bottom to top of stack
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
@@ -483,6 +472,12 @@ func NewSimApp(
 		// ICA controller module owns the port capability for ICA. The ICA authentication module
 		// owns the channel capability.
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
+
+	// create etf wrapped mock module
+	etfMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewMockIBCApp(ibcmock.ModuleName+etfmoduletypes.ModuleName, scopedETFMockKeeper))
+	app.ETFMockModule = etfMockModule
+	etfWithMockModule := etfmodule.NewIBCMiddleware(etfMockModule, app.EtfKeeper)
+	ibcRouter.AddRoute(ibcmock.ModuleName+etfmoduletypes.ModuleName, etfWithMockModule)
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)

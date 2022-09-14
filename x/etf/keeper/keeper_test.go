@@ -348,17 +348,25 @@ func (s *IntegrationTestSuite) TestCheckHoldings_Valid() {
 
 func (s *IntegrationTestSuite) TestCreateShares_Valid() {
 	s.SetupTest()
-	s.initTestTokens()
-	s.initOsmosisBroker()
-	s.initTestFund()
 
 	// setup transfer channels
 	path := ibctesting.NewPath(s.chainA, s.chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointA.ChannelConfig.PortID = "transfer"
+	path.EndpointB.ChannelConfig.PortID = "transfer"
 	path.EndpointA.ChannelConfig.Version = "ics20-1"
 	path.EndpointB.ChannelConfig.Version = "ics20-1"
-	s.coordinator.Setup(path)
+	path.EndpointA.ConnectionID = "connection-0"
+	path.EndpointB.ConnectionID = "connection-0"
+	path.EndpointA.ChannelID = "channel-0"
+	path.EndpointB.ChannelID = "channel-0"
+	path.EndpointA.ClientID = "07-tendermint-0"
+	path.EndpointB.ClientID = "07-tendermint-0"
+	s.coordinator.SetupConnections(path)
+	s.coordinator.CreateChannels(path)
+
+	s.initTestTokens()
+	s.initOsmosisBroker()
+	s.initTestFund()
 
 	// create a unique address
 	setupAccountCounter = setupAccountCounter.Add(sdk.OneInt())

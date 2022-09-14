@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/capability/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	"github.com/defund-labs/defund/app"
 	ibctesting "github.com/defund-labs/defund/testing"
@@ -117,13 +116,4 @@ func (s *IntegrationTestSuite) GetDefundApp(chain *ibctesting.TestChain) *simapp
 	}
 
 	return app
-}
-
-func (s *IntegrationTestSuite) TestOnChanOpenInit() {
-	s.SetupTest()
-	path := ibctesting.NewPath(s.chainA, s.chainB)
-	s.coordinator.SetupConnections(path)
-	s.GetDefundApp(s.chainA).ScopedTransferKeeper.ClaimCapability(s.chainActx, types.NewCapability(1), "etf")
-	s.GetDefundApp(s.chainB).ScopedTransferKeeper.ClaimCapability(s.chainBctx, types.NewCapability(1), "etf")
-	s.coordinator.CreateTransferChannels(path)
 }

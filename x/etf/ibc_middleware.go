@@ -71,7 +71,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return "", nil
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -87,7 +87,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return "", nil
+	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
@@ -96,7 +96,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -107,7 +107,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	return nil
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
