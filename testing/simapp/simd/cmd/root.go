@@ -30,13 +30,12 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/defund-labs/defund/testing/simapp"
-	"github.com/defund-labs/defund/testing/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := simapp.MakeTestEncodingConfig()
+func NewRootCmd() (*cobra.Command, app.EncodingConfig) {
+	encodingConfig := app.MakeEncodingConfig(app.ModuleBasics)
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -136,7 +135,7 @@ lru_size = 0`
 	return customAppTemplate, customAppConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	cfg := sdk.GetConfig()
 	cfg.SetBech32PrefixForAccount(app.AccountAddressPrefix, app.AccountPubKeyPrefix)
 	cfg.SetBech32PrefixForValidator(app.ValidatorAddressPrefix, app.ValidatorPubKeyPrefix)
@@ -226,7 +225,7 @@ func txCommand() *cobra.Command {
 }
 
 type appCreator struct {
-	encCfg params.EncodingConfig
+	encCfg app.EncodingConfig
 }
 
 // newApp is an appCreator

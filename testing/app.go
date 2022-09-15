@@ -24,6 +24,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	"github.com/defund-labs/defund/app"
 	"github.com/defund-labs/defund/testing/simapp"
 )
 
@@ -49,7 +50,7 @@ type TestingApp interface {
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
+	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
 	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
 }

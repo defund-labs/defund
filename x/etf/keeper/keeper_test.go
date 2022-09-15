@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
@@ -17,7 +18,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	"github.com/defund-labs/defund/app"
 	ibctesting "github.com/defund-labs/defund/testing"
-	"github.com/defund-labs/defund/testing/simapp"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
@@ -80,8 +80,8 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
+	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
+	app := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
 	return app, NewDefaultGenesisState(encCdc.Marshaler)
 }
 
@@ -127,6 +127,8 @@ func (s *IntegrationTestSuite) SetupTest() {
 		s.coordinator.CommitBlock(chain)
 
 		chains[chainID] = chain
+
+		s.GetDefundApp(chain).TransferKeeper.SetParams(chain.GetContext(), ibctransfertypes.DefaultParams())
 	}
 
 	s.coordinator.Chains = chains
@@ -143,8 +145,8 @@ func (s *IntegrationTestSuite) SetupTest() {
 	s.chainBctx = s.chainB.GetContext()
 }
 
-func (s *IntegrationTestSuite) GetDefundApp(chain *ibctesting.TestChain) *simapp.SimApp {
-	app, ok := chain.App.(*simapp.SimApp)
+func (s *IntegrationTestSuite) GetDefundApp(chain *ibctesting.TestChain) *app.App {
+	app, ok := chain.App.(*app.App)
 	if !ok {
 		panic("not defund app")
 	}
@@ -158,9 +160,11 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 		Path:      "transfer/channel-0/transfer/channel-0",
 		BaseDenom: "uatom",
 	}
+
 	// set the new denom trace in store
 	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomAtom)
-	atomCoin = sdk.NewCoin(denomAtom.GetFullDenomPath(), sdk.NewInt(100000000000))
+	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
+	atomCoin = sdk.NewCoin(denomAtom.IBCDenom(), sdk.NewInt(100000000000))
 
 	// create the denom for osmo that lives on osmosis broker
 	denomOsmo := ibctransfertypes.DenomTrace{
@@ -169,16 +173,18 @@ func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk
 	}
 	// set the new denom trace in store
 	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomOsmo)
-	osmoCoin = sdk.NewCoin(denomOsmo.GetFullDenomPath(), sdk.NewInt(100000000000))
+	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
+	osmoCoin = sdk.NewCoin(denomOsmo.IBCDenom(), sdk.NewInt(100000000000))
 
 	// create the ibc akt that lives on osmosis broker
 	denomAkt := ibctransfertypes.DenomTrace{
-		Path:      "transfer/channel-0/transfer/channel-0",
+		Path:      "transfer/channel-1/transfer/channel-0",
 		BaseDenom: "uakt",
 	}
 	// set the new denom trace in store
 	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomAkt)
-	aktCoin = sdk.NewCoin(denomAkt.GetFullDenomPath(), sdk.NewInt(100000000000))
+	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
+	aktCoin = sdk.NewCoin(denomAkt.IBCDenom(), sdk.NewInt(100000000000))
 
 	// create test tokens, atom, osmo, akt
 	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainActx, types.ModuleName, sdk.NewCoins(atomCoin))
@@ -369,12 +375,7 @@ func (s *IntegrationTestSuite) TestCreateShares_Valid() {
 	s.initTestFund()
 
 	// create a unique address
-	setupAccountCounter = setupAccountCounter.Add(sdk.OneInt())
-	addr := sdk.AccAddress([]byte("addr_______________" + setupAccountCounter.String()))
-
-	// register the account in AccountKeeper
-	acct := s.GetDefundApp(s.chainA).AccountKeeper.NewAccountWithAddress(s.chainActx, addr)
-	s.GetDefundApp(s.chainA).AccountKeeper.SetAccount(s.chainActx, acct)
+	addr := s.chainA.SenderAccount.GetAddress()
 
 	// init all the tokens. returns all the initialized coins that were sent to module
 	testAtomIBC, testOsmoIBC, testAktIBC := s.initTestTokens()
@@ -394,9 +395,17 @@ func (s *IntegrationTestSuite) TestCreateShares_Valid() {
 	s.Assert().True(s.GetDefundApp(s.chainA).TransferKeeper.GetSendEnabled(s.chainActx))
 	s.Assert().True(s.GetDefundApp(s.chainB).TransferKeeper.GetSendEnabled(s.chainBctx))
 
-	// check each token is send enabled
-	for _, token := range tokens {
-		s.Assert().True(s.GetDefundApp(s.chainA).BankKeeper.IsSendEnabledCoin(s.chainActx, *token))
+	// check each token is send enabled and balance has some tokens
+	for i := range tokens {
+		s.Assert().True(s.GetDefundApp(s.chainA).TransferKeeper.GetSendEnabled(s.chainActx))
+		s.Assert().True(s.GetDefundApp(s.chainA).BankKeeper.IsSendEnabledCoin(s.chainActx, *tokens[i]))
+		balanceQuery := banktypes.NewQueryAllBalancesRequest(s.chainA.SenderAccount.GetAddress(), &query.PageRequest{Offset: 0})
+		context := sdk.WrapSDKContext(s.chainActx)
+		res, err := s.GetDefundApp(s.chainA).BankKeeper.AllBalances(context, balanceQuery)
+		s.Assert().NoError(err)
+		bal := res.Balances.AmountOf(tokens[i].Denom)
+		add := sdk.NewCoin(tokens[i].Denom, bal)
+		tokens[i] = &add
 	}
 
 	// try to create etf shares with keeper function

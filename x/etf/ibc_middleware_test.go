@@ -46,7 +46,7 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
+	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
 	return app, NewDefaultGenesisState(encCdc.Marshaler)
 }

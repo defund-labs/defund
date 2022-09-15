@@ -175,8 +175,9 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		etfmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		etfmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		icatypes.ModuleName:            nil,
+		brokermoduletypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -416,6 +417,7 @@ func New(
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
 		app.ICAControllerKeeper,
+		app.TransferKeeper,
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 
@@ -487,8 +489,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
-		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, querymoduletypes.ModuleName,
+		brokermoduletypes.ModuleName, etfmoduletypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -497,8 +499,8 @@ func New(
 		stakingtypes.ModuleName, ibchost.ModuleName, feegrant.ModuleName,
 		vestingtypes.ModuleName, banktypes.ModuleName, crisistypes.ModuleName,
 		govtypes.ModuleName, ibctransfertypes.ModuleName, genutiltypes.ModuleName,
-		authtypes.ModuleName, icatypes.ModuleName, paramstypes.ModuleName,
-		querymoduletypes.ModuleName, brokermoduletypes.ModuleName, etfmoduletypes.ModuleName,
+		authtypes.ModuleName, icatypes.ModuleName, querymoduletypes.ModuleName,
+		brokermoduletypes.ModuleName, etfmoduletypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -521,13 +523,13 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
-		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		upgradetypes.ModuleName,
 		feegrant.ModuleName,
 		querymoduletypes.ModuleName,
 		brokermoduletypes.ModuleName,
 		etfmoduletypes.ModuleName,
+		paramstypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 

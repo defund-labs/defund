@@ -25,6 +25,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/defund-labs/defund/app"
 	"github.com/defund-labs/defund/testing/simapp/helpers"
 )
 
@@ -49,7 +50,7 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 
 func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	db := dbm.NewMemDB()
-	encCdc := MakeTestEncodingConfig()
+	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Marshaler)

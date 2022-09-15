@@ -52,6 +52,7 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ClientKeeper,
 		a.ICAControllerKeeper,
+		a.TransferKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

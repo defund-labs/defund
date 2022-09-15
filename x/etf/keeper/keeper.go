@@ -13,7 +13,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
@@ -36,7 +38,8 @@ type (
 		ics4Wrapper         porttypes.ICS4Wrapper
 		connectionKeeper    types.ConnectionKeeper
 		clientKeeper        types.ClientKeeper
-		icaControllerKeeper types.ICAControllerKeeper
+		icaControllerKeeper icacontrollerkeeper.Keeper
+		transferKeeper      transferkeeper.Keeper
 	}
 
 	Surplus struct {
@@ -59,7 +62,8 @@ func NewKeeper(
 	brokerKeeper types.BrokerKeeper,
 	connectionKeeper types.ConnectionKeeper,
 	clientKeeper types.ClientKeeper,
-	iaKeeper types.ICAControllerKeeper,
+	iaKeeper icacontrollerkeeper.Keeper,
+	transferKeeper transferkeeper.Keeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
@@ -74,6 +78,7 @@ func NewKeeper(
 		connectionKeeper:    connectionKeeper,
 		clientKeeper:        clientKeeper,
 		icaControllerKeeper: iaKeeper,
+		transferKeeper:      transferKeeper,
 	}
 }
 
@@ -199,7 +204,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			}
 		}
 
-		sequence, err := k.brokerKeeper.SendTransfer(ctx, channel, currentCoin, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
+		sequence, err := k.SendTransfer(ctx, channel, currentCoin, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
 		if err != nil {
 			return err
 		}
@@ -320,7 +325,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, id string, fund types.Fund, channe
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", broker.Id))
 		}
 		// create the ica multi send message
-		sequence, channelICA, err := k.brokerKeeper.SendIBCTransferICA(ctx, msg, fund.Address, broker.ConnectionId)
+		sequence, channelICA, err := k.SendIBCTransferICA(ctx, msg, fund.Address, broker.ConnectionId)
 		if err != nil {
 			return err
 		}
