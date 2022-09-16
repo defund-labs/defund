@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
@@ -27,7 +26,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-type IntegrationTestSuite struct {
+type KeeperTestSuite struct {
 	suite.Suite
 
 	coordinator *ibctesting.Coordinator
@@ -36,17 +35,10 @@ type IntegrationTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	chainActx sdk.Context
-	chainBctx sdk.Context
-
 	queryClient ibctransfertypes.QueryClient
 }
 
 type GenesisState map[string]json.RawMessage
-
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
-}
 
 var (
 	setupAccountCounter = sdk.ZeroInt()
@@ -65,6 +57,10 @@ var (
 	}
 )
 
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
+}
+
 func NewFundAddress(fundId string) sdk.AccAddress {
 	key := append([]byte("etf"), []byte(fundId)...)
 	return address.Module("etf", key)
@@ -81,11 +77,12 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
-	app := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
-	return app, NewDefaultGenesisState(encCdc.Marshaler)
+	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
+	gensisState := app.NewDefaultGenesisState(encCdc.Marshaler)
+	return appd, gensisState
 }
 
-func (s *IntegrationTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 0)
 
 	chains := make(map[string]*ibctesting.TestChain)
@@ -123,12 +120,12 @@ func (s *IntegrationTestSuite) SetupTest() {
 			Time:    s.coordinator.CurrentTime.UTC(),
 		}
 
+		s.GetDefundApp(chain).TransferKeeper.SetParams(chain.GetContext(), ibctransfertypes.DefaultParams())
+
 		chain.Coordinator = s.coordinator
 		s.coordinator.CommitBlock(chain)
 
 		chains[chainID] = chain
-
-		s.GetDefundApp(chain).TransferKeeper.SetParams(chain.GetContext(), ibctransfertypes.DefaultParams())
 	}
 
 	s.coordinator.Chains = chains
@@ -140,12 +137,9 @@ func (s *IntegrationTestSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(s.chainA.GetContext(), defundApp.InterfaceRegistry())
 	ibctransfertypes.RegisterQueryServer(queryHelper, defundApp.TransferKeeper)
 	s.queryClient = ibctransfertypes.NewQueryClient(queryHelper)
-
-	s.chainActx = s.chainA.GetContext()
-	s.chainBctx = s.chainB.GetContext()
 }
 
-func (s *IntegrationTestSuite) GetDefundApp(chain *ibctesting.TestChain) *app.App {
+func (s *KeeperTestSuite) GetDefundApp(chain *ibctesting.TestChain) *app.App {
 	app, ok := chain.App.(*app.App)
 	if !ok {
 		panic("not defund app")
@@ -154,56 +148,86 @@ func (s *IntegrationTestSuite) GetDefundApp(chain *ibctesting.TestChain) *app.Ap
 	return app
 }
 
-func (s *IntegrationTestSuite) initTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Coin, aktCoin sdk.Coin) {
+func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
+	// setup transfer channels
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path.EndpointA.ChannelConfig.PortID = "transfer"
+	path.EndpointB.ChannelConfig.PortID = "transfer"
+	path.EndpointA.ChannelConfig.Version = "ics20-1"
+	path.EndpointB.ChannelConfig.Version = "ics20-1"
+	path.EndpointA.ConnectionID = "connection-0"
+	path.EndpointB.ConnectionID = "connection-0"
+	path.EndpointA.ChannelID = "channel-0"
+	path.EndpointB.ChannelID = "channel-0"
+	path.EndpointA.ClientID = "07-tendermint-0"
+	path.EndpointB.ClientID = "07-tendermint-0"
+	return path
+}
+
+func (s *KeeperTestSuite) CreateTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Coin, aktCoin sdk.Coin) {
 	// create the ibc atom that lives on osmosis broker
 	denomAtom := ibctransfertypes.DenomTrace{
-		Path:      "transfer/channel-0/transfer/channel-0",
+		Path:      "transfer/channel-0",
 		BaseDenom: "uatom",
 	}
-
 	// set the new denom trace in store
-	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomAtom)
-	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
+	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainA.GetContext(), denomAtom)
 	atomCoin = sdk.NewCoin(denomAtom.IBCDenom(), sdk.NewInt(100000000000))
 
-	// create the denom for osmo that lives on osmosis broker
-	denomOsmo := ibctransfertypes.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: "uosmo",
-	}
 	// set the new denom trace in store
-	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomOsmo)
-	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
-	osmoCoin = sdk.NewCoin(denomOsmo.IBCDenom(), sdk.NewInt(100000000000))
+	osmoCoin = sdk.NewCoin("uosmo", sdk.NewInt(100000000000))
 
 	// create the ibc akt that lives on osmosis broker
 	denomAkt := ibctransfertypes.DenomTrace{
-		Path:      "transfer/channel-1/transfer/channel-0",
+		Path:      "transfer/channel-1",
 		BaseDenom: "uakt",
 	}
 	// set the new denom trace in store
-	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainActx, denomAkt)
-	s.GetDefundApp(s.chainA).TransferKeeper.SetParams(s.chainActx, ibctransfertypes.DefaultParams())
+	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainA.GetContext(), denomAkt)
 	aktCoin = sdk.NewCoin(denomAkt.IBCDenom(), sdk.NewInt(100000000000))
 
 	// create test tokens, atom, osmo, akt
-	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainActx, types.ModuleName, sdk.NewCoins(atomCoin))
-	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainActx, types.ModuleName, sdk.NewCoins(osmoCoin))
-	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainActx, types.ModuleName, sdk.NewCoins(aktCoin))
+	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), types.ModuleName, sdk.NewCoins(atomCoin))
+	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), types.ModuleName, sdk.NewCoins(osmoCoin))
+	s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), types.ModuleName, sdk.NewCoins(aktCoin))
 
 	return atomCoin, osmoCoin, aktCoin
 }
 
+func (s *KeeperTestSuite) CreateFundBalanceQuery(fund types.Fund, tokens []sdk.Coin, multiplier int64) {
+	for i := range tokens {
+		tokens[i].Amount.Mul(sdk.NewInt(multiplier))
+	}
+	balances := banktypes.Balance{
+		Address: "defund1wn88znj4a8kd6vzepz52t0gmuj9scvn68l4wm4qp5ptk4wrzrwrqkajjl7",
+		Coins:   sdk.Coins(tokens),
+	}
+	data, err := balances.Marshal()
+	s.Assert().NoError(err)
+	height := clienttypes.NewHeight(0, 0)
+	query := querytypes.InterqueryResult{
+		Creator:     fund.Address,
+		Storeid:     "balance-defund1wn88znj4a8kd6vzepz52t0gmuj9scvn68l4wm4qp5ptk4wrzrwrqkajjl7",
+		Chainid:     "osmosis-1",
+		Data:        data,
+		Height:      &height,
+		LocalHeight: uint64(0),
+		Success:     true,
+		Proved:      true,
+	}
+	s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), query)
+}
+
 // initTestFund creates a test fund in store and initializes all the requirements
 // for this fund
-func (s *IntegrationTestSuite) initTestFund() {
+func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 
 	// create test account address
 	addr := NewFundAddress(fmt.Sprintf("defund1njx8c8yjfsj5g4xnzej9lfl2ugmhldfh4x8c5%d", setupAccountCounter))
 	// add one to the account counter
 	setupAccountCounter = setupAccountCounter.Add(sdk.OneInt())
 	// create a new module account for the fund account
-	acct := s.GetDefundApp(s.chainA).AccountKeeper.NewAccount(s.chainActx, authtypes.NewModuleAccount(
+	acct := s.GetDefundApp(s.chainA).AccountKeeper.NewAccount(s.chainA.GetContext(), authtypes.NewModuleAccount(
 		authtypes.NewBaseAccountWithAddress(
 			addr,
 		),
@@ -212,14 +236,13 @@ func (s *IntegrationTestSuite) initTestFund() {
 		"burn",
 	))
 	// set the new fund account in the store
-	s.GetDefundApp(s.chainA).AccountKeeper.SetAccount(s.chainActx, acct)
+	s.GetDefundApp(s.chainA).AccountKeeper.SetAccount(s.chainA.GetContext(), acct)
 
-	// get the osmosis broker
-	broker, found := s.GetDefundApp(s.chainA).BrokerKeeper.GetBroker(s.chainActx, "osmosis")
-	s.Assert().True(found)
+	// initialize and get the broker
+	broker := s.CreateOsmosisBroker()
 
 	// create the ica account
-	err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainActx, broker.ConnectionId, acct.GetAddress().String())
+	err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), broker.ConnectionId, acct.GetAddress().String())
 	s.Assert().NoError(err)
 
 	// generate new portId for ica account
@@ -227,11 +250,11 @@ func (s *IntegrationTestSuite) initTestFund() {
 	s.Assert().NoError(err)
 
 	// set the interchain accounts in store since IBC callback will not
-	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetActiveChannelID(s.chainActx, broker.BaseDenom, portID, testChannelId)
-	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetInterchainAccountAddress(s.chainActx, broker.ConnectionId, portID, acct.GetAddress().String())
+	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetActiveChannelID(s.chainA.GetContext(), broker.BaseDenom, portID, testChannelId)
+	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetInterchainAccountAddress(s.chainA.GetContext(), broker.ConnectionId, portID, acct.GetAddress().String())
 
 	// init all the tokens. returns all the initialized coins that were sent to module
-	testAtomIBC, testOsmoIBC, testAktIBC := s.initTestTokens()
+	testAtomIBC, testOsmoIBC, testAktIBC := s.CreateTestTokens()
 
 	// create the holdings to add to fund
 	holdingOne := types.Holding{
@@ -268,10 +291,12 @@ func (s *IntegrationTestSuite) initTestFund() {
 		StartingPrice: sdk.NewCoin(baseDenom, sdk.NewInt(5000000)),
 	}
 	// set the test fund in store
-	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainActx, TestFund)
+	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), TestFund)
+
+	return TestFund
 }
 
-func (s *IntegrationTestSuite) initOsmosisBroker() {
+func (s *KeeperTestSuite) CreateOsmosisBroker() brokertypes.Broker {
 	var pools []*brokertypes.Source
 
 	for i := range poolsOsmosis {
@@ -291,128 +316,86 @@ func (s *IntegrationTestSuite) initOsmosisBroker() {
 		Status:       "inactive",
 	}
 
-	s.GetDefundApp(s.chainA).BrokerKeeper.SetBroker(s.chainActx, broker)
+	s.GetDefundApp(s.chainA).BrokerKeeper.SetBroker(s.chainA.GetContext(), broker)
+
+	return broker
 }
 
-func (s *IntegrationTestSuite) TestCheckHoldings_Valid() {
-	s.initOsmosisBroker()
-
-	data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ4OTk3OTEzNDAyMzI0NjU1NzkzNjk0NjIyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY5MDAzNjMwNTU0MhIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjM5MDA5NTkzODk3Eg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
-	s.Assert().NoError(err)
-	height := clienttypes.NewHeight(0, 0)
-	interquery := querytypes.InterqueryResult{
-		Creator:     "defund1y295kyv2upsy6swhj0dulghf208ngec5k7zpjq",
-		Storeid:     "osmosis-1",
-		Chainid:     "osmosis-1",
-		Data:        data,
-		Height:      &height,
-		LocalHeight: 0,
-		Success:     true,
-		Proved:      true,
-	}
-	err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainActx, interquery)
-	s.Assert().NoError(err)
-
-	data, err = base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBLvAgo/b3NtbzFsend2MGdsY2hmY3cwZnB3emR3ZmRzZXBtdmx1djZ6NmVoNHF1bnhkbWwzM3NqMDZxM3lxN3h3dGRlEAQaFQoQMzAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKikKC2dhbW0vcG9vbC80Eho1MjE3NzY4NjUwNzYzMzUwMzYzNjczMzUzOTJoClUKRGliYy8xNDgwQjhGRDIwQUQ1RkNBRTgxRUE4NzU4NEQyNjk1NDdERDRENDM2ODQzQzFEMjBGMTVFMDBFQjY0NzQzRUY0Eg00NjI2NTYyOTEwMzg5Eg83MDg2Njk2MDM4NDAwMDAyZwpUCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhIMMTI2NDE3MzA2NDY0Eg8zNjUwNzIyMjAxNjAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
-	s.Assert().NoError(err)
-	interquery = querytypes.InterqueryResult{
-		Creator:     "defund1y295kyv2upsy6swhj0dulghf208ngec5k7zpjq",
-		Storeid:     "osmosis-4",
-		Chainid:     "osmosis-4",
-		Data:        data,
-		Height:      &height,
-		LocalHeight: 0,
-		Success:     true,
-		Proved:      true,
-	}
-	err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainActx, interquery)
-	s.Assert().NoError(err)
-
-	holdings := []types.Holding{
-		{
-			Token:    "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-			Percent:  33,
-			PoolId:   1,
-			BrokerId: "osmosis",
-		},
-		{
-			Token:    "uosmo",
-			Percent:  34,
-			PoolId:   1,
-			BrokerId: "osmosis",
-		},
-		{
-			Token:    "ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
-			Percent:  33,
-			PoolId:   4,
-			BrokerId: "osmosis",
-		},
-	}
-	err = s.GetDefundApp(s.chainA).EtfKeeper.CheckHoldings(s.chainActx, holdings)
-	s.Assert().NoError(err)
-}
-
-func (s *IntegrationTestSuite) TestCreateShares_Valid() {
-	s.SetupTest()
-
-	// setup transfer channels
-	path := ibctesting.NewPath(s.chainA, s.chainB)
-	path.EndpointA.ChannelConfig.PortID = "transfer"
-	path.EndpointB.ChannelConfig.PortID = "transfer"
-	path.EndpointA.ChannelConfig.Version = "ics20-1"
-	path.EndpointB.ChannelConfig.Version = "ics20-1"
-	path.EndpointA.ConnectionID = "connection-0"
-	path.EndpointB.ConnectionID = "connection-0"
-	path.EndpointA.ChannelID = "channel-0"
-	path.EndpointB.ChannelID = "channel-0"
-	path.EndpointA.ClientID = "07-tendermint-0"
-	path.EndpointB.ClientID = "07-tendermint-0"
+func (s *KeeperTestSuite) TestETFFundActions() {
+	path := s.NewTransferPath()
+	s.coordinator.SetupClients(path)
 	s.coordinator.SetupConnections(path)
 	s.coordinator.CreateChannels(path)
 
-	s.initTestTokens()
-	s.initOsmosisBroker()
-	s.initTestFund()
+	s.Run("CheckHoldings", func() {
+		s.CreateOsmosisBroker()
 
-	// create a unique address
-	addr := s.chainA.SenderAccount.GetAddress()
-
-	// init all the tokens. returns all the initialized coins that were sent to module
-	testAtomIBC, testOsmoIBC, testAktIBC := s.initTestTokens()
-
-	// add them to an account balance
-	s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainActx, types.ModuleName, addr, sdk.NewCoins(testAtomIBC))
-	s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainActx, types.ModuleName, addr, sdk.NewCoins(testOsmoIBC))
-	s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainActx, types.ModuleName, addr, sdk.NewCoins(testAktIBC))
-
-	// get test fund from store
-	fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainActx, testFundName)
-	s.Assert().True(found)
-
-	tokens := []*sdk.Coin{&testAtomIBC, &testOsmoIBC, &testAktIBC}
-
-	// ensure token transer sends are enabled
-	s.Assert().True(s.GetDefundApp(s.chainA).TransferKeeper.GetSendEnabled(s.chainActx))
-	s.Assert().True(s.GetDefundApp(s.chainB).TransferKeeper.GetSendEnabled(s.chainBctx))
-
-	// check each token is send enabled and balance has some tokens
-	for i := range tokens {
-		s.Assert().True(s.GetDefundApp(s.chainA).TransferKeeper.GetSendEnabled(s.chainActx))
-		s.Assert().True(s.GetDefundApp(s.chainA).BankKeeper.IsSendEnabledCoin(s.chainActx, *tokens[i]))
-		balanceQuery := banktypes.NewQueryAllBalancesRequest(s.chainA.SenderAccount.GetAddress(), &query.PageRequest{Offset: 0})
-		context := sdk.WrapSDKContext(s.chainActx)
-		res, err := s.GetDefundApp(s.chainA).BankKeeper.AllBalances(context, balanceQuery)
+		data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ4OTk3OTEzNDAyMzI0NjU1NzkzNjk0NjIyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY5MDAzNjMwNTU0MhIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjM5MDA5NTkzODk3Eg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 		s.Assert().NoError(err)
-		bal := res.Balances.AmountOf(tokens[i].Denom)
-		add := sdk.NewCoin(tokens[i].Denom, bal)
-		tokens[i] = &add
-	}
+		height := clienttypes.NewHeight(0, 0)
+		interquery := querytypes.InterqueryResult{
+			Creator:     "defund1y295kyv2upsy6swhj0dulghf208ngec5k7zpjq",
+			Storeid:     "osmosis-1",
+			Chainid:     "osmosis-1",
+			Data:        data,
+			Height:      &height,
+			LocalHeight: 0,
+			Success:     true,
+			Proved:      true,
+		}
+		err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), interquery)
+		s.Assert().NoError(err)
 
-	// try to create etf shares with keeper function
-	err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainActx, fund, "channel-0", tokens, addr.String(), clienttypes.NewHeight(uint64(0), uint64(s.chainActx.BlockHeight()+100)), 0)
-	s.Require().NoError(err)
+		data, err = base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBLvAgo/b3NtbzFsend2MGdsY2hmY3cwZnB3emR3ZmRzZXBtdmx1djZ6NmVoNHF1bnhkbWwzM3NqMDZxM3lxN3h3dGRlEAQaFQoQMzAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKikKC2dhbW0vcG9vbC80Eho1MjE3NzY4NjUwNzYzMzUwMzYzNjczMzUzOTJoClUKRGliYy8xNDgwQjhGRDIwQUQ1RkNBRTgxRUE4NzU4NEQyNjk1NDdERDRENDM2ODQzQzFEMjBGMTVFMDBFQjY0NzQzRUY0Eg00NjI2NTYyOTEwMzg5Eg83MDg2Njk2MDM4NDAwMDAyZwpUCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhIMMTI2NDE3MzA2NDY0Eg8zNjUwNzIyMjAxNjAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
+		s.Assert().NoError(err)
+		interquery = querytypes.InterqueryResult{
+			Creator:     "defund1y295kyv2upsy6swhj0dulghf208ngec5k7zpjq",
+			Storeid:     "osmosis-4",
+			Chainid:     "osmosis-4",
+			Data:        data,
+			Height:      &height,
+			LocalHeight: 0,
+			Success:     true,
+			Proved:      true,
+		}
+		err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), interquery)
+		s.Assert().NoError(err)
+
+		holdings := []types.Holding{
+			{
+				Token:    "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+				Percent:  33,
+				PoolId:   1,
+				BrokerId: "osmosis",
+			},
+			{
+				Token:    "uosmo",
+				Percent:  34,
+				PoolId:   1,
+				BrokerId: "osmosis",
+			},
+			{
+				Token:    "ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
+				Percent:  33,
+				PoolId:   4,
+				BrokerId: "osmosis",
+			},
+		}
+		err = s.GetDefundApp(s.chainA).EtfKeeper.CheckHoldings(s.chainA.GetContext(), holdings)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("Create", func() {
+		fund := s.CreateTestFund()
+		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
+		// add them to an account balance
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
+		// create the fake balance query for fund
+		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 2)
+		var tokens []*sdk.Coin = []*sdk.Coin{&atomCoin, &osmoCoin, &aktCoin}
+		err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokens, s.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		s.Assert().NoError(err)
+	})
 }
-
-func (s *IntegrationTestSuite) TestRedeemShares_Valid() {}
-
-func (s *IntegrationTestSuite) TestRebalanceShares_Valid() {}

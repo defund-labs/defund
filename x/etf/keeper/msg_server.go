@@ -35,10 +35,26 @@ func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/pool/%s", symbol)
 }
 
+func containsString(strings []string, value string) bool {
+	for _, string := range strings {
+		if string == value {
+			return true
+		}
+	}
+	return false
+}
+
 // RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
 // a fund. If no broker account exists, one is created and then stored in the Broker store
 func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Holding, acc authtypes.AccountI) error {
+	// we must keep track of broker accounts registered so we can make sure we create only one
+	// account per broker.
+	var registeredBrokers []string
 	for _, holding := range holdings {
+		// make sure we do not already have account for broker for this fund
+		if containsString(registeredBrokers, holding.BrokerId) {
+			continue
+		}
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
@@ -54,6 +70,7 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Hold
 		if err != nil {
 			return err
 		}
+		registeredBrokers = append(registeredBrokers, holding.BrokerId)
 	}
 
 	return nil

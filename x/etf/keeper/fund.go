@@ -70,7 +70,7 @@ func (k Keeper) GetFundBySymbol(ctx sdk.Context, symbol string) (types.Fund, err
 			return val, nil
 		}
 	}
-	return types.Fund{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund with the sumbol %s does not exist", symbol)
+	return types.Fund{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund with the symbol %s does not exist", symbol)
 }
 
 // GetNextID gets the count of all funds and then adds 1 for the next fund id

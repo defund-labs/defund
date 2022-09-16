@@ -1,9 +1,6 @@
 package keeper_test
 
 import (
-	"context"
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/defund-labs/defund/testutil/keeper"
 	"github.com/defund-labs/defund/x/etf/keeper"
@@ -12,47 +9,58 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
+func (s *KeeperTestSuite) TestFundMsgServerCreate() {
 	db := dbm.NewMemDB()
-	k, ctx := keepertest.EtfKeeper(db, t)
-	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
-}
-
-func TestFundMsgServerCreate(t *testing.T) {
-	db := dbm.NewMemDB()
-	k, ctx := keepertest.EtfKeeper(db, t)
+	k, ctx := keepertest.EtfKeeper(db, s.T())
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
 	for i := 0; i < 5; i++ {
 		expected := &types.MsgCreateFund{Creator: creator}
 		_, err := srv.CreateFund(wctx, expected)
-		require.NoError(t, err)
+		require.NoError(s.T(), err)
 	}
 }
 
-func TestSharesMsgServerCreate(t *testing.T) {
+func (s *KeeperTestSuite) TestSharesMsgServerCreate() {
 	db := dbm.NewMemDB()
-	k, ctx := keepertest.EtfKeeper(db, t)
+	k, ctx := keepertest.EtfKeeper(db, s.T())
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
-	creator := "A"
-	for i := 0; i < 5; i++ {
-		expected := &types.MsgCreateFund{Creator: creator}
-		_, err := srv.CreateFund(wctx, expected)
-		require.NoError(t, err)
+
+	path := s.NewTransferPath()
+	s.coordinator.SetupClients(path)
+	s.coordinator.SetupConnections(path)
+	s.coordinator.CreateChannels(path)
+
+	creator := s.chainA.SenderAccount.GetAddress().String()
+	fund := s.CreateTestFund()
+	atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
+	tokens := []*sdk.Coin{&atomCoin, &osmoCoin, &aktCoin}
+
+	s.coordinator.CommitBlock(s.chainA)
+
+	expected := &types.MsgCreate{
+		Creator:          creator,
+		Fund:             fund.Symbol,
+		Tokens:           tokens,
+		Channel:          path.EndpointA.ChannelID,
+		TimeoutHeight:    "50",
+		TimeoutTimestamp: 0,
 	}
+	_, err := srv.Create(wctx, expected)
+	require.NoError(s.T(), err)
 }
 
-func TestSharesMsgServerRedeem(t *testing.T) {
+func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 	db := dbm.NewMemDB()
-	k, ctx := keepertest.EtfKeeper(db, t)
+	k, ctx := keepertest.EtfKeeper(db, s.T())
 	srv := keeper.NewMsgServerImpl(*k)
 	wctx := sdk.WrapSDKContext(ctx)
 	creator := "A"
 	for i := 0; i < 5; i++ {
-		expected := &types.MsgCreateFund{Creator: creator}
-		_, err := srv.CreateFund(wctx, expected)
-		require.NoError(t, err)
+		expected := &types.MsgRedeem{Creator: creator}
+		_, err := srv.Redeem(wctx, expected)
+		require.NoError(s.T(), err)
 	}
 }

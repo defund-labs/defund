@@ -1,15 +1,5 @@
 {
-  "name": "@starport/template",
-  "version": "0.3.5",
-  "description": "A Vue 3 boilerplate project utilizing @starport/vue and @starport/vuex",
-  "author": "Tendermint, Inc <hello@tendermint.com>",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "postinstall": "patch-package"
-  },
+  "author": "Tendermint, Inc \u003chello@tendermint.com\u003e",
   "dependencies": {
     "@cosmjs/launchpad": "0.27.0",
     "@cosmjs/proto-signing": "0.27.0",
@@ -21,6 +11,7 @@
     "axios": "^0.27.2",
     "buffer": "^6.0.3",
     "core-js": "^3.18.2",
+    "defund-labs-defund-client-ts": "file:../ts-client",
     "dotenv": "^16.0.1",
     "firebase": "^9.8.2",
     "flat": "^5.0.2",
@@ -37,6 +28,7 @@
     "vuetify": "^3.0.0-beta.1",
     "vuex": "^4.0.2"
   },
+  "description": "A Vue 3 boilerplate project utilizing @starport/vue and @starport/vuex",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-dynamic-import-vars": "^1.4.1",
@@ -48,5 +40,14 @@
     "vite": "^2.7.6",
     "vite-plugin-dynamic-import": "^0.1.1",
     "vite-plugin-env-compatible": "^1.1.1"
-  }
+  },
+  "name": "@starport/template",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "postinstall": "patch-package",
+    "serve": "vite preview"
+  },
+  "version": "0.3.5"
 }

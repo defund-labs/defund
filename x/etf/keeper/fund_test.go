@@ -19,7 +19,6 @@ func createNFund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Fund {
 	items := make([]types.Fund, n)
 	for i := range items {
 		items[i].Symbol = strconv.Itoa(i)
-
 		keeper.SetFund(ctx, items[i])
 	}
 	return items

@@ -203,7 +203,6 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 				return sdkerrors.Wrapf(types.ErrInvalidDenom, "could not find supplied token representing holding denom: %s", holding.Token)
 			}
 		}
-
 		sequence, err := k.SendTransfer(ctx, channel, currentCoin, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
 		if err != nil {
 			return err
@@ -711,10 +710,12 @@ func (k Keeper) SendRebalanceTx(ctx sdk.Context, fund types.Fund) error {
 		}
 
 		// get the new surplus msgs
-		newMsgs, _, err := k.HandleSurplus(ctx, fund, holding, msgs[holding.BrokerId], surplusList, surplus)
+		newMsgs, surplusList, err := k.HandleSurplus(ctx, fund, holding, msgs[holding.BrokerId], surplusList, surplus)
 		if err != nil {
 			return err
 		}
+		// self assign to use in next for loop
+		surplusList = surplusList
 		// append new msgs for broker into broker map
 		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], newMsgs...)
 	}

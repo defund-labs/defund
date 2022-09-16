@@ -61,8 +61,8 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 // represent/owns within the fund.
 func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundShares sdk.Coin) (ownership []sdk.Coin, err error) {
 	// check to make sure the shares provided are for the correct fund
-	if fund.Shares.Denom != fundShares.Denom {
-		return ownership, sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid etf denom. looking for %s, received %s", fund.Shares.Denom, fundShares.Denom)
+	if fund.BaseDenom != fundShares.Denom {
+		return ownership, sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid etf denom. looking for %s, received %s", fund.BaseDenom, fundShares.Denom)
 	}
 	for _, holding := range fund.Holdings {
 		// get the broker
