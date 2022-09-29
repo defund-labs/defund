@@ -1,7 +1,6 @@
 package broker
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,42 +17,23 @@ var poolsOsmosis = []uint64{
 	633, 557, 662, 615, 565, 562, 592, 151, 183, 673, 549, 624, 642,
 }
 
-// add the list of bytes we must append to properly unmarshal
-var poolsOsmosisAppend = []string{
-	"CtIC", "Cs0C", "Cs0C", "CsIC", "CtUC", "CokD", "CtEC", "Cs8C", "CpQD", "Cs8C", "Co4C",
-	"CpED", "Co8D", "CosD", "Co4D", "CosD", "Cs4C", "CpID", "Cs4C", "CtQC", "Cs8C", "CtoC",
-	"CsIC", "CtEC", "Co0D", "CtQC", "Cs8C", "CowD", "Cs0C", "CvwC", "Cs8C", "Cr0C", "Cs8C",
-	"CssC", "CosD", "CtEC", "CtcC", "CowD", "Co0D", "CpUD", "CsAC", "Co8D", "Ct0C", "CtAC",
-	"CtwC", "CsIC", "CtAC", "Co4D", "Co0D", "CowD", "CssC", "CssC", "Cs4C", "Co0D", "CpYD",
-	"CswC", "CooD", "CrwC", "CvoC", "CpsD", "CosD", "CvoC", "Co0D", "CsIC", "CssC", "Cs8C",
-	"Co0D", "Cs0C", "CpAD", "CooD", "CtEC", "CpAD", "CsUC", "CooD", "CswC", "CswC", "CooC",
-	"CvwC", "CooD", "CpID", "Co4D", "CsMC", "Co0D", "Cs4C", "CoYD", "CsgC", "CsEC", "CscC",
-	"CocD", "CooD",
-}
-
 // AddOsmosisToBrokers adds Osmosis as a broker to state manually
 func AddOsmosisToBrokers(ctx sdk.Context, k keeper.Keeper) error {
 	var pools []*types.Source
 
 	for i := range poolsOsmosis {
-		app, err := base64.StdEncoding.DecodeString(poolsOsmosisAppend[i])
-		if err != nil {
-			return err
-		}
 		addPool := types.Source{
 			PoolId:       poolsOsmosis[i],
 			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", poolsOsmosis[i]),
 			Status:       "active",
-			Append:       app,
 		}
 		pools = append(pools, &addPool)
 	}
 
 	broker := types.Broker{
-		Id:        "osmosis",
-		Pools:     pools,
-		BaseDenom: "uosmo",
-		Status:    "inactive",
+		Id:     "osmosis",
+		Pools:  pools,
+		Status: "inactive",
 	}
 
 	k.SetBroker(ctx, broker)

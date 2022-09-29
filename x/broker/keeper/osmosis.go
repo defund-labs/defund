@@ -3,7 +3,6 @@ package keeper
 // All Osmosis Logic Lives Here
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -151,12 +150,12 @@ func (k Keeper) GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgamm
 
 // GetOsmosisBalance gets an osmosis bank balance from the interquery store and returns the unmarshalled balance
 func (k Keeper) GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error) {
-	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("account-%s", account))
+	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("balance-%s", account))
 	if !found {
 		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find account query for %s", fmt.Sprintf("account-%s", account))
 	}
 	var balance = banktypes.Balance{}
-	err := json.Unmarshal(query.Data, &balance)
+	err := balance.Unmarshal(query.Data)
 	if err != nil {
 		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis account query (%s)", strings.Split(query.Storeid, "-")[1])
 	}

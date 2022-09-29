@@ -57,10 +57,9 @@ message Redeem {
   string creator = 2;
   Fund fund = 3;
   cosmos.base.v1beta1.Coin amount = 4;
-  string channel = 5;
-  string status = 6;
-  string error = 7;
-  repeated broker.Transfer transfers = 8[
+  string status = 5;
+  string error = 6;
+  repeated broker.Transfer transfers = 7[
     (gogoproto.nullable) = false
   ];
 }

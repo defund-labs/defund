@@ -29,8 +29,8 @@ func (k Keeper) CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddres
 }
 
 // Creates an ICA Bank Send msg on a host/broker ICA chain to
-// send funds from an account on the host chain to someone
-func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, err error) {
+// send funds from an account on the host chain to someone else on the host chain
+func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, channel string, err error) {
 	seralizeMsgs := []sdk.Msg{}
 	for _, msg := range msgs {
 		msg.ValidateBasic()
@@ -39,22 +39,22 @@ func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner st
 
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
-		return 0, err
+		return sequence, channel, err
 	}
 
-	channelID, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
+	channel, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
-		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
+		return sequence, channel, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channel))
 	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return sequence, channel, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	data, err := icatypes.SerializeCosmosTx(k.cdc, seralizeMsgs)
 	if err != nil {
-		return sequence, err
+		return sequence, channel, err
 	}
 
 	packetData := icatypes.InterchainAccountPacketData{
@@ -67,10 +67,10 @@ func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner st
 	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
-		return sequence, err
+		return sequence, channel, err
 	}
 
-	return sequence, nil
+	return sequence, channel, nil
 }
 
 // Creates an ICA Transfer msg on a host/broker ICA chain to send funds through IBC to Defund
@@ -86,12 +86,12 @@ func (k Keeper) SendIBCTransferICA(ctx sdk.Context, msgs []*ibctransfertypes.Msg
 		return 0, "", err
 	}
 
-	channelID, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
+	channel, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
 		return 0, "", sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channel))
 	if !found {
 		return 0, "", sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}

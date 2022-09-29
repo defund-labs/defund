@@ -35,15 +35,14 @@ func (s *KeeperTestSuite) TestSharesMsgServerCreate() {
 
 	creator := s.chainA.SenderAccount.GetAddress().String()
 	fund := s.CreateTestFund()
-	atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
-	tokens := []*sdk.Coin{&atomCoin, &osmoCoin, &aktCoin}
+	token := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(10000000))
 
 	s.coordinator.CommitBlock(s.chainA)
 
 	expected := &types.MsgCreate{
 		Creator:          creator,
 		Fund:             fund.Symbol,
-		Tokens:           tokens,
+		TokenIn:          &token,
 		Channel:          path.EndpointA.ChannelID,
 		TimeoutHeight:    "50",
 		TimeoutTimestamp: 0,

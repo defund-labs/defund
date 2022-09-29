@@ -201,13 +201,10 @@ func (s *IntegrationTestSuite) initOsmosisBroker() {
 	var pools []*brokertypes.Source
 
 	for i := range poolsOsmosis {
-		app, err := base64.StdEncoding.DecodeString(poolsOsmosisAppend[i])
-		s.Assert().NoError(err)
 		addPool := brokertypes.Source{
 			PoolId:       poolsOsmosis[i],
 			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", poolsOsmosis[i]),
 			Status:       "active",
-			Append:       app,
 		}
 		pools = append(pools, &addPool)
 	}
@@ -216,7 +213,6 @@ func (s *IntegrationTestSuite) initOsmosisBroker() {
 		Id:           "osmosis",
 		ConnectionId: "connection-0",
 		Pools:        pools,
-		BaseDenom:    "uosmo",
 		Status:       "inactive",
 	}
 

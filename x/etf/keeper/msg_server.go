@@ -192,7 +192,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, err
 	}
 
-	err = k.Keeper.CreateShares(ctx, fund, msg.Channel, msg.Tokens, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
+	err = k.Keeper.CreateShares(ctx, fund, msg.Channel, *msg.TokenIn, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 
 	id := k.GetNextRedeemID(ctx)
 
-	err := k.Keeper.RedeemShares(ctx, id, fund, msg.Channel, *msg.Amount, fund.Address, msg.Creator)
+	err := k.Keeper.RedeemShares(ctx, msg.Creator, id, fund, msg.Channel, *msg.Amount, fund.Address, *msg.Addresses)
 	if err != nil {
 		return nil, err
 	}
