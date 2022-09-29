@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
@@ -34,16 +35,44 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 	for _, holding := range fund.Holdings {
-		// check that a pool with the broker exists
-		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, holding.BrokerId, holding.PoolId)
+		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
-			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
+			return price, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
 		}
-		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		// get the ica account for the fund on the broker chain
+		portID, err := icatypes.NewControllerPortID(fund.Address)
 		if err != nil {
 			return price, err
 		}
-		priceWeighted := priceUnweighted.Mul(sdk.NewDec(holding.Percent / 100))
+		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
+		if !found {
+			return price, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
+		}
+		// check that a pool with the broker exists
+		_, found = k.brokerKeeper.GetPoolFromBroker(ctx, holding.BrokerId, holding.PoolId)
+		if !found {
+			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
+		}
+		var balances banktypes.Balance
+		switch holding.BrokerId {
+		case "osmosis":
+			// get the account balances for the fund account on the broker chain
+			balances, err = k.brokerKeeper.GetOsmosisBalance(ctx, fundBrokerAddress)
+			if err != nil {
+				return price, err
+			}
+		}
+		// Calculate spot price for 1 holding token in base denom
+		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		if err != nil {
+			return price, err
+		}
+		// get the holding denom amount from balances
+		holdingBalance := balances.Coins.Sort().AmountOf(holding.Token).ToDec()
+		// compute the weighted price by taking the holding balance of token, multiplying by price in base denom
+		// to obtain the balance in base denom. Then multiply by the Int holding percent (i.e: 50) and divide
+		// by 100 for proper fractioning
+		priceWeighted := holdingBalance.Mul(priceInBaseDenom).Mul(sdk.NewDec(holding.Percent)).Quo(sdk.NewDec(100))
 		comp = append(comp, priceWeighted)
 	}
 	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)

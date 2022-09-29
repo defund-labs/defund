@@ -78,9 +78,10 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Hold
 
 // Helper function that parses a string of holdings in the format "ATOM:50:osmosis:1,OSMO:50:osmosis:2" (DENOM:PERCENT:BROKER:POOL,...) into a slice of type holding
 // and checks to make sure that the holdings are all supported denoms from the specified broker and pool
-func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]types.Holding, error) {
+func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, basedenom string) ([]types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
 	holdingsList := []types.Holding{}
+	var foundBaseDenom bool
 	for _, holding := range rawHoldings {
 		sepHoldings := strings.Split(holding, ":")
 		perc, err := strconv.ParseInt(sepHoldings[1], 10, 64)
@@ -91,12 +92,20 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]type
 		if err != nil {
 			return nil, err
 		}
+		// if this is base denom mark we have a holding for it
+		if sepHoldings[0] == basedenom {
+			foundBaseDenom = true
+		}
 		holdingsList = append(holdingsList, types.Holding{
 			Token:    sepHoldings[0],
 			Percent:  perc,
 			PoolId:   poolid,
 			BrokerId: sepHoldings[2],
 		})
+	}
+	// if no base denom holding error
+	if !foundBaseDenom {
+		return nil, sdkerrors.Wrapf(types.ErrWrongBaseDenom, "the base denom %s must be included as a holding", basedenom)
 	}
 	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
 	err := k.CheckHoldings(ctx, holdingsList)
@@ -137,7 +146,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
-	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings)
+	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings, msg.BaseDenom)
 	if err != nil {
 		return nil, err
 	}

@@ -113,17 +113,6 @@ func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	return false
 }
 
-// helper function to check if a list of coins contains a token denom
-func containsdenom(list []sdk.Coin, denom string) bool {
-	for _, value := range list {
-		if value.Denom == denom {
-			return true
-		}
-	}
-
-	return false
-}
-
 func sum(items []sdk.Dec) sdk.Dec {
 	sum := sdk.NewDec(0)
 	for _, item := range items {
@@ -138,14 +127,6 @@ func sumInts(items []sdk.Int) sdk.Int {
 		sum = sum.Add(item)
 	}
 	return sum
-}
-
-// helper that removes the index item from the slice of Surplus and then returns the modified slice
-func remove(index int, s []Surplus) []Surplus {
-	s[index] = s[len(s)-1]
-	s[len(s)-1] = Surplus{}
-	s = s[:len(s)-1]
-	return s
 }
 
 // CreateShares send an IBC transfer to all the brokers for each holding with the proportion of tokenIn
@@ -185,7 +166,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			return sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
 
-		// Multiply the tokenIn by the % this holding shuld represent
+		// Multiply the tokenIn by the % this holding should represent
 		sendAmt := tokenIn.Amount.Mul(sdk.NewInt(holding.Percent)).Quo(sdk.NewInt(100))
 		sendCoin := sdk.NewCoin(tokenIn.Denom, sendAmt)
 
@@ -439,7 +420,9 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 
 // CreateRebalanceMsgs creates the rebalance messages and returns them for the fund in standard interface
 // format.
-func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (msgs map[string][]interface{}, err error) {
+func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[string][]interface{}, error) {
+
+	msgs := make(map[string][]interface{})
 
 	// slice to store the amount of each holding in the base denom as a coin type
 	allHoldingsInBaseDenom := []sdk.Coin{}

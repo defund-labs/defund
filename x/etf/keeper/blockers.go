@@ -22,6 +22,11 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	for _, transfer := range transfers {
 		// get client and then get current height of the counterparty chain
 		channel, found := k.channelKeeper.GetChannel(ctx, "transfer", transfer.Channel)
+		if !found {
+			err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", transfer.Channel)
+			ctx.Logger().Debug(err.Error())
+			continue
+		}
 		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 		if !found {
 			err := sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
