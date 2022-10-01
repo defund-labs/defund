@@ -1,13 +1,13 @@
 import { txClient, queryClient, MissingWalletError , registry} from './module'
 
-import { Pool } from "./module/types/broker/broker"
+import { Source } from "./module/types/broker/broker"
 import { Broker } from "./module/types/broker/broker"
 import { Transfer } from "./module/types/broker/broker"
 import { BrokerPacketData } from "./module/types/broker/packet"
 import { NoData } from "./module/types/broker/packet"
 
 
-export { Pool, Broker, Transfer, BrokerPacketData, NoData };
+export { Source, Broker, Transfer, BrokerPacketData, NoData };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -49,7 +49,7 @@ const getDefaultState = () => {
 				Brokers: {},
 				
 				_Structure: {
-						Pool: getStructure(Pool.fromPartial({})),
+						Source: getStructure(Source.fromPartial({})),
 						Broker: getStructure(Broker.fromPartial({})),
 						Transfer: getStructure(Transfer.fromPartial({})),
 						BrokerPacketData: getStructure(BrokerPacketData.fromPartial({})),

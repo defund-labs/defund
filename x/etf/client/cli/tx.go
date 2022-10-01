@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -48,9 +49,9 @@ func GetTxCmd() *cobra.Command {
 
 func CmdCreateFund() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fund [symbol] [name] [description] [basedenom] [broker] [holdings] [rebalance] [startingPrice]",
+		Use:   "create-fund [symbol] [name] [description] [basedenom] [holdings] [rebalance] [startingPrice]",
 		Short: "Create a new fund",
-		Args:  cobra.ExactArgs(8),
+		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// Get value arguments
@@ -58,10 +59,9 @@ func CmdCreateFund() *cobra.Command {
 			argName := args[1]
 			argDescription := args[2]
 			argBaseDenom := args[3]
-			argBroker := args[4]
-			argHoldings := args[5]
-			argRebalance := args[6]
-			argStartingPrice := args[7]
+			argHoldings := args[4]
+			argRebalance := args[5]
+			argStartingPrice := args[6]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -79,7 +79,6 @@ func CmdCreateFund() *cobra.Command {
 				argSymbol,
 				argName,
 				argDescription,
-				argBroker,
 				argHoldings,
 				rebalance,
 				argBaseDenom,
@@ -99,20 +98,15 @@ func CmdCreateFund() *cobra.Command {
 
 func CmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [fund] [tokens] [channel]",
+		Use:   "create [fund] [tokenIn] [channel]",
 		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied (comma seperated list of coins i.e 1000000uosmo,1000000uatom).",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
-			argTokens := args[1]
+			argTokenIn := args[1]
 			argChannel := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			rawTokens, err := sdk.ParseCoinsNormalized(argTokens)
 			if err != nil {
 				return err
 			}
@@ -131,16 +125,15 @@ func CmdCreate() *cobra.Command {
 				return err
 			}
 
-			tokensList := []*sdk.Coin{}
-
-			for _, token := range rawTokens {
-				tokensList = append(tokensList, &token)
+			tokenIn, err := sdk.ParseCoinNormalized(argTokenIn)
+			if err != nil {
+				return err
 			}
 
 			msg := types.NewMsgCreate(
 				clientCtx.GetFromAddress().String(),
 				argFund,
-				tokensList,
+				&tokenIn,
 				argChannel,
 				timeoutHeight.String(),
 				timeoutTimestamp,
@@ -162,13 +155,14 @@ func CmdCreate() *cobra.Command {
 
 func CmdRedeem() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redeem [fund] [amount] [channel]",
-		Short: "Redeem shares for the dETF ticker using the IBC channel specified and the tokens supplied.",
-		Args:  cobra.ExactArgs(3),
+		Use:   "redeem [fund] [amount] [channel] [addresses]",
+		Short: "Redeem shares for the dETF ticker to supplied addresses using the IBC channel specified, and the tokens supplied. Sends redeemed assets to the addresses supplied i.e '{osmosisAddress: 'osmo123456789'}'",
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
 			argAmount := args[1]
 			argChannel := args[2]
+			argAddresses := args[3]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -194,6 +188,8 @@ func CmdRedeem() *cobra.Command {
 				return err
 			}
 
+			addresses := parseJSONAddressMap(argAddresses)
+
 			msg := types.NewMsgRedeem(
 				clientCtx.GetFromAddress().String(),
 				argFund,
@@ -201,6 +197,7 @@ func CmdRedeem() *cobra.Command {
 				argChannel,
 				timeoutHeight.String(),
 				timeoutTimestamp,
+				addresses,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -215,4 +212,12 @@ func CmdRedeem() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// parseJSONAddressMap takes a json string and converts it into JSON address map
+func parseJSONAddressMap(jsonString string) types.AddressMap {
+	data := types.AddressMap{}
+	json.Unmarshal([]byte(jsonString), &data)
+
+	return data
 }

@@ -36,7 +36,7 @@ message MsgCreate {
   string creator = 1;
 
   string fund = 2;
-  repeated cosmos.base.v1beta1.Coin tokens = 3;
+  cosmos.base.v1beta1.Coin tokenIn = 3;
   string channel = 4;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
@@ -49,12 +49,17 @@ message MsgCreate {
 message MsgCreateResponse {
 }
 
+message AddressMap {
+  string osmosisAddress = 1;
+}
+
 message MsgRedeem {
   string creator = 1;
 
   string fund = 2;
   cosmos.base.v1beta1.Coin amount = 3;
   string channel = 4;
+  AddressMap addresses = 5;
 }
 
 message MsgRedeemResponse {

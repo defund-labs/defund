@@ -56,7 +56,7 @@ func (k Keeper) GetAllBrokers(ctx sdk.Context) (list []types.Broker) {
 }
 
 // GetOsmosisPoolFromBroker gets an osmosis pool from a broker store
-func (k Keeper) GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val types.Pool, found bool) {
+func (k Keeper) GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val types.Source, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BrokerKeyPrefix))
 
 	var broker types.Broker
@@ -72,6 +72,7 @@ func (k Keeper) GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint6
 
 	for _, pool := range broker.Pools {
 		if pool.PoolId == poolId {
+			val = *pool
 			return val, true
 		}
 	}

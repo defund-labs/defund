@@ -32,13 +32,29 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 }
 
 func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/pool/%s", symbol)
+	return fmt.Sprintf("etf/%s", symbol)
+}
+
+func containsString(strings []string, value string) bool {
+	for _, string := range strings {
+		if string == value {
+			return true
+		}
+	}
+	return false
 }
 
 // RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
 // a fund. If no broker account exists, one is created and then stored in the Broker store
 func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Holding, acc authtypes.AccountI) error {
+	// we must keep track of broker accounts registered so we can make sure we create only one
+	// account per broker.
+	var registeredBrokers []string
 	for _, holding := range holdings {
+		// make sure we do not already have account for broker for this fund
+		if containsString(registeredBrokers, holding.BrokerId) {
+			continue
+		}
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
@@ -54,6 +70,7 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Hold
 		if err != nil {
 			return err
 		}
+		registeredBrokers = append(registeredBrokers, holding.BrokerId)
 	}
 
 	return nil
@@ -61,9 +78,10 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Hold
 
 // Helper function that parses a string of holdings in the format "ATOM:50:osmosis:1,OSMO:50:osmosis:2" (DENOM:PERCENT:BROKER:POOL,...) into a slice of type holding
 // and checks to make sure that the holdings are all supported denoms from the specified broker and pool
-func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]types.Holding, error) {
+func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, basedenom string) ([]types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
 	holdingsList := []types.Holding{}
+	var foundBaseDenom bool
 	for _, holding := range rawHoldings {
 		sepHoldings := strings.Split(holding, ":")
 		perc, err := strconv.ParseInt(sepHoldings[1], 10, 64)
@@ -74,12 +92,21 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]type
 		if err != nil {
 			return nil, err
 		}
+		// if this is base denom mark we have a holding for it
+		if sepHoldings[0] == basedenom {
+			foundBaseDenom = true
+		}
 		holdingsList = append(holdingsList, types.Holding{
 			Token:    sepHoldings[0],
 			Percent:  perc,
 			PoolId:   poolid,
 			BrokerId: sepHoldings[2],
+			Type:     sepHoldings[4],
 		})
+	}
+	// if no base denom holding error
+	if !foundBaseDenom {
+		return nil, sdkerrors.Wrapf(types.ErrWrongBaseDenom, "the base denom %s must be included as a holding", basedenom)
 	}
 	// Run keeper that checks to make sure all holdings specified are valid and supported in the pool provided for the broker provided
 	err := k.CheckHoldings(ctx, holdingsList)
@@ -89,8 +116,8 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string) ([]type
 	return holdingsList, nil
 }
 
-// CreateFund is the Msg handler that creates a new fund in store and initializes
-// everything for the creation of that fund
+// CreateFund is the Msg handler that creates a new fund in store and initializes everything
+// for the creation of that fund
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -120,7 +147,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
-	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings)
+	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings, msg.BaseDenom)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +202,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, err
 	}
 
-	err = k.Keeper.CreateShares(ctx, fund, msg.Channel, msg.Tokens, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
+	_, err = k.Keeper.CreateShares(ctx, fund, msg.Channel, *msg.TokenIn, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +223,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
 	}
 
-	id := k.GetNextRedeemID(ctx)
-
-	err := k.Keeper.RedeemShares(ctx, id, fund, msg.Channel, *msg.Amount, fund.Address, msg.Creator)
+	err := k.Keeper.RedeemShares(ctx, msg.Creator, fund, msg.Channel, *msg.Amount, fund.Address, *msg.Addresses)
 	if err != nil {
 		return nil, err
 	}

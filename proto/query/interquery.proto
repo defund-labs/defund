@@ -9,7 +9,7 @@ import "ibc/core/client/v1/client.proto";
 message Interquery {
   string storeid = 1;
   string chainid = 2; 
-  string path = 3; 
+  string path = 3;
   bytes  key = 4; 
   uint64 timeoutHeight = 5; 
   string connectionId = 6;

@@ -9,30 +9,32 @@ import (
 )
 
 // Create a list of all pool ids supported on osmosis at init/genesis
+// Pool 678 is USCD/OSMO so base denom pool option.
 var poolsOsmosis = []uint64{
-	1, 560, 497, 604, 2, 561, 584, 481, 9, 605, 11, 666, 577, 557, 621, 3,
-	619, 631, 613, 463, 602, 197, 586, 601, 597, 573, 7, 553, 571, 5, 626,
-	627, 608, 15, 629, 637, 42, 624, 634, 633,
+	1, 497, 674, 604, 9, 498, 584, 3, 10, 601, 2, 611, 585, 13, 4, 482, 481, 6, 577, 5, 463,
+	629, 641, 15, 461, 560, 586, 587, 42, 600, 627, 608, 571, 631, 548, 7, 605, 572, 648,
+	606, 643, 8, 597, 619, 553, 625, 602, 618, 574, 578, 651, 626, 573, 22, 555, 637, 464,
+	645, 644, 596, 547, 616, 558, 621, 613, 197, 617, 670, 612, 638, 561, 567, 649, 653,
+	633, 557, 662, 615, 565, 562, 592, 151, 183, 673, 549, 624, 642, 678,
 }
 
 // AddOsmosisToBrokers adds Osmosis as a broker to state manually
 func AddOsmosisToBrokers(ctx sdk.Context, k keeper.Keeper) error {
-	var pools []*types.Pool
+	var pools []*types.Source
 
-	for _, pool := range poolsOsmosis {
-		addPool := types.Pool{
-			PoolId:       pool,
-			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", pool),
+	for i := range poolsOsmosis {
+		addPool := types.Source{
+			PoolId:       poolsOsmosis[i],
+			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", poolsOsmosis[i]),
 			Status:       "active",
 		}
 		pools = append(pools, &addPool)
 	}
 
 	broker := types.Broker{
-		Id:        "osmosis",
-		Pools:     pools,
-		BaseDenom: "uosmo",
-		Status:    "inactive",
+		Id:     "osmosis",
+		Pools:  pools,
+		Status: "inactive",
 	}
 
 	k.SetBroker(ctx, broker)

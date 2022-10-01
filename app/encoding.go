@@ -35,10 +35,18 @@ func makeEncodingConfig() EncodingConfig {
 
 // MakeEncodingConfig creates an EncodingConfig for testing
 func MakeEncodingConfig(moduleBasics module.BasicManager) EncodingConfig {
-	encodingConfig := makeEncodingConfig()
-	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	moduleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	moduleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	return encodingConfig
+	amino := codec.NewLegacyAmino()
+	interfaceRegistry := types.NewInterfaceRegistry()
+	marshaler := codec.NewProtoCodec(interfaceRegistry)
+	txCfg := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
+	std.RegisterLegacyAminoCodec(amino)
+	std.RegisterInterfaces(interfaceRegistry)
+	ModuleBasics.RegisterLegacyAminoCodec(amino)
+	ModuleBasics.RegisterInterfaces(interfaceRegistry)
+	return EncodingConfig{
+		InterfaceRegistry: interfaceRegistry,
+		Marshaler:         marshaler,
+		TxConfig:          txCfg,
+		Amino:             amino,
+	}
 }

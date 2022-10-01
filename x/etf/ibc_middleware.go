@@ -47,7 +47,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
-	return im.keeper.SendPacket(ctx, chanCap, packet)
+	return nil
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -57,7 +57,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -71,7 +71,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return version, nil
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -116,7 +116,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -125,7 +125,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
@@ -134,8 +134,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.Acknowledgement {
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+) (ack exported.Acknowledgement) {
+	return ack
 }
 
 func (im IBCMiddleware) OnTimeoutPacket(
@@ -143,7 +143,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	return nil
 }
 
 // GetAppVersion returns the application version of the underlying application

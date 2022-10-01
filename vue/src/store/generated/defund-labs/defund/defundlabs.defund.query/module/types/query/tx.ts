@@ -21,7 +21,8 @@ export interface MsgCreateInterqueryResponse {}
 export interface MsgCreateInterqueryResult {
   creator: string;
   storeid: string;
-  data: Uint8Array;
+  /** data is submitted as a base64 encoded string but is broken down to bytes to be stored */
+  data: string;
   height: Height | undefined;
   proof: ProofOps | undefined;
 }
@@ -258,7 +259,11 @@ export const MsgCreateInterqueryResponse = {
   },
 };
 
-const baseMsgCreateInterqueryResult: object = { creator: "", storeid: "" };
+const baseMsgCreateInterqueryResult: object = {
+  creator: "",
+  storeid: "",
+  data: "",
+};
 
 export const MsgCreateInterqueryResult = {
   encode(
@@ -271,8 +276,8 @@ export const MsgCreateInterqueryResult = {
     if (message.storeid !== "") {
       writer.uint32(18).string(message.storeid);
     }
-    if (message.data.length !== 0) {
-      writer.uint32(26).bytes(message.data);
+    if (message.data !== "") {
+      writer.uint32(26).string(message.data);
     }
     if (message.height !== undefined) {
       Height.encode(message.height, writer.uint32(34).fork()).ldelim();
@@ -302,7 +307,7 @@ export const MsgCreateInterqueryResult = {
           message.storeid = reader.string();
           break;
         case 3:
-          message.data = reader.bytes();
+          message.data = reader.string();
           break;
         case 4:
           message.height = Height.decode(reader, reader.uint32());
@@ -333,7 +338,9 @@ export const MsgCreateInterqueryResult = {
       message.storeid = "";
     }
     if (object.data !== undefined && object.data !== null) {
-      message.data = bytesFromBase64(object.data);
+      message.data = String(object.data);
+    } else {
+      message.data = "";
     }
     if (object.height !== undefined && object.height !== null) {
       message.height = Height.fromJSON(object.height);
@@ -352,10 +359,7 @@ export const MsgCreateInterqueryResult = {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
-    message.data !== undefined &&
-      (obj.data = base64FromBytes(
-        message.data !== undefined ? message.data : new Uint8Array()
-      ));
+    message.data !== undefined && (obj.data = message.data);
     message.height !== undefined &&
       (obj.height = message.height ? Height.toJSON(message.height) : undefined);
     message.proof !== undefined &&
@@ -382,7 +386,7 @@ export const MsgCreateInterqueryResult = {
     if (object.data !== undefined && object.data !== null) {
       message.data = object.data;
     } else {
-      message.data = new Uint8Array();
+      message.data = "";
     }
     if (object.height !== undefined && object.height !== null) {
       message.height = Height.fromPartial(object.height);

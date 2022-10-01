@@ -9,21 +9,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface BrokerBroker {
-  id?: string;
-  connection_id?: string;
-  pools?: BrokerPool[];
-  baseDenom?: string;
-  status?: string;
-}
-
-export interface BrokerPool {
-  /** @format uint64 */
-  pool_id?: string;
-  interquery_id?: string;
-  status?: string;
-}
-
 export interface EtfFund {
   symbol?: string;
   address?: string;
@@ -37,13 +22,11 @@ export interface EtfFund {
    * signatures required by gogoproto.
    */
   shares?: V1Beta1Coin;
-  broker?: BrokerBroker;
   holdings?: EtfHolding[];
 
   /** @format int64 */
   rebalance?: string;
   baseDenom?: string;
-  connectionId?: string;
 
   /**
    * Coin defines a token with a denomination and an amount.
@@ -85,6 +68,7 @@ export interface EtfHolding {
 
   /** @format uint64 */
   poolId?: string;
+  brokerId?: string;
 }
 
 export type EtfMsgCreateFundResponse = object;
@@ -175,13 +159,6 @@ export interface V1Beta1PageRequest {
    * is set.
    */
   count_total?: boolean;
-
-  /**
-   * reverse is set to true if results are to be returned in the descending order.
-   *
-   * Since: cosmos-sdk 0.43
-   */
-  reverse?: boolean;
 }
 
 /**
@@ -411,7 +388,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>

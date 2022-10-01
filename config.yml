@@ -1,10 +1,13 @@
 accounts:
   - name: alice
     coins: ["2000000000000000ufetf"]
+    mnemonic: "alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
   - name: bob
     coins: ["100000000000000000ufetf"]
+    mnemonic: "alpha crisp zoo letter pepper subway crew drum illegal powder input shuffle team east village nurse captain mule token ice drive act boy punch"
   - name: faucet
     coins: ["50000000000000ufetf",]
+    mnemonic: "bomb choose medal limb place hip axis pave reject rack recipe cover family vivid humble kingdom exhibit limit snow biology special swing emotion call"
 validator:
   name: alice
   staked: "100000000ufetf"

@@ -12,7 +12,7 @@
 export interface BrokerBroker {
   id?: string;
   connection_id?: string;
-  pools?: BrokerPool[];
+  pools?: BrokerSource[];
   baseDenom?: string;
   status?: string;
 }
@@ -20,13 +20,6 @@ export interface BrokerBroker {
 export type BrokerMsgAddConnectionBrokerResponse = object;
 
 export type BrokerMsgAddLiquiditySourceResponse = object;
-
-export interface BrokerPool {
-  /** @format uint64 */
-  pool_id?: string;
-  interquery_id?: string;
-  status?: string;
-}
 
 export interface BrokerQueryBrokerResponse {
   broker?: BrokerBroker;
@@ -49,6 +42,16 @@ export interface BrokerQueryBrokersResponse {
 
 export interface BrokerQueryInterchainAccountFromAddressResponse {
   interchain_account_address?: string;
+}
+
+export interface BrokerSource {
+  /** @format uint64 */
+  pool_id?: string;
+  interquery_id?: string;
+  status?: string;
+
+  /** @format byte */
+  append?: string;
 }
 
 /**

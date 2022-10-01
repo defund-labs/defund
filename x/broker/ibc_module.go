@@ -51,7 +51,7 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	return version, nil
+	return "", nil
 }
 
 // OnChanOpenTry implements the IBCModule interface

@@ -22,11 +22,11 @@ var (
 
 var _ sdk.Msg = &MsgCreate{}
 
-func NewMsgCreate(creator string, fund string, tokens []*sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgCreate {
+func NewMsgCreate(creator string, fund string, tokenIn *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64) *MsgCreate {
 	return &MsgCreate{
 		Creator:          creator,
 		Fund:             fund,
-		Tokens:           tokens,
+		TokenIn:          tokenIn,
 		Channel:          channel,
 		TimeoutHeight:    timeoutheight,
 		TimeoutTimestamp: timeouttimestamp,

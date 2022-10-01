@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
@@ -26,33 +27,60 @@ func (p PricesSort) Less(i, j int) bool {
 	return p[i].Height < p[j].Height
 }
 
-// CreateFundPrice creates a current fund price for a fund symbol
+// CreateFundPrice creates a current fund price for a fund symbol in the funds base denom
 func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin, err error) {
-	comp := []sdk.Dec{}
+	comp := []sdk.Int{}
 	fund, found := k.GetFund(ctx, symbol)
 	if !found {
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 	for _, holding := range fund.Holdings {
-		// check that a pool with the broker exists
-		_, found := k.brokerKeeper.GetPoolFromBroker(ctx, holding.BrokerId, holding.PoolId)
+		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
-			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
+			return price, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
 		}
-		priceUnweighted, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		// get the ica account for the fund on the broker chain
+		portID, err := icatypes.NewControllerPortID(fund.Address)
 		if err != nil {
 			return price, err
 		}
-		priceWeighted := priceUnweighted.Mul(sdk.NewDec(holding.Percent / 100))
+		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
+		if !found {
+			return price, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
+		}
+		// check that a pool with the broker exists
+		_, found = k.brokerKeeper.GetPoolFromBroker(ctx, holding.BrokerId, holding.PoolId)
+		if !found {
+			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
+		}
+		var balances banktypes.Balance
+		switch holding.BrokerId {
+		case "osmosis":
+			// get the account balances for the fund account on the broker chain
+			balances, err = k.brokerKeeper.GetOsmosisBalance(ctx, fundBrokerAddress)
+			if err != nil {
+				return price, err
+			}
+		}
+		// Calculate spot price for 1 holding token in base denom
+		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
+		if err != nil {
+			return price, err
+		}
+		// get the holding denom amount from balances
+		holdingBalance := balances.Coins.Sort().AmountOf(holding.Token).ToDec()
+		// compute the weighted price by taking the holding balance of token, multiplying by price in base denom
+		// to obtain the balance in base denom.
+		priceWeighted := holdingBalance.Mul(priceInBaseDenom).RoundInt()
 		comp = append(comp, priceWeighted)
 	}
-	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uosmo for example)
+	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
 	if fund.Shares.Amount.Uint64() == 0 {
 		price = fund.StartingPrice
 	}
 	if fund.Shares.Amount.Uint64() > 0 {
-		total := sum(comp)
-		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.RoundInt64()))
+		total := sumInts(comp)
+		price = sdk.NewCoin(fund.BaseDenom, total)
 	}
 	return price, nil
 }
@@ -89,7 +117,7 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 
 		// take holding and find per etf share of holding from fund balance then multiply it by
 		// the amount of fundShares
-		amt := accBalance.Coins.AmountOf(holding.Token).Quo(fund.Shares.Amount).Mul(fundShares.Amount)
+		amt := accBalance.Coins.Sort().AmountOf(holding.Token).ToDec().Quo(fund.Shares.Amount.ToDec()).Mul(fundShares.Amount.ToDec()).RoundInt()
 		amtCoin := sdk.NewCoin(holding.Token, amt)
 		ownership = append(ownership, sdk.NewCoin(holding.Token, amtCoin.Amount))
 	}
@@ -97,30 +125,24 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 	return ownership, nil
 }
 
-// GetAmountETFSharesForTokens computes and returns the amount of etf shares a list of tokens would create for
-// an etf. This function errors out if each token in tokens do not represent the same amount of etf shares
-// in an ETF. Also errors out if all holdings in fund are not supplied.
-func (k Keeper) GetAmountETFSharesForTokens(ctx sdk.Context, fund types.Fund, tokens []*sdk.Coin) (etfShares sdk.Coin, err error) {
-	// get what one share of etf represents in ownership of underlying funds
-	oneETFShareOwnershipRaw, err := k.GetOwnershipSharesInFund(ctx, fund, sdk.NewCoin(fund.BaseDenom, sdk.NewInt(1000000)))
+// GetAmountETFSharesForTokens computes and returns the amount of etf shares the tokenIn will create.
+// The base denom must be used for the tokenIn or it will error.
+func (k Keeper) GetAmountETFSharesForToken(ctx sdk.Context, fund types.Fund, tokenIn sdk.Coin) (etfShares sdk.Coin, err error) {
+	// Make sure the tokenIn is the correct base denom for the fund
+	if fund.BaseDenom != tokenIn.Denom {
+		return etfShares, sdkerrors.Wrapf(types.ErrWrongBaseDenom, "the base denom for the fund is %s not %s", fund.BaseDenom, tokenIn.Denom)
+	}
+
+	fundPrice, err := k.CreateFundPrice(ctx, fund.Symbol)
 	if err != nil {
 		return etfShares, err
 	}
-	// turn list of coin into coins type
-	oneETFShareOwnership := sdk.NewCoins(oneETFShareOwnershipRaw...)
 
-	// compute the amount of etf tokens the first amount of tokens supplied represents in list.
-	// this is next used to check if the rest of the tokens represent the same amount of ownership or it errors out
-	etfSharesRaw := tokens[0].Amount.Quo(oneETFShareOwnership.AmountOf(tokens[0].Denom))
-	etfShares = sdk.NewCoin(fund.Shares.Denom, etfSharesRaw)
+	// Divide the amount of tokens provided by the price of the fund
+	amt := tokenIn.Amount.ToDec().Quo(fundPrice.Amount.ToDec()).Mul(sdk.NewDec(1000000)).RoundInt()
 
-	// check what the rest of tokens represent in etf
-	for _, token := range tokens {
-		etfSharesCheck := token.Amount.Quo(oneETFShareOwnership.AmountOf(token.Denom))
-		if etfSharesCheck != etfSharesRaw {
-			return etfShares, sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "all tokens do not represent the same ownership amount in this fund (denom: %s with amount: %d represents %d shares while it should represent %d shares)", token.Denom, token.Amount, etfSharesCheck, etfSharesRaw)
-		}
-	}
+	// Create the coin fund shares price
+	etfShares = sdk.NewCoin(fund.Shares.Denom, amt)
 
 	return etfShares, nil
 }

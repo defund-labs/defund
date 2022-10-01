@@ -64,7 +64,7 @@ var _ sdk.Msg = &MsgCreateInterqueryResult{}
 func NewMsgCreateInterqueryResult(
 	creator string,
 	storeid string,
-	data []byte,
+	data string,
 	height *clienttypes.Height,
 	proof *crypto.ProofOps,
 

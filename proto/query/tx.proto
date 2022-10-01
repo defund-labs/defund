@@ -32,7 +32,8 @@ message MsgCreateInterqueryResult {
   string creator = 1;
 
   string storeid = 2; 
-  bytes  data = 3;
+  // data is submitted as a base64 encoded string but is broken down to bytes to be stored
+  string data = 3;
   ibc.core.client.v1.Height height = 4; 
   tendermint.crypto.ProofOps proof = 5;
 }

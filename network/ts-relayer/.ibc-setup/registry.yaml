@@ -10,7 +10,7 @@ chains:
     estimated_block_time: 7000
     estimated_indexer_time: 250
     rpc:
-      - https://rpc-1.testnet.osmosis.nodes.guru:443
+      - http://162.55.134.55:26657
   defund:
     chain_id: defund
     prefix: defund

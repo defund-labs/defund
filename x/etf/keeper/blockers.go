@@ -22,6 +22,11 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	for _, transfer := range transfers {
 		// get client and then get current height of the counterparty chain
 		channel, found := k.channelKeeper.GetChannel(ctx, "transfer", transfer.Channel)
+		if !found {
+			err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", transfer.Channel)
+			ctx.Logger().Debug(err.Error())
+			continue
+		}
 		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 		if !found {
 			err := sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
@@ -43,7 +48,7 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 		timeoutHeight := clientState.GetLatestHeight().GetRevisionHeight() + 50
 		timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
 
-		k.brokerKeeper.SendTransfer(ctx, transfer.Channel, *transfer.Token, transfer.Sender, transfer.Receiver, clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), timeoutHeight), timeoutTimestamp)
+		k.SendTransfer(ctx, transfer.Channel, *transfer.Token, transfer.Sender, transfer.Receiver, clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), timeoutHeight), timeoutTimestamp)
 	}
 }
 
@@ -83,7 +88,7 @@ func (k Keeper) SendPendingTransfersFromRemote(ctx sdk.Context) {
 		timeoutHeight := clientState.GetLatestHeight().GetRevisionHeight() + 50
 		timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
 
-		k.brokerKeeper.SendTransfer(ctx, transfer.Channel, *transfer.Token, transfer.Sender, transfer.Receiver, clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), timeoutHeight), timeoutTimestamp)
+		k.SendTransfer(ctx, transfer.Channel, *transfer.Token, transfer.Sender, transfer.Receiver, clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), timeoutHeight), timeoutTimestamp)
 	}
 }
 
@@ -158,7 +163,7 @@ func (k Keeper) CheckRedeemsAndFinishIfDone(ctx sdk.Context) {
 					ctx.Logger().Error(err.Error())
 					continue
 				}
-				_, err = k.brokerKeeper.SendTransfer(ctx, channel.String(), *transfer.Token, transfer.Receiver, transfer.Sender, clienttypes.NewHeight(0, 0), 0)
+				_, err = k.SendTransfer(ctx, channel.String(), *transfer.Token, transfer.Receiver, transfer.Sender, clienttypes.NewHeight(0, 0), 0)
 				if err != nil {
 					ctx.Logger().Error(fmt.Sprintf("error occured during redeem check. could not send transfers: %s", err.Error()))
 					break
