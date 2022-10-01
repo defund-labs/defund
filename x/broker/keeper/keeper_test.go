@@ -80,7 +80,7 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 }
 
 func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/pool/%s", symbol)
+	return fmt.Sprintf("etf/%s", symbol)
 }
 
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {

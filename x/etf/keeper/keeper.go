@@ -113,14 +113,6 @@ func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	return false
 }
 
-func sum(items []sdk.Dec) sdk.Dec {
-	sum := sdk.NewDec(0)
-	for _, item := range items {
-		sum = sum.Add(item)
-	}
-	return sum
-}
-
 func sumInts(items []sdk.Int) sdk.Int {
 	sum := sdk.NewInt(0)
 	for _, item := range items {
@@ -131,21 +123,21 @@ func sumInts(items []sdk.Int) sdk.Int {
 
 // CreateShares send an IBC transfer to all the brokers for each holding with the proportion of tokenIn
 // represented in baseDenom that the broker will then rebalance on the next rebalance.
-func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, tokenIn sdk.Coin, creator string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
+func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, tokenIn sdk.Coin, creator string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) (numETFShares sdk.Coin, err error) {
 	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 	fundAcc, err := sdk.AccAddressFromBech32(fund.Address)
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 
 	// send the tokenIn to the Defund fund account to ensure that we receive the
 	// tokens correctly and instantly to proceed.
 	err = k.bankKeeper.SendCoins(ctx, creatorAcc, fundAcc, sdk.NewCoins(tokenIn))
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 
 	// for each holding send proportional tokenIn to the holdings broker chain. logic continues in
@@ -153,17 +145,17 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 	for _, holding := range fund.Holdings {
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
+			return numETFShares, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
 		}
 
 		// get the ica account for the fund on the broker chain
 		portID, err := icatypes.NewControllerPortID(fund.Address)
 		if err != nil {
-			return err
+			return numETFShares, err
 		}
 		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
 		if !found {
-			return sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
+			return numETFShares, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
 
 		// Multiply the tokenIn by the % this holding should represent
@@ -172,7 +164,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 
 		sequence, err := k.SendTransfer(ctx, channel, sendCoin, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
 		if err != nil {
-			return err
+			return numETFShares, err
 		}
 		transfer := brokertypes.Transfer{
 			Id:       fmt.Sprintf("%s-%d", channel, sequence),
@@ -187,32 +179,32 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 	}
 
 	// compute the amount of etf shares this creator is given
-	numETFShares, err := k.GetAmountETFSharesForToken(ctx, fund, tokenIn)
+	numETFShares, err = k.GetAmountETFSharesForToken(ctx, fund, tokenIn)
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 	newETFCoins := sdk.NewCoins(numETFShares)
 
 	// finally mint coins (to module account) and then send them to the creator of the create
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, newETFCoins)
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creatorAcc, newETFCoins)
 	if err != nil {
-		return err
+		return numETFShares, err
 	}
 
 	// finally reflect the new shares in the fund store for shares
 	fund.Shares = fund.Shares.Add(numETFShares)
 	k.SetFund(ctx, fund)
 
-	return nil
+	return numETFShares, nil
 }
 
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.
 // Initializes the redemption of shares process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, creator string, id string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, addressMap types.AddressMap) error {
+func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, addressMap types.AddressMap) error {
 	// Placeholder for current coin to be set below
 	currentCoin := sdk.Coin{}
 	// Map for holding all the messages for each broker to send later
@@ -229,9 +221,11 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, id string, fund ty
 		return err
 	}
 
+	id := k.GetNextRedeemID(ctx)
+
 	// Create the redeem store
 	redeem := types.Redeem{
-		Id:        id,
+		Id:        fmt.Sprint(id),
 		Creator:   creator,
 		Fund:      &fund,
 		Amount:    &amount,
@@ -347,6 +341,10 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
 		if !containsAssets(pool.GetAllPoolAssets(), holding.Token) {
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%d)", holding.Token, holding.PoolId)
+		}
+		// checks to ensure we have the right holding types current: spot, add: staked
+		if holding.Type != "spot" {
+			return sdkerrors.Wrapf(types.ErrInvalidHolding, "unsupported holding type. received %s. supported types are 'spot'", holding.Type)
 		}
 	}
 	// Make sure all fund holdings add up to 100%

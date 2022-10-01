@@ -69,7 +69,7 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 }
 
 func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/pool/%s", symbol)
+	return fmt.Sprintf("etf/%s", symbol)
 }
 
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
@@ -346,18 +346,21 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 		Percent:  34,
 		PoolId:   1,
 		BrokerId: "osmosis",
+		Type:     "spot",
 	}
 	holdingTwo := types.Holding{
 		Token:    testAtomIBC.Denom,
 		Percent:  33,
 		PoolId:   1,
 		BrokerId: "osmosis",
+		Type:     "spot",
 	}
 	holdingThree := types.Holding{
 		Token:    testAktIBC.Denom,
 		Percent:  33,
 		PoolId:   3,
 		BrokerId: "osmosis",
+		Type:     "spot",
 	}
 	// add the holdings as slice of holdings
 	holdings := []types.Holding{holdingOne, holdingTwo, holdingThree}
@@ -477,8 +480,31 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
 		// create the fake balance query for fund
 		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
-		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(10000000))
-		err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		s.CreatePoolQueries(fund)
+		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(5000000))
+		_, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("Redeem", func() {
+		fund := s.CreateTestFund()
+		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
+		// add them to an account balance
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
+		// create the fake balance query for fund
+		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
+		s.CreatePoolQueries(fund)
+		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(5000000))
+		// create the shares
+		etfShares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		s.Assert().NoError(err)
+		addrMap := types.AddressMap{
+			OsmosisAddress: s.chainA.SenderAccount.GetAddress().String(),
+		}
+		// redeem the created shares from above
+		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress().String(), fund, "channel-0", etfShares, fund.Address, addrMap)
 		s.Assert().NoError(err)
 	})
 }

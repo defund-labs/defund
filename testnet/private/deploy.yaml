@@ -1,0 +1,60 @@
+---
+version: "2.0"
+
+services:
+  node:
+    image: schnetzlerjoe/defund-node:v0.0.4
+    env:
+      - MONIKER=defund-akash-node
+      - CHAIN_ID=defund-private-1
+      - PRUNING=custom
+      - PRUNING_KEEP_RECENT=107
+      - PRUNING_KEEP_EVERY=0
+      - PRUNING_INTERVAL=10
+      - API=true
+      - SWAGGER=true
+      - RPC_LADDR=tcp://0.0.0.0
+      - RPC_PORT=26657
+      - API_LADDR=tcp://0.0.0.0
+      - API_PORT=1317
+      - MINIMUM_GAS_PRICES=0.25ufetf
+      - LOG_LEVEL=info
+    expose:
+      - port: 26657
+        as: 80
+        to:
+          - global: true
+      - port: 26656
+        to:
+          - global: true
+      - port: 1317
+        to:
+          - global: true
+
+profiles:
+  compute:
+    node:
+      resources:
+        cpu:
+          units: 4
+        memory:
+          size: 4Gi
+        storage:
+          size: 300Gi
+  placement:
+    dcloud:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - <akash_address>
+      pricing:
+        node:
+          denom: uakt
+          amount: 300
+
+deployment:
+  node:
+    dcloud:
+      profile: node
+      count: 1

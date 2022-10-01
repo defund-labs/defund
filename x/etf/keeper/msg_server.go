@@ -32,7 +32,7 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 }
 
 func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/pool/%s", symbol)
+	return fmt.Sprintf("etf/%s", symbol)
 }
 
 func containsString(strings []string, value string) bool {
@@ -101,6 +101,7 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, baseden
 			Percent:  perc,
 			PoolId:   poolid,
 			BrokerId: sepHoldings[2],
+			Type:     sepHoldings[4],
 		})
 	}
 	// if no base denom holding error
@@ -115,8 +116,8 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, baseden
 	return holdingsList, nil
 }
 
-// CreateFund is the Msg handler that creates a new fund in store and initializes
-// everything for the creation of that fund
+// CreateFund is the Msg handler that creates a new fund in store and initializes everything
+// for the creation of that fund
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -201,7 +202,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return nil, err
 	}
 
-	err = k.Keeper.CreateShares(ctx, fund, msg.Channel, *msg.TokenIn, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
+	_, err = k.Keeper.CreateShares(ctx, fund, msg.Channel, *msg.TokenIn, msg.Creator, timeoutHeight, msg.TimeoutTimestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -222,9 +223,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
 	}
 
-	id := k.GetNextRedeemID(ctx)
-
-	err := k.Keeper.RedeemShares(ctx, msg.Creator, id, fund, msg.Channel, *msg.Amount, fund.Address, *msg.Addresses)
+	err := k.Keeper.RedeemShares(ctx, msg.Creator, fund, msg.Channel, *msg.Amount, fund.Address, *msg.Addresses)
 	if err != nil {
 		return nil, err
 	}

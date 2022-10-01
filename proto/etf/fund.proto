@@ -27,6 +27,8 @@ message Holding {
   uint64 poolId = 3;
   // Broker Id for the Broker
   string brokerId = 4;
+  // the type of the asset. Valid types are spot, staked
+  string type = 5;
 }
 
 message Fund {
