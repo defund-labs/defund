@@ -20,6 +20,8 @@ import (
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
+	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
+	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -219,6 +221,88 @@ func (s *KeeperTestSuite) CreateFundBalanceQuery(fund types.Fund, tokens []sdk.C
 	s.Assert().NoError(err)
 }
 
+func (s *KeeperTestSuite) CreatePoolQueries(fund types.Fund) {
+	// Create the Osmo Atom Pool Pair Interquery
+	OsmoAtomPool := osmosisbalancertypes.Pool{
+		Address: fund.Address,
+		Id:      1,
+		PoolParams: osmosisbalancertypes.PoolParams{
+			SwapFee: sdk.NewDecWithPrec(20, 4),
+			ExitFee: sdk.NewDecWithPrec(0, 4),
+		},
+		FuturePoolGovernor: "24h",
+		TotalShares: sdk.Coin{
+			Denom:  "gamm/pool/1",
+			Amount: sdk.NewInt(int64(3849029151596493552)),
+		},
+		PoolAssets: []osmosisgammtypes.PoolAsset{
+			{
+				Token:  sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(7689908).Mul(sdk.NewInt(1000000))),
+				Weight: sdk.NewInt(536870912000000),
+			},
+			{
+				Token:  sdk.NewCoin("uosmo", sdk.NewInt(25239880).Mul(sdk.NewInt(1000000))),
+				Weight: sdk.NewInt(536870912000000),
+			},
+		},
+	}
+	data, err := OsmoAtomPool.Marshal()
+	s.Assert().NoError(err)
+	height := clienttypes.NewHeight(0, 0)
+	query := querytypes.InterqueryResult{
+		Creator:     s.chainA.SenderAccount.GetAddress().String(),
+		Storeid:     "osmosis-1",
+		Chainid:     "osmosis-1",
+		Data:        data,
+		Height:      &height,
+		LocalHeight: uint64(0),
+		Success:     true,
+		Proved:      true,
+	}
+	err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), query)
+	s.Assert().NoError(err)
+
+	// Create the Osmo Akt Pool Pair Interquery
+	OsmoAktPool := osmosisbalancertypes.Pool{
+		Address: fund.Address,
+		Id:      3,
+		PoolParams: osmosisbalancertypes.PoolParams{
+			SwapFee: sdk.NewDecWithPrec(20, 4),
+			ExitFee: sdk.NewDecWithPrec(0, 4),
+		},
+		FuturePoolGovernor: "24h",
+		TotalShares: sdk.Coin{
+			Denom:  "gamm/pool/3",
+			Amount: sdk.NewInt(int64(3849029151596493552)),
+		},
+		PoolAssets: []osmosisgammtypes.PoolAsset{
+			{
+				Token:  sdk.NewCoin("ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4", sdk.NewInt(4261789).Mul(sdk.NewInt(1000000))),
+				Weight: sdk.NewInt(536870912000000),
+			},
+			{
+				Token:  sdk.NewCoin("uosmo", sdk.NewInt(743575).Mul(sdk.NewInt(1000000))),
+				Weight: sdk.NewInt(536870912000000),
+			},
+		},
+	}
+	data, err = OsmoAktPool.Marshal()
+	s.Assert().NoError(err)
+	height = clienttypes.NewHeight(0, 0)
+	query = querytypes.InterqueryResult{
+		Creator:     s.chainA.SenderAccount.GetAddress().String(),
+		Storeid:     "osmosis-3",
+		Chainid:     "osmosis-1",
+		Data:        data,
+		Height:      &height,
+		LocalHeight: uint64(0),
+		Success:     true,
+		Proved:      true,
+	}
+	err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), query)
+	s.Assert().NoError(err)
+}
+
 // initTestFund creates a test fund in store and initializes all the requirements
 // for this fund
 func (s *KeeperTestSuite) CreateTestFund() types.Fund {
@@ -257,7 +341,6 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 	// init all the tokens. returns all the initialized coins that were sent to module
 	testAtomIBC, testOsmoIBC, testAktIBC := s.CreateTestTokens()
 
-	// create the holdings to add to fund
 	holdingOne := types.Holding{
 		Token:    testOsmoIBC.Denom,
 		Percent:  34,
@@ -273,7 +356,7 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 	holdingThree := types.Holding{
 		Token:    testAktIBC.Denom,
 		Percent:  33,
-		PoolId:   1,
+		PoolId:   3,
 		BrokerId: "osmosis",
 	}
 	// add the holdings as slice of holdings
@@ -383,45 +466,6 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		}
 		err = s.GetDefundApp(s.chainA).EtfKeeper.CheckHoldings(s.chainA.GetContext(), holdings)
 		s.Assert().NoError(err)
-	})
-
-	s.Run("GetOwnershipSharesInFund", func() {
-		fund := s.CreateTestFund()
-		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
-		// add them to an account balance
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
-		// create the fake balance query for fund
-		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
-		// create fund shares
-		newShares := sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(250000))
-
-		ownership, err := s.GetDefundApp(s.chainA).EtfKeeper.GetOwnershipSharesInFund(s.chainA.GetContext(), fund, newShares)
-		s.Assert().NoError(err)
-
-		ret := sdk.Coins(ownership).IsEqual(sdk.NewCoins(sdk.NewCoin("uosmo", sdk.NewInt(250000)), sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(250000)), sdk.NewCoin("ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4", sdk.NewInt(250000))))
-		s.Assert().True(ret)
-	})
-
-	s.Run("GetAmountETFSharesForTokens", func() {
-		fund := s.CreateTestFund()
-		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
-		// add them to an account balance
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
-		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
-		// create the fake balance query for fund
-		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
-		// create fund shares
-		newShares := sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(250000))
-
-		ownership, err := s.GetDefundApp(s.chainA).EtfKeeper.GetAmountETFSharesForToken(s.chainA.GetContext(), fund, newShares)
-		s.Assert().NoError(err)
-
-		// make sure we have the amount of etf shares we want
-		ret := ownership.IsEqual(sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(250000)))
-		s.Assert().True(ret)
 	})
 
 	s.Run("Create", func() {

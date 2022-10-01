@@ -29,7 +29,7 @@ func (p PricesSort) Less(i, j int) bool {
 
 // CreateFundPrice creates a current fund price for a fund symbol in the funds base denom
 func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin, err error) {
-	comp := []sdk.Dec{}
+	comp := []sdk.Int{}
 	fund, found := k.GetFund(ctx, symbol)
 	if !found {
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
@@ -63,16 +63,15 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 			}
 		}
 		// Calculate spot price for 1 holding token in base denom
-		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
 		if err != nil {
 			return price, err
 		}
 		// get the holding denom amount from balances
 		holdingBalance := balances.Coins.Sort().AmountOf(holding.Token).ToDec()
 		// compute the weighted price by taking the holding balance of token, multiplying by price in base denom
-		// to obtain the balance in base denom. Then multiply by the Int holding percent (i.e: 50) and divide
-		// by 100 for proper fractioning
-		priceWeighted := holdingBalance.Mul(priceInBaseDenom).Mul(sdk.NewDec(holding.Percent)).Quo(sdk.NewDec(100))
+		// to obtain the balance in base denom.
+		priceWeighted := holdingBalance.Mul(priceInBaseDenom).RoundInt()
 		comp = append(comp, priceWeighted)
 	}
 	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
@@ -80,8 +79,8 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		price = fund.StartingPrice
 	}
 	if fund.Shares.Amount.Uint64() > 0 {
-		total := sum(comp)
-		price = sdk.NewCoin(fund.BaseDenom, sdk.NewInt(total.RoundInt64()))
+		total := sumInts(comp)
+		price = sdk.NewCoin(fund.BaseDenom, total)
 	}
 	return price, nil
 }
@@ -118,7 +117,7 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 
 		// take holding and find per etf share of holding from fund balance then multiply it by
 		// the amount of fundShares
-		amt := accBalance.Coins.Sort().AmountOf(holding.Token).Quo(fund.Shares.Amount).Mul(fundShares.Amount)
+		amt := accBalance.Coins.Sort().AmountOf(holding.Token).ToDec().Quo(fund.Shares.Amount.ToDec()).Mul(fundShares.Amount.ToDec()).RoundInt()
 		amtCoin := sdk.NewCoin(holding.Token, amt)
 		ownership = append(ownership, sdk.NewCoin(holding.Token, amtCoin.Amount))
 	}
@@ -140,7 +139,7 @@ func (k Keeper) GetAmountETFSharesForToken(ctx sdk.Context, fund types.Fund, tok
 	}
 
 	// Divide the amount of tokens provided by the price of the fund
-	amt := tokenIn.Amount.Quo(fundPrice.Amount)
+	amt := tokenIn.Amount.ToDec().Quo(fundPrice.Amount.ToDec()).Mul(sdk.NewDec(1000000)).RoundInt()
 
 	// Create the coin fund shares price
 	etfShares = sdk.NewCoin(fund.Shares.Denom, amt)

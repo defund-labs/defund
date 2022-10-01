@@ -385,8 +385,7 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 			return routes, nil
 		}
 	}
-	// for loop to create a multi pool route. will run if no direct pool can be found. should only
-	// contain no more than two routes
+	// for loop to create a multi pool route. will run if no direct pool can be found above
 	for _, pool := range broker.Pools {
 		osmoPool, err := k.brokerKeeper.GetOsmosisPool(ctx, pool.PoolId)
 		if err != nil {
@@ -410,9 +409,6 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 				TokenOutDenom: needDenom,
 			}
 			routes = append(routes, route)
-		}
-		if len(routes) >= 2 {
-			break
 		}
 	}
 	return routes, nil
@@ -491,11 +487,6 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 		if !found {
 			return msgs, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
-		// get the routes needed to swap for from this current denom to base denom
-		routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
-		if err != nil {
-			return msgs, err
-		}
 		// use some math to get the current composition % for this holding in the fund
 		// (holding in base denom / total in base denom)
 		currentComposition := allHoldingsInBaseDenomCoins.AmountOf(holding.Token).Quo(totalInBaseDenom)
@@ -517,6 +508,11 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 			var msg interface{}
 			switch holding.BrokerId {
 			case "osmosis":
+				// get the routes needed to swap for from this current denom to base denom
+				routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
+				if err != nil {
+					return msgs, err
+				}
 				msg, err = k.brokerKeeper.CreateOsmosisTrade(ctx, fundBrokerAddress, routes, tokenIn, tokenOut)
 				if err != nil {
 					return msgs, err
@@ -544,11 +540,6 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 		if !found {
 			return msgs, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
-		// get the routes needed to swap for from this current denom to base denom
-		routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
-		if err != nil {
-			return msgs, err
-		}
 		// use some math to get the current composition % for this holding in the fund
 		// (holding in base denom / total in base denom)
 		currentComposition := allHoldingsInBaseDenomCoins.AmountOf(holding.Token).Quo(totalInBaseDenom)
@@ -569,6 +560,11 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 			var msg interface{}
 			switch holding.BrokerId {
 			case "osmosis":
+				// get the routes needed to swap for from this current denom to base denom
+				routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
+				if err != nil {
+					return msgs, err
+				}
 				msg, err = k.brokerKeeper.CreateOsmosisTrade(ctx, fundBrokerAddress, routes, tokenIn, tokenOut)
 				if err != nil {
 					return msgs, err

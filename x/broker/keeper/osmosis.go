@@ -187,7 +187,7 @@ func (k Keeper) CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenI
 		inPoolAsset.Weight.ToDec(),
 		outPoolAsset.Token.Amount.ToDec(),
 		outPoolAsset.Weight.ToDec(),
-		pool.PoolParams.SwapFee,
+		sdk.NewDec(0),
 	), nil
 }
 
