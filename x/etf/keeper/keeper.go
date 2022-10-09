@@ -204,13 +204,13 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.
 // Initializes the redemption of shares process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, addressMap types.AddressMap) error {
+func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, channel string, amount sdk.Coin, addressMap types.AddressMap) error {
 	// Placeholder for current coin to be set below
 	currentCoin := sdk.Coin{}
 	// Map for holding all the messages for each broker to send later
 	msgs := make(map[string][]*banktypes.MsgSend)
 
-	fundDefundAcc, err := sdk.AccAddressFromBech32(fund.Address)
+	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
 		return err
 	}
@@ -277,13 +277,13 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, c
 		}
 
 		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], msg)
+	}
 
-		// take the fund etf shares and escrow them in the fund account. in the ack callback, on success
-		// of all sequences we will burn these shares. If unsuccessful we will send them back to the user (same on timeout).
-		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, fundDefundAcc, types.ModuleName, sdk.NewCoins(amount))
-		if err != nil {
-			return err
-		}
+	// take the fund etf shares and escrow them in the module account. in the ack callback, on success
+	// of sequence we will burn proportionally. If unsuccessful the transfer is reattempted until successful.
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creatorAcc, types.ModuleName, sdk.NewCoins(amount))
+	if err != nil {
+		return err
 	}
 
 	// send each ICA message and add it to the redeem which will be used in end blocker

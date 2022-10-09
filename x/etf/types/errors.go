@@ -19,5 +19,5 @@ var (
 	ErrInvalidPools         = sdkerrors.Register(ModuleName, 8, "No pools found in store")
 	ErrMarshallingError     = sdkerrors.Register(ModuleName, 9, "Marshalling error")
 	ErrCreateNotFound       = sdkerrors.Register(ModuleName, 10, "Create not found")
-	ErrInvalidHolding       = sdkerrors.Register(ModuleName, 10, "Holding is invalid")
+	ErrInvalidHolding       = sdkerrors.Register(ModuleName, 11, "Holding is invalid")
 )
