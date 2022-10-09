@@ -165,13 +165,13 @@ func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
 	return path
 }
 
-func (s *KeeperTestSuite) NewICAPath(TestPortID string, TestVersion string, clientIdA string, clientIdB string) *ibctesting.Path {
+func (s *KeeperTestSuite) NewICAPath(TestPortID string, TestVersion string, transferPath *ibctesting.Path) *ibctesting.Path {
 	// setup ica channels
 	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.EndpointA.ConnectionID = "connection-0"
 	path.EndpointB.ConnectionID = "connection-0"
-	path.EndpointA.ClientID = clientIdA
-	path.EndpointB.ClientID = clientIdB
+	path.EndpointA.ClientID = transferPath.EndpointA.ClientID
+	path.EndpointB.ClientID = transferPath.EndpointB.ClientID
 	path.EndpointA.ChannelConfig.PortID = TestPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
@@ -485,18 +485,9 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	s.coordinator.SetupConnections(path)
 	s.coordinator.CreateTransferChannels(path)
 
-	pathIca := s.NewICAPath(TestPortID, TestVersion, path.EndpointA.ClientID, path.EndpointB.ClientID)
+	pathIca := s.NewICAPath(TestPortID, TestVersion, path)
 
-	err := path.EndpointA.UpdateClient()
-	s.Assert().NoError(err)
-	err = path.EndpointA.Counterparty.UpdateClient()
-	s.Assert().NoError(err)
-	err = path.EndpointB.UpdateClient()
-	s.Assert().NoError(err)
-	err = path.EndpointB.Counterparty.UpdateClient()
-	s.Assert().NoError(err)
-
-	err = s.SetupICAPath(pathIca, TestOwnerAddress.String(), TestVersion)
+	err := s.SetupICAPath(pathIca, TestOwnerAddress.String(), TestVersion)
 	s.Assert().NoError(err)
 
 	s.coordinator.CommitBlock(s.chainA)
