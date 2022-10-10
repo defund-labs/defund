@@ -291,7 +291,7 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 	require.NoError(endpoint.Chain.T, err)
 
 	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proof, height := endpoint.Counterparty.Chain.QueryProofAtHeight(channelKey, endpoint.Chain.CurrentHeader.Height-3)
+	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
 		endpoint.ChannelConfig.PortID,

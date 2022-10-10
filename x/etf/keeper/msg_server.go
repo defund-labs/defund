@@ -223,7 +223,7 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
 	}
 
-	err := k.Keeper.RedeemShares(ctx, msg.Creator, fund, msg.Channel, *msg.Amount, *msg.Addresses)
+	err := k.Keeper.RedeemShares(ctx, msg.Creator, fund, *msg.Amount, *msg.Addresses)
 	if err != nil {
 		return nil, err
 	}

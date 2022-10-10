@@ -18,6 +18,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/defund-labs/defund/app"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -25,8 +26,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/defund-labs/defund/app"
-	"github.com/defund-labs/defund/testing/simapp/helpers"
+	"github.com/cosmos/ibc-go/v4/testing/simapp/helpers"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -34,7 +34,7 @@ import (
 var DefaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 200000,
-		MaxGas:   0000000,
+		MaxGas:   2000000,
 	},
 	Evidence: &tmproto.EvidenceParams{
 		MaxAgeNumBlocks: 302400,

@@ -204,7 +204,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.
 // Initializes the redemption of shares process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, channel string, amount sdk.Coin, addressMap types.AddressMap) error {
+func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, amount sdk.Coin, addressMap types.AddressMap) error {
 	// Placeholder for current coin to be set below
 	currentCoin := sdk.Coin{}
 	// Map for holding all the messages for each broker to send later
@@ -295,7 +295,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, c
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", broker.Id))
 		}
 		// create the ica multi send message
-		sequence, channelICA, err := k.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
+		sequence, channelICA, err := k.brokerKeeper.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
 		if err != nil {
 			return err
 		}

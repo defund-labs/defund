@@ -152,36 +152,69 @@ func (s *KeeperTestSuite) GetDefundApp(chain *ibctesting.TestChain) *app.App {
 }
 
 func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
-	// setup transfer channels
 	path := ibctesting.NewPath(s.chainA, s.chainB)
-	path.EndpointA.ChannelConfig.PortID = "transfer"
-	path.EndpointB.ChannelConfig.PortID = "transfer"
-	path.EndpointA.ChannelConfig.Version = "ics20-1"
-	path.EndpointB.ChannelConfig.Version = "ics20-1"
-	path.EndpointA.ConnectionID = "connection-0"
-	path.EndpointB.ConnectionID = "connection-0"
 	path.EndpointA.ChannelID = "channel-0"
 	path.EndpointB.ChannelID = "channel-0"
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointA.ChannelConfig.Version = "ics20-1"
+	path.EndpointB.ChannelConfig.Version = "ics20-1"
+
+	s.coordinator.Setup(path)
+
 	return path
 }
 
 func (s *KeeperTestSuite) NewICAPath(TestPortID string, TestVersion string, transferPath *ibctesting.Path) *ibctesting.Path {
 	// setup ica channels
 	path := ibctesting.NewPath(s.chainA, s.chainB)
-	path.EndpointA.ConnectionID = "connection-0"
-	path.EndpointB.ConnectionID = "connection-0"
-	path.EndpointA.ClientID = transferPath.EndpointA.ClientID
-	path.EndpointB.ClientID = transferPath.EndpointB.ClientID
+	path.EndpointA.ChannelID = "channel-1"
+	path.EndpointB.ChannelID = "channel-1"
 	path.EndpointA.ChannelConfig.PortID = TestPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.PortID
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
-	path.EndpointA.ClientID = "07-tendermint-0"
-	path.EndpointB.ClientID = "07-tendermint-0"
+	path.EndpointA.ConnectionID = transferPath.EndpointA.ConnectionID
+	path.EndpointB.ConnectionID = transferPath.EndpointB.ConnectionID
+	path.EndpointA.ClientID = transferPath.EndpointA.ClientID
+	path.EndpointB.ClientID = transferPath.EndpointB.ClientID
+	path.EndpointA.ClientConfig = transferPath.EndpointA.ClientConfig
+	path.EndpointB.ClientConfig = transferPath.EndpointB.ClientConfig
+	path.EndpointA.ConnectionConfig = transferPath.EndpointA.ConnectionConfig
+	path.EndpointB.ConnectionConfig = transferPath.EndpointB.ConnectionConfig
 
 	return path
+}
+
+func (s *KeeperTestSuite) CreateChannelICA(owner string, transferPath *ibctesting.Path) (connectionId string, portId string) {
+	TestPortID, _ := icatypes.NewControllerPortID(owner)
+	// TestVersion defines a reusable interchainaccounts version string for testing purposes
+	TestVersion := string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: "connection-0",
+		HostConnectionId:       "connection-0",
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
+
+	icaPath := s.NewICAPath(TestPortID, TestVersion, transferPath)
+
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+
+	err := icaPath.EndpointB.ChanOpenTry()
+	s.Require().NoError(err, "ChanOpenTry error")
+
+	err = icaPath.EndpointA.ChanOpenAck()
+	s.Require().NoError(err, "ChanOpenAck error")
+
+	err = icaPath.EndpointB.ChanOpenConfirm()
+	s.Require().NoError(err, "ChanOpenConfirm error")
+
+	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetActiveChannelID(s.chainA.GetContext(), icaPath.EndpointA.ConnectionID, icaPath.EndpointA.ChannelConfig.PortID, icaPath.EndpointA.ChannelID)
+
+	return icaPath.EndpointA.ConnectionID, icaPath.EndpointA.ChannelConfig.PortID
 }
 
 func (s *KeeperTestSuite) CreateTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Coin, aktCoin sdk.Coin) {
@@ -214,12 +247,12 @@ func (s *KeeperTestSuite) CreateTestTokens() (atomCoin sdk.Coin, osmoCoin sdk.Co
 	return atomCoin, osmoCoin, aktCoin
 }
 
-func (s *KeeperTestSuite) CreateFundBalanceQuery(fund types.Fund, tokens []sdk.Coin, multiplier int64) {
+func (s *KeeperTestSuite) CreateFundBalanceQuery(icaAddress string, tokens []sdk.Coin, multiplier int64) {
 	for i := range tokens {
 		tokens[i].Amount.Mul(sdk.NewInt(multiplier))
 	}
 	balances := banktypes.Balance{
-		Address: fund.Address,
+		Address: icaAddress,
 		Coins:   sdk.Coins(tokens),
 	}
 	data, err := balances.Marshal()
@@ -227,8 +260,8 @@ func (s *KeeperTestSuite) CreateFundBalanceQuery(fund types.Fund, tokens []sdk.C
 	height := clienttypes.NewHeight(0, 0)
 	query := querytypes.InterqueryResult{
 		Creator:     s.chainA.SenderAccount.GetAddress().String(),
-		Storeid:     fmt.Sprintf("balance-%s", fund.Address),
-		Chainid:     "osmosis-1",
+		Storeid:     fmt.Sprintf("balance-%s", icaAddress),
+		Chainid:     s.chainA.ChainID,
 		Data:        data,
 		Height:      &height,
 		LocalHeight: uint64(0),
@@ -432,14 +465,14 @@ func (s *KeeperTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoin
 		return err
 	}
 
-	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
+	channelSequence := s.GetDefundApp(s.chainA).IBCKeeper.ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext())
 
-	if err := s.GetDefundApp(s.chainA).ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+	if err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), endpoint.ConnectionID, owner); err != nil {
 		return err
 	}
 
 	// commit state changes for proof verification
-	endpoint.Chain.NextBlock()
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
 	// update port/channel ids
 	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
@@ -448,49 +481,10 @@ func (s *KeeperTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoin
 	return nil
 }
 
-func (s *KeeperTestSuite) SetupICAPath(path *ibctesting.Path, owner string, TestVersion string) error {
-	if err := s.RegisterInterchainAccount(path.EndpointA, owner, TestVersion); err != nil {
-		return err
-	}
-
-	if err := path.EndpointB.ChanOpenTry(); err != nil {
-		return err
-	}
-
-	if err := path.EndpointA.ChanOpenAck(); err != nil {
-		return err
-	}
-
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *KeeperTestSuite) TestETFFundActions() {
-	TestOwnerAddress := s.chainA.SenderAccount.GetAddress()
-	TestPortID, _ := icatypes.NewControllerPortID(TestOwnerAddress.String())
-	// TestVersion defines a reusable interchainaccounts version string for testing purposes
-	TestVersion := string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
-		Version:                icatypes.Version,
-		ControllerConnectionId: "connection-0",
-		HostConnectionId:       "connection-0",
-		Encoding:               icatypes.EncodingProtobuf,
-		TxType:                 icatypes.TxTypeSDKMultiMsg,
-	}))
 
 	path := s.NewTransferPath()
-	s.coordinator.SetupClients(path)
-	s.coordinator.SetupConnections(path)
-	s.coordinator.CreateTransferChannels(path)
-
-	pathIca := s.NewICAPath(TestPortID, TestVersion, path)
-
-	err := s.SetupICAPath(pathIca, TestOwnerAddress.String(), TestVersion)
-	s.Assert().NoError(err)
-
-	s.coordinator.CommitBlock(s.chainA)
+	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
 
 	s.Run("CheckHoldings", func() {
 		s.CreateOsmosisBroker()
@@ -555,6 +549,12 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 	s.Run("Create", func() {
 		fund := s.CreateTestFund()
+		// Commit new block to store info
+		s.coordinator.CommitBlock(s.chainA, s.chainB)
+		// We must create an ICA channel here on the broker chain with the test fund address as the owner
+		connectionId, portId := s.CreateChannelICA(fund.Address, path)
+		accAddress, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), connectionId, portId)
+		s.Assert().True(found)
 		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
 		// add them to an account balance
 		err := s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
@@ -564,7 +564,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
 		s.Assert().NoError(err)
 		// create the fake balance query for fund
-		s.CreateFundBalanceQuery(fund, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
+		s.CreateFundBalanceQuery(accAddress, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
 		s.CreatePoolQueries(fund)
 		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(20000000))
 		_, err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
@@ -579,14 +579,12 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 			OsmosisAddress: s.chainA.SenderAccount.GetAddress().String(),
 		}
 
-		pathIca.EndpointA.UpdateClient()
-		pathIca.EndpointB.UpdateClient()
-		s.coordinator.CommitBlock(s.chainA, s.chainB)
-
 		// redeem the created shares from above
-		err := s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, path.EndpointA.ChannelID, tokenInRedeem, addrMap)
+		err := s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
 		s.Assert().NoError(err)
 	})
 
 	s.Run("CreateRebalanceMsgs", func() {})
+
+	s.Run("Rebalance", func() {})
 }

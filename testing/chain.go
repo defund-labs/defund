@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -18,6 +17,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/defund-labs/defund/app"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -33,8 +33,7 @@ import (
 	"github.com/cosmos/ibc-go/v4/modules/core/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 	"github.com/cosmos/ibc-go/v4/testing/mock"
-	simapp "github.com/defund-labs/defund/app"
-	"github.com/defund-labs/defund/testing/simapp/helpers"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 var MaxAccounts = 10
@@ -157,10 +156,6 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 		SenderAccounts: senderAccs,
 	}
 
-	// creates mock module account
-	//mockModuleAcc := chain.GetSimApp().AccountKeeper.GetModuleAccount(chain.GetContext(), mock.ModuleName)
-	//require.NotNil(t, mockModuleAcc)
-
 	coord.CommitBlock(chain)
 
 	return chain
@@ -200,8 +195,8 @@ func (chain *TestChain) GetContext() sdk.Context {
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
 // CONTRACT: This function should not be called by third parties implementing
 // their own SimApp.
-func (chain *TestChain) GetSimApp() *simapp.App {
-	app, ok := chain.App.(*simapp.App)
+func (chain *TestChain) GetSimApp() *app.App {
+	app, ok := chain.App.(*app.App)
 	require.True(chain.T, ok)
 
 	return app
@@ -314,36 +309,6 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 	return err
 }
 
-func SignAndDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
-) (sdk.GasInfo, *sdk.Result, error) {
-	tx, err := helpers.GenTx(
-		txCfg,
-		msgs,
-		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-		helpers.DefaultGenTxGas,
-		chainID,
-		accNums,
-		accSeqs,
-		priv...,
-	)
-	require.NoError(t, err)
-
-	// Simulate a sending a transaction
-	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
-
-	if expPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
-	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
-	}
-
-	return gInfo, res, err
-}
-
 // SendMsgs delivers a transaction through the application. It updates the senders sequence
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
@@ -351,7 +316,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	_, r, err := SignAndDeliver(
+	_, r, err := simapp.SignAndDeliver(
 		chain.T,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
