@@ -21,8 +21,6 @@ import (
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -52,11 +50,7 @@ var (
 	testChannelId       = "channel-0"
 
 	poolsOsmosis = []uint64{
-		1, 497, 674, 604, 9, 498, 584, 3, 10, 601, 2, 611, 585, 13, 4, 482, 481, 6, 577, 5, 463,
-		629, 641, 15, 461, 560, 586, 587, 42, 600, 627, 608, 571, 631, 548, 7, 605, 572, 648,
-		606, 643, 8, 597, 619, 553, 625, 602, 618, 574, 578, 651, 626, 573, 22, 555, 637, 464,
-		645, 644, 596, 547, 616, 558, 621, 613, 197, 617, 670, 612, 638, 561, 567, 649, 653,
-		633, 557, 662, 615, 565, 562, 592, 151, 183, 673, 549, 624, 642,
+		1, 3,
 	}
 )
 
@@ -274,30 +268,7 @@ func (s *KeeperTestSuite) CreateFundBalanceQuery(icaAddress string, tokens []sdk
 
 func (s *KeeperTestSuite) CreatePoolQueries(fund types.Fund) {
 	// Create the Osmo Atom Pool Pair Interquery
-	OsmoAtomPool := osmosisbalancertypes.Pool{
-		Address: fund.Address,
-		Id:      1,
-		PoolParams: osmosisbalancertypes.PoolParams{
-			SwapFee: sdk.NewDecWithPrec(20, 4),
-			ExitFee: sdk.NewDecWithPrec(0, 4),
-		},
-		FuturePoolGovernor: "24h",
-		TotalShares: sdk.Coin{
-			Denom:  "gamm/pool/1",
-			Amount: sdk.NewInt(int64(3849029151596493552)),
-		},
-		PoolAssets: []osmosisgammtypes.PoolAsset{
-			{
-				Token:  sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(7689908).Mul(sdk.NewInt(1000000))),
-				Weight: sdk.NewInt(536870912000000),
-			},
-			{
-				Token:  sdk.NewCoin("uosmo", sdk.NewInt(25239880).Mul(sdk.NewInt(1000000))),
-				Weight: sdk.NewInt(536870912000000),
-			},
-		},
-	}
-	data, err := OsmoAtomPool.Marshal()
+	data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ5MDMwODY5NjU0NjY2OTM4NDA1ODkyMjkyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY4OTYwNDA3NTE1NRIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjQxMDUyMzMyNjAzEg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 	s.Assert().NoError(err)
 	height := clienttypes.NewHeight(0, 0)
 	query := querytypes.InterqueryResult{
@@ -314,30 +285,7 @@ func (s *KeeperTestSuite) CreatePoolQueries(fund types.Fund) {
 	s.Assert().NoError(err)
 
 	// Create the Osmo Akt Pool Pair Interquery
-	OsmoAktPool := osmosisbalancertypes.Pool{
-		Address: fund.Address,
-		Id:      3,
-		PoolParams: osmosisbalancertypes.PoolParams{
-			SwapFee: sdk.NewDecWithPrec(20, 4),
-			ExitFee: sdk.NewDecWithPrec(0, 4),
-		},
-		FuturePoolGovernor: "24h",
-		TotalShares: sdk.Coin{
-			Denom:  "gamm/pool/3",
-			Amount: sdk.NewInt(int64(3849029151596493552)),
-		},
-		PoolAssets: []osmosisgammtypes.PoolAsset{
-			{
-				Token:  sdk.NewCoin("ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4", sdk.NewInt(4261789).Mul(sdk.NewInt(1000000))),
-				Weight: sdk.NewInt(536870912000000),
-			},
-			{
-				Token:  sdk.NewCoin("uosmo", sdk.NewInt(743575).Mul(sdk.NewInt(1000000))),
-				Weight: sdk.NewInt(536870912000000),
-			},
-		},
-	}
-	data, err = OsmoAktPool.Marshal()
+	data, err = base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKwAgo/b3NtbzFjOWdqNW53eGh1aDJnejd3d2c0cjhlOHR3OHY3Z2d5OWxoMmh1N2trZGdoMHQ0NTA3NTRxaDljcHZkEAMaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKikKC2dhbW0vcG9vbC8zEho5OTk2MTE2MTA2NTExNTAyNjE1NDU1Njg4NDJoClUKRGliYy8xNDgwQjhGRDIwQUQ1RkNBRTgxRUE4NzU4NEQyNjk1NDdERDRENDM2ODQzQzFEMjBGMTVFMDBFQjY0NzQzRUY0Eg00MjY2NzE0NjQyMjQ5Eg81MzY4NzA5MTIwMDAwMDAyKAoVCgV1b3NtbxIMNzQyNzg3NDg4NDg1Eg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 	s.Assert().NoError(err)
 	height = clienttypes.NewHeight(0, 0)
 	query = querytypes.InterqueryResult{
@@ -489,7 +437,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	s.Run("CheckHoldings", func() {
 		s.CreateOsmosisBroker()
 
-		data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ4OTk3OTEzNDAyMzI0NjU1NzkzNjk0NjIyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY5MDAzNjMwNTU0MhIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjM5MDA5NTkzODk3Eg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
+		data, err := base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBKzAgo/b3NtbzFtdzBhYzZyd2xwNXI4d2Fwd2szenM2ZzI5aDhmY3NjeHFha2R6dzllbWtuZTZjOHdqcDlxMHQzdjh0EAEaFQoQMjAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKioKC2dhbW0vcG9vbC8xEhszODQ5MDMwODY5NjU0NjY2OTM4NDA1ODkyMjkyaApVCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhINNzY4OTYwNDA3NTE1NRIPNTM2ODcwOTEyMDAwMDAwMioKFwoFdW9zbW8SDjI1MjQxMDUyMzMyNjAzEg81MzY4NzA5MTIwMDAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 		s.Assert().NoError(err)
 		height := clienttypes.NewHeight(0, 0)
 		interquery := querytypes.InterqueryResult{
@@ -505,12 +453,12 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), interquery)
 		s.Assert().NoError(err)
 
-		data, err = base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBLvAgo/b3NtbzFsend2MGdsY2hmY3cwZnB3emR3ZmRzZXBtdmx1djZ6NmVoNHF1bnhkbWwzM3NqMDZxM3lxN3h3dGRlEAQaFQoQMzAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKikKC2dhbW0vcG9vbC80Eho1MjE3NzY4NjUwNzYzMzUwMzYzNjczMzUzOTJoClUKRGliYy8xNDgwQjhGRDIwQUQ1RkNBRTgxRUE4NzU4NEQyNjk1NDdERDRENDM2ODQzQzFEMjBGMTVFMDBFQjY0NzQzRUY0Eg00NjI2NTYyOTEwMzg5Eg83MDg2Njk2MDM4NDAwMDAyZwpUCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhIMMTI2NDE3MzA2NDY0Eg8zNjUwNzIyMjAxNjAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
+		data, err = base64.StdEncoding.DecodeString("Chovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuUG9vbBLvAgo/b3NtbzFsend2MGdsY2hmY3cwZnB3emR3ZmRzZXBtdmx1djZ6NmVoNHF1bnhkbWwzM3NqMDZxM3lxN3h3dGRlEAQaFQoQMzAwMDAwMDAwMDAwMDAwMBIBMCIDMjRoKikKC2dhbW0vcG9vbC80Eho1MjE3NzY4NjUwNzYzMzUwMzYzNjczMzUzOTJoClUKRGliYy8xNDgwQjhGRDIwQUQ1RkNBRTgxRUE4NzU4NEQyNjk1NDdERDRENDM2ODQzQzFEMjBGMTVFMDBFQjY0NzQzRUY0Eg00NjI2NTY3NDUxNjUwEg83MDg2Njk2MDM4NDAwMDAyZwpUCkRpYmMvMjczOTRGQjA5MkQyRUNDRDU2MTIzQzc0RjM2RTRDMUY5MjYwMDFDRUFEQTlDQTk3RUE2MjJCMjVGNDFFNUVCMhIMMTI2NDE3MDY2MzE2Eg8zNjUwNzIyMjAxNjAwMDA6EDEwNzM3NDE4MjQwMDAwMDA=")
 		s.Assert().NoError(err)
 		interquery = querytypes.InterqueryResult{
 			Creator:     "defund1y295kyv2upsy6swhj0dulghf208ngec5k7zpjq",
 			Storeid:     "osmosis-4",
-			Chainid:     "osmosis-4",
+			Chainid:     "osmosis-1",
 			Data:        data,
 			Height:      &height,
 			LocalHeight: 0,
@@ -571,6 +519,14 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.Assert().NoError(err)
 	})
 
+	s.Run("Rebalance", func() {
+		fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), "test")
+		s.Assert().True(found)
+
+		err := s.GetDefundApp(s.chainA).EtfKeeper.SendRebalanceTx(s.chainA.GetContext(), fund)
+		s.Assert().NoError(err)
+	})
+
 	s.Run("Redeem", func() {
 		fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), "test")
 		s.Assert().True(found)
@@ -584,7 +540,11 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.Assert().NoError(err)
 	})
 
-	s.Run("CreateRebalanceMsgs", func() {})
+	s.Run("CreateRebalanceMsgs", func() {
+		fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), "test")
+		s.Assert().True(found)
 
-	s.Run("Rebalance", func() {})
+		_, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
+		s.Assert().NoError(err)
+	})
 }
