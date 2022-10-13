@@ -170,7 +170,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			Id:       fmt.Sprintf("%s-%d", channel, sequence),
 			Channel:  channel,
 			Sequence: sequence,
-			Status:   "tranferring",
+			Status:   types.TransferStateTransferring,
 			Token:    &sendCoin,
 			Sender:   fund.Address,
 			Receiver: fundBrokerAddress,
@@ -290,16 +290,13 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 			return err
 		}
 
-		id := k.GetNextRedeemID(ctx)
-
 		// Create the redeem store
 		redeem := types.Redeem{
-			Id:        fmt.Sprint(id),
-			Creator:   creator,
-			Fund:      &fund,
-			Amount:    &amount,
-			Status:    "pending",
-			Transfers: []brokertypes.Transfer{},
+			Id:      fmt.Sprintf("%s-%d", channel, sequence),
+			Creator: creator,
+			Fund:    &fund,
+			Amount:  &amount,
+			Status:  types.RedeemState,
 		}
 
 		k.SetRedeem(ctx, redeem)

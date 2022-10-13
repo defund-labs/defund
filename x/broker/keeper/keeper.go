@@ -98,22 +98,13 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 
 // OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares and
 // proportionally burns them.
-func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem, transfer types.Transfer) error {
-	transfer.Token
+func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
 	return nil
 }
 
 // OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
 // and proportionally sends them back to the redeemer. This is used in Timeout as well
-func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem, transfer types.Transfer) error {
-	for i, t := range redeem.Transfers {
-		if transfer.Id == t.Id {
-			t.Status = types.StatusError
-			redeem.Transfers[i] = t
-			k.etfKeeper.SetRedeem(ctx, redeem)
-			break
-		}
-	}
+func (k Keeper) OnRedeemFailure(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
 	return nil
 }
 
@@ -154,7 +145,7 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 		switch msgData.MsgType {
 		case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 			// get the redeem from the store. If not found return nil and do not run logic
-			redeem, transfer, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
 			}
@@ -164,11 +155,11 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
 			// Run redeem success logic
-			k.OnRedeemSuccess(ctx, packet, redeem, transfer)
+			k.OnRedeemSuccess(ctx, packet, redeem)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
-			// get the fund from the store. If not found return nil and do not run logic
+			// get the rebalance from the store. If not found return nil and do not run logic
 			rebalance, found := k.etfKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
@@ -196,7 +187,7 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 		switch msgData.MsgType {
 		case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 			// get the redeem from the store. If not found return nil and do not run logic
-			redeem, transfer, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+			redeem, found := k.etfKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil
 			}
@@ -207,11 +198,11 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			k.Logger(ctx).Debug("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response: ", msgResponse.String())
 
 			// Run redeem failure logic
-			k.OnRedeemFailure(ctx, redeem, transfer)
+			k.OnRedeemFailure(ctx, packet, redeem)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
-			// get the fund from the store. If not found return nil and do not run logic
+			// get the rebalance from the store. If not found return nil and do not run logic
 			rebalance, found := k.etfKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				return nil

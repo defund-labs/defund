@@ -5,4 +5,5 @@ const (
 	TransferStateFailed       = "failed"
 	TransferStateCompleted    = "complete"
 	TransferStateBurned       = "burned"
+	RedeemState               = "redeeming"
 )
