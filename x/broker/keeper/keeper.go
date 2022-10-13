@@ -96,22 +96,15 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 	return connection, found
 }
 
-// OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares
-// and burns them.
+// OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares and
+// proportionally burns them.
 func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem, transfer types.Transfer) error {
-	for i, t := range redeem.Transfers {
-		if transfer.Id == t.Id {
-			t.Status = types.StatusComplete
-			redeem.Transfers[i] = t
-			k.etfKeeper.SetRedeem(ctx, redeem)
-			break
-		}
-	}
+	transfer.Token
 	return nil
 }
 
 // OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
-// and sends them back to the redeemer.
+// and proportionally sends them back to the redeemer. This is used in Timeout as well
 func (k Keeper) OnRedeemFailure(ctx sdk.Context, redeem etftypes.Redeem, transfer types.Transfer) error {
 	for i, t := range redeem.Transfers {
 		if transfer.Id == t.Id {
@@ -135,7 +128,7 @@ func (k Keeper) OnRebalanceSuccess(ctx sdk.Context, rebalance etftypes.Rebalance
 }
 
 // OnRebalanceFailure runs the rebalance etf failure logic which just deletes the rebalance
-// from store.
+// from store. Used for Timeout as well.
 //
 // NOTE: Potentially add a timeout/retry for failed rebalances?
 func (k Keeper) OnRebalanceFailure(ctx sdk.Context, rebalance etftypes.Rebalance, fund *etftypes.Fund) error {
@@ -151,7 +144,7 @@ func (k Keeper) OnRebalanceFailure(ctx sdk.Context, rebalance etftypes.Rebalance
 // If the ICA message is an ICA Send message then we know it is a Redeem message for redeeming ETF shares.
 // We check to see the sequence corresponds with a redeem store, if it does, we then proceed to check
 // if it was a successful msg. If so we then burn the fund shares held by the module account from the initial Redeem flow.
-// If it failed, we mark the redeem in store as failed and then proceed as usual.
+// If it failed, we take the escrowed etf shares and proportionally send them back to the redeemer.
 //
 // If the ICA message is an ICA Swap Message, we know it is a rebalance workflow, and we mark the rebalance
 // from pending to complete.

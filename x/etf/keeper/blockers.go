@@ -15,7 +15,7 @@ import (
 
 // SendPendingTransfers takes all pending transfers from the store
 // and sends the IBC transfers for each transfer. These transfers represent
-// the unsuccessful transfers from creates. If an error occurs we just log and continue to next
+// the unsuccessful transfers from creates and redeems. If an error occurs we just log and continue to next
 // iteration as we do not want to stop all transfers for one transfer error.
 func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	transfers := k.brokerKeeper.GetAllTransfer(ctx)

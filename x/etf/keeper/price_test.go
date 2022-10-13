@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestCreatePrice() {
 
 		price, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateFundPrice(s.chainA.GetContext(), fund.Symbol)
 		s.Assert().NoError(err)
-		s.Assert().Equal(price, sdk.NewCoin("uosmo", sdk.NewInt(222834159)))
+		s.Assert().Equal(price, sdk.NewCoin("uosmo", sdk.NewInt(222828968)))
 	})
 
 	s.Run("GetOwnershipSharesInFund", func() {
@@ -73,6 +73,6 @@ func (s *KeeperTestSuite) TestCreatePrice() {
 		s.Assert().NoError(err)
 
 		// make sure we have the amount of etf shares we want
-		s.Assert().Equal(sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(100000)), ownership)
+		s.Assert().Equal(sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(100002)), ownership)
 	})
 }

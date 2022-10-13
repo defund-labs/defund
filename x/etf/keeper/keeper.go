@@ -205,10 +205,15 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.
 // Initializes the redemption of shares process which continues in Broker module in OnAckRec.
 func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, amount sdk.Coin, addressMap types.AddressMap) error {
-	// Placeholder for current coin to be set below
-	currentCoin := sdk.Coin{}
 	// Map for holding all the messages for each broker to send later
 	msgs := make(map[string][]*banktypes.MsgSend)
+	// Map for keeping track of the total of etf shares redeeming for each broker tx so we can
+	// perform logic on acks based on success or failure
+	redeem := make(map[string]sdk.Int)
+
+	// Add Osmosis broker to the mappings
+	msgs["osmosis"] = []*banktypes.MsgSend{}
+	redeem["osmosis"] = sdk.NewInt(0)
 
 	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
@@ -216,36 +221,21 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 	}
 
 	// get the amount of tokens that these shares represent
-	ownership, err := k.GetOwnershipSharesInFund(ctx, fund, amount)
+	ownershipRaw, err := k.GetOwnershipSharesInFund(ctx, fund, amount)
 	if err != nil {
 		return err
 	}
 
-	id := k.GetNextRedeemID(ctx)
-
-	// Create the redeem store
-	redeem := types.Redeem{
-		Id:        fmt.Sprint(id),
-		Creator:   creator,
-		Fund:      &fund,
-		Amount:    &amount,
-		Status:    "pending",
-		Transfers: []brokertypes.Transfer{},
-	}
+	ownership := sdk.NewCoins(ownershipRaw...)
 
 	for _, holding := range fund.Holdings {
 
-		// get the token to redeem for the current holding in loop
-		for i, coin := range ownership {
-			if coin.Denom == holding.Token {
-				currentCoin = coin
-				break
-			}
-			// if we are at the end of the list and it has not broke, we are missing the token. Return error
-			if (len(ownership) - 1) == i {
-				return sdkerrors.Wrapf(types.ErrInvalidDenom, "could not find supplied token representing holding denom: %s", holding.Token)
-			}
-		}
+		// get the current holding amount and coin from ownership coins
+		currentCoinAmt := ownership.Sort().AmountOf(holding.Token)
+		currentCoin := sdk.NewCoin(holding.Token, currentCoinAmt)
+
+		// Add the amount of the etf shares this holding redeem represents
+		redeem["osmosis"] = redeem["osmosis"].Add(currentCoinAmt)
 
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
@@ -294,35 +284,26 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 		if !found {
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", broker.Id))
 		}
-		// create the ica multi send message
-		sequence, channelICA, err := k.brokerKeeper.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
+		// send the send message to broker chain
+		sequence, channel, err := k.brokerKeeper.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
 		if err != nil {
 			return err
 		}
-		// get the ica account address port
-		portID, err := icatypes.NewControllerPortID(fund.Address)
-		if err != nil {
-			return err
-		}
-		// get the ica account address
-		accAddress, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
-		if !found {
-			err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
-			return err
-		}
-		transfer := brokertypes.Transfer{
-			Id:       fmt.Sprintf("%s-%d", channelICA, sequence),
-			Channel:  channelICA,
-			Sequence: sequence,
-			Status:   "tranferring",
-			Token:    &currentCoin,
-			Sender:   accAddress,
-			Receiver: fund.Address,
-		}
-		redeem.Transfers = append(redeem.Transfers, transfer)
-	}
 
-	k.SetRedeem(ctx, redeem)
+		id := k.GetNextRedeemID(ctx)
+
+		// Create the redeem store
+		redeem := types.Redeem{
+			Id:        fmt.Sprint(id),
+			Creator:   creator,
+			Fund:      &fund,
+			Amount:    &amount,
+			Status:    "pending",
+			Transfers: []brokertypes.Transfer{},
+		}
+
+		k.SetRedeem(ctx, redeem)
+	}
 
 	return nil
 }
