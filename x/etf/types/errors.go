@@ -20,4 +20,5 @@ var (
 	ErrMarshallingError     = sdkerrors.Register(ModuleName, 9, "Marshalling error")
 	ErrCreateNotFound       = sdkerrors.Register(ModuleName, 10, "Create not found")
 	ErrInvalidHolding       = sdkerrors.Register(ModuleName, 11, "Holding is invalid")
+	ErrInvalidRebalance     = sdkerrors.Register(ModuleName, 12, "Rebalance failed")
 )

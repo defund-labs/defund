@@ -173,5 +173,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.CreateETFQueries(ctx)
+	am.keeper.SendRebalancesEndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

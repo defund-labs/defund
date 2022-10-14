@@ -60,6 +60,9 @@ message Redeem {
   Fund fund = 3;
   cosmos.base.v1beta1.Coin amount = 4;
   string status = 5;
+  string type = 6;
+  // if the type is staked, we need a timestamp for when it will be unstaked
+  string unstakeTimestamp = 7;
 }
 
 message Rebalance {
@@ -67,5 +70,6 @@ message Rebalance {
   Fund fund = 2;
   // the height the rebalance was created
   int64 height = 3;
+  string broker = 4;
 }
 

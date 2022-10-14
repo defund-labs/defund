@@ -514,9 +514,10 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		// create the fake balance query for fund
 		s.CreateFundBalanceQuery(accAddress, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
 		s.CreatePoolQueries(fund)
-		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(20000000))
-		_, err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(44565793))
+		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
+		s.Assert().Equal(shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(1000000)))
 	})
 
 	s.Run("Rebalance", func() {
@@ -544,7 +545,13 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), "test")
 		s.Assert().True(found)
 
-		_, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
+		msgs, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
 		s.Assert().NoError(err)
+
+		s.Assert().Equal(msgs.Osmosis[0].TokenIn, sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(27598242)))
+		s.Assert().Equal(msgs.Osmosis[0].TokenOutMinAmount, sdk.NewInt(88779146))
+
+		s.Assert().Equal(msgs.Osmosis[1].TokenIn, sdk.NewCoin("uosmo", sdk.NewInt(64829116)))
+		s.Assert().Equal(msgs.Osmosis[1].TokenOutMinAmount, sdk.NewInt(364943131))
 	})
 }

@@ -99,12 +99,34 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 // OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares and
 // proportionally burns them.
 func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
+	// lets burn the etf shares in escrow
+	err := k.bankKeeper.BurnCoins(ctx, "etf", sdk.NewCoins(*redeem.Amount))
+	if err != nil {
+		return err
+	}
+
+	// lets clear up the redeem from the store
+	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
+
 	return nil
 }
 
 // OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
 // and proportionally sends them back to the redeemer. This is used in Timeout as well
 func (k Keeper) OnRedeemFailure(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
+	// lets send the etf shares in escrow back to the redeemer
+	redeemer, err := sdk.AccAddressFromBech32(redeem.Creator)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, "etf", redeemer, sdk.NewCoins(*redeem.Amount))
+	if err != nil {
+		return err
+	}
+
+	// lets clear up the redeem from the store
+	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
+
 	return nil
 }
 
@@ -208,11 +230,14 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 				return nil
 			}
 			fund := rebalance.Fund
-			msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
-			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+			switch rebalance.Broker {
+			case "osmosis":
+				msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
+				if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
+					return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+				}
+				k.Logger(ctx).Info("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response: ", msgResponse.String()) // Run rebalance failure logic
 			}
-			k.Logger(ctx).Info("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response: ", msgResponse.String()) // Run rebalance failure logic
 
 			// Run rebalance failure logic
 			k.OnRebalanceFailure(ctx, rebalance, fund)

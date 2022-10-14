@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,5 +42,18 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 		timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
 
 		k.SendTransfer(ctx, transfer.Channel, *transfer.Token, transfer.Sender, transfer.Receiver, clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), timeoutHeight), timeoutTimestamp)
+	}
+}
+
+// SendRebalancesEndBlocker is the end blocker function that sends rebalance ICA's to all broker
+// chains for each fund. If there is an error we just log it and continue
+func (k Keeper) SendRebalancesEndBlocker(ctx sdk.Context) {
+	funds := k.GetAllFund(ctx)
+
+	for _, fund := range funds {
+		err := k.SendRebalanceTx(ctx, fund)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("rebalance failed for fund %s with error: %s", fund.Symbol, err.Error()))
+		}
 	}
 }

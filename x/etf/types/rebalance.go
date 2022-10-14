@@ -12,8 +12,8 @@ type RebalanceMsgs struct {
 
 type PricedHolding struct {
 	Holding        Holding
-	PriceInBase    sdk.Coin
-	PriceInHolding sdk.Coin
+	PriceInBase    sdk.Dec
+	PriceInHolding sdk.Dec
 	CurrentComp    *sdk.Dec
 }
 
@@ -23,7 +23,7 @@ func (p PricedHoldings) GetPercentComposition(denom string) (price PricedHolding
 	total := sdk.NewDec(0)
 	var found bool
 	for _, priced := range p {
-		total = total.Add(priced.PriceInBase.Amount.ToDec())
+		total = total.Add(priced.PriceInBase)
 		if priced.Holding.Token == denom {
 			// set the price to the current priced since its what we are looking for
 			price = priced
@@ -31,7 +31,7 @@ func (p PricedHoldings) GetPercentComposition(denom string) (price PricedHolding
 			found = true
 		}
 	}
-	comp := price.PriceInBase.Amount.ToDec().Quo(total)
+	comp := price.PriceInBase.Quo(total)
 	price.CurrentComp = &comp
 	// if we never found the denom specified error out
 	if !found {
@@ -41,7 +41,7 @@ func (p PricedHoldings) GetPercentComposition(denom string) (price PricedHolding
 	return price, nil
 }
 
-func (p PricedHoldings) GetAmountOf(denom string, basedenom bool) (sdk.Coin, error) {
+func (p PricedHoldings) GetAmountOf(denom string, basedenom bool) (sdk.Dec, error) {
 	for _, priced := range p {
 		if priced.Holding.Token == denom {
 			if basedenom {
@@ -52,5 +52,5 @@ func (p PricedHoldings) GetAmountOf(denom string, basedenom bool) (sdk.Coin, err
 		}
 	}
 
-	return sdk.Coin{}, sdkerrors.Wrapf(ErrInvalidHolding, "denom %s not found in priced holdings list", denom)
+	return sdk.Dec{}, sdkerrors.Wrapf(ErrInvalidHolding, "denom %s not found in priced holdings list", denom)
 }

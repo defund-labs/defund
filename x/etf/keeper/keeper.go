@@ -113,8 +113,8 @@ func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	return false
 }
 
-func sumInts(items []sdk.Int) sdk.Int {
-	sum := sdk.NewInt(0)
+func sumDecs(items []sdk.Dec) sdk.Dec {
+	sum := sdk.NewDec(0)
 	for _, item := range items {
 		sum = sum.Add(item)
 	}
@@ -234,8 +234,26 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 		currentCoinAmt := ownership.Sort().AmountOf(holding.Token)
 		currentCoin := sdk.NewCoin(holding.Token, currentCoinAmt)
 
-		// Add the amount of the etf shares this holding redeem represents
-		redeem["osmosis"] = redeem["osmosis"].Add(currentCoinAmt)
+		// get the current price of this fund (in base denom)
+		fundPrice, err := k.CreateFundPrice(ctx, fund.Symbol)
+		if err != nil {
+			return err
+		}
+		// multiply the fund price by the current amount of etf tokens to get the basedenom total amount
+		totalWorthOfFundTokensInBaseDenom := fundPrice.Amount.Mul(amount.Amount)
+		// get the amount in base denom the ownership of this holding represents
+		spotPrice, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		if err != nil {
+			return err
+		}
+		// calculate the ownership amount in basedenom
+		totalOwnershipInBaseDenom := spotPrice.Mul(currentCoinAmt.ToDec())
+		// calculate the percent amount of fund token this ownership represents
+		percentOwnership := totalOwnershipInBaseDenom.Quo(totalWorthOfFundTokensInBaseDenom.ToDec())
+		// multiply total etf shares amount by ownership percent
+		etfSharesThisHoldingRepresents := amount.Amount.ToDec().Mul(percentOwnership).RoundInt()
+		// Add the amount of the etf shares this holding redeem represents in basedenom
+		redeem["osmosis"] = redeem["osmosis"].Add(etfSharesThisHoldingRepresents)
 
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
@@ -290,12 +308,14 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 			return err
 		}
 
+		etfAmount := sdk.NewCoin(fund.Shares.Denom, redeem[brokerId])
+
 		// Create the redeem store
 		redeem := types.Redeem{
 			Id:      fmt.Sprintf("%s-%d", channel, sequence),
 			Creator: creator,
 			Fund:    &fund,
-			Amount:  &amount,
+			Amount:  &etfAmount,
 			Status:  types.RedeemState,
 		}
 
@@ -398,6 +418,8 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 
 	// slice to store the holdings with price info
 	holdings := types.PricedHoldings{}
+	// used to store the total amount of surplus in basedenom
+	totalOverInBaseDenom := sdk.NewDec(0)
 
 	for _, holding := range fund.Holdings {
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
@@ -426,17 +448,20 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 		// get amount of holding token from balances
 		amount := balances.GetCoins().Sort().AmountOf(holding.Token)
 		// get the price of the asset in base denom
-		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
 		if err != nil {
 			return msgs, err
 		}
 		// calculate the amount held of holding in base denom by taking amount and multiplying by price in base denom
-		amountInBaseDenom := amount.ToDec().Mul(priceInBaseDenom).RoundInt()
+		amountInBaseDenom := amount.ToDec().Mul(priceInBaseDenom)
+
+		// add to the totalOverInBaseDenom
+		totalOverInBaseDenom = totalOverInBaseDenom.Add(amountInBaseDenom)
 
 		holding := types.PricedHolding{
 			Holding:        holding,
-			PriceInBase:    sdk.NewCoin(fund.BaseDenom, amountInBaseDenom),
-			PriceInHolding: sdk.NewCoin(holding.Token, amount),
+			PriceInBase:    amountInBaseDenom,
+			PriceInHolding: amount.ToDec(),
 		}
 
 		holdings = append(holdings, holding)
@@ -465,22 +490,27 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 			return msgs, err
 		}
 		// get the surplus composition % by subtracting the current composition % from what its supposed to be
-		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDec(holding.Percent / 100))
+		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDecWithPrec(holding.Percent, 2))
 
 		// if we over own the asset
 		if overUnderCompPerc.IsPositive() && !overUnderCompPerc.IsZero() {
+			// convert overUnderCompPerc to absolute value (if negative)
+			overUnderCompPerc = overUnderCompPerc.Abs()
 			// compute the % needed to swap into by multiplying % overUnderCompPerc by the balance of
 			// this holding
-			amtInHoldingDenom, err := holdings.GetAmountOf(holding.Token, false)
+			amtInHoldingDenom, err := holdings.GetAmountOf(holding.Token, true)
 			if err != nil {
 				return msgs, err
 			}
-			needToSwapTokenInHoldingDenom := overUnderCompPerc.Mul(amtInHoldingDenom.Amount.ToDec()).RoundInt()
-			amtInBaseDenom, err := holdings.GetAmountOf(holding.Token, true)
+			// lets calculate the amount we should have
+			amountWeShouldHaveInBaseDenom := totalOverInBaseDenom.Mul(sdk.NewDecWithPrec(holding.Percent, 2))
+			// get the price of the asset in holding denom
+			priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
 			if err != nil {
 				return msgs, err
 			}
-			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(amtInBaseDenom.Amount.ToDec()).RoundInt()
+			needToSwapTokenInHoldingDenom := amtInHoldingDenom.Sub(amountWeShouldHaveInBaseDenom).Mul(priceInBaseDenom).RoundInt()
+			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
 			tokenIn := sdk.NewCoin(holding.Token, needToSwapTokenInHoldingDenom)
 			// create the min amount out by using the current holding amount in base denom and then
@@ -529,32 +559,32 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 			return msgs, err
 		}
 		// get the surplus composition % by subtracting the current composition % from what its supposed to be
-		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDec(holding.Percent / 100))
+		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100)))
 
 		if overUnderCompPerc.IsNegative() && !overUnderCompPerc.IsZero() {
-			// compute the % needed to swap into by multiplying % overUnderCompPerc by the balance of
-			// this holding
-			amtInHoldingDenom, err := holdings.GetAmountOf(holding.Token, false)
-			if err != nil {
-				return msgs, err
+			// if the current denom is the base denom, we can just skip for base denom as the holding
+			// already is in base denom from the above
+			if fund.BaseDenom == holding.Token {
+				continue
 			}
-			needToSwapTokenInHoldingDenom := overUnderCompPerc.Mul(amtInHoldingDenom.Amount.ToDec()).RoundInt()
-			amtIBaseDenom, err := holdings.GetAmountOf(holding.Token, true)
-			if err != nil {
-				return msgs, err
-			}
-			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(amtIBaseDenom.Amount.ToDec()).RoundInt()
+			// convert overUnderCompPerc to absolute value (if negative)
+			overUnderCompPerc = overUnderCompPerc.Abs()
+			needToSwapTokenInBaseDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
-			tokenIn := sdk.NewCoin(fund.BaseDenom, needToSwapTokenInBaseDenomDenom)
+			tokenIn := sdk.NewCoin(fund.BaseDenom, needToSwapTokenInBaseDenom)
+			tokenPriceInHoldingDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+			if err != nil {
+				return msgs, err
+			}
 			// create the min amount out by using the current holding amount in base denom and then
 			// NOTE: creating a 2% slippage on it (potentially add this as fund param?)
-			tokenOut := needToSwapTokenInHoldingDenom.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100))
+			tokenOut := needToSwapTokenInBaseDenom.ToDec().Mul(tokenPriceInHoldingDenom).Mul(sdk.NewDec(98)).Quo(sdk.NewDec(100)).RoundInt()
 			// create holder for msg in switch statement
 			var msg *osmosisgammtypes.MsgSwapExactAmountIn
 			switch holding.BrokerId {
 			case "osmosis":
 				// get the routes needed to swap for from this current denom to base denom
-				routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
+				routes, err := k.getOsmosisRoutes(ctx, fund.BaseDenom, holding.Token)
 				if err != nil {
 					return msgs, err
 				}
