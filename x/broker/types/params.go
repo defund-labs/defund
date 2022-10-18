@@ -3,7 +3,6 @@ package types
 import (
 	fmt "fmt"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
@@ -13,7 +12,7 @@ var (
 		OsmoTrace: &transfertypes.DenomTrace{},
 	}
 
-	KeyBaseDenoms = []byte("BaseDenoms")
+	ParamsKey = []byte{0x51}
 )
 
 func NewParams(
@@ -44,27 +43,12 @@ func DefaultParams() Params {
 	)
 }
 
-func validateBaseDenom(i interface{}) error {
-	denoms, ok := i.(BaseDenoms)
-	if !ok {
-		return fmt.Errorf("param is not accepted: %T", i)
-	}
-	if denoms.AtomTrace != nil {
+func (p Params) Validate() error {
+	if p.BaseDenoms.AtomTrace == nil {
 		return fmt.Errorf("atom denom trace cannot be empty")
 	}
-	if denoms.OsmoTrace != nil {
+	if p.BaseDenoms.OsmoTrace == nil {
 		return fmt.Errorf("osmo denom trace cannot be empty")
 	}
 	return nil
-}
-
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-// ParamSetPairs get the params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyBaseDenoms, &p.BaseDenoms, validateBaseDenom),
-	}
 }

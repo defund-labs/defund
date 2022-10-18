@@ -213,7 +213,7 @@ create-connection:
 	@echo "Creating Defund -> Osmosis Connection"
 	hermes -c ./network/hermes/config.toml create connection defund osmosis
 
-init: kill-dev 
+init:
 	@echo "Initializing both blockchains..."
 	./network/init.sh
 	@echo "Optimizing network"

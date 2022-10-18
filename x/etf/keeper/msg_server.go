@@ -136,7 +136,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	}
 
 	// check to make sure proper base denom is used
-	brokerparams := k.brokerKeeper.GetParam(ctx, brokertypes.KeyBaseDenoms)
+	brokerparams := k.brokerKeeper.GetParam(ctx, brokertypes.ParamsKey)
 	if msg.BaseDenom != brokerparams.AtomTrace.IBCDenom() && msg.BaseDenom != brokerparams.OsmoTrace.IBCDenom() {
 		return nil, sdkerrors.Wrap(types.ErrWrongBaseDenom, fmt.Sprintf("denom %s is not a valid base denom. must be %s or %s", msg.BaseDenom, brokerparams.AtomTrace.IBCDenom(), brokerparams.OsmoTrace.IBCDenom()))
 	}

@@ -49,11 +49,6 @@ type Keeper struct {
 }
 
 func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Subspace, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper, etfkeeper etfkeeper.Keeper, bankkeeper bankkeeper.Keeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramstore.HasKeyTable() {
-		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
