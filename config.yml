@@ -1,3 +1,7 @@
+init:
+  home: "./network/data/defund"
+build:
+  main: "./app"
 accounts:
   - name: alice
     coins: ["2000000000000000ufetf"]

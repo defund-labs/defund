@@ -30,6 +30,8 @@ func TestGenesis(t *testing.T) {
 	require.NotNil(t, got)
 
 	require.Len(t, got.FundList, len(genesisState.FundList))
+	t.Log(genesisState.FundList)
+	t.Log(got.FundList)
 	require.Subset(t, genesisState.FundList, got.FundList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

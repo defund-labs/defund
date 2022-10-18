@@ -13,15 +13,15 @@ import (
 
 func CmdShowInterquery() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "interquery [key] [id]",
-		Short: "Gets an interquery for key-id pair",
-		Args:  cobra.ExactArgs(2),
+		Use:   "interquery [storeid]",
+		Short: "Gets an interquery for the store ID supplied",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			storeid := fmt.Sprintf("%s-%s", args[0], args[1])
+			storeid := args[0]
 
 			params := &types.QueryGetInterqueryRequest{
 				Storeid: storeid,

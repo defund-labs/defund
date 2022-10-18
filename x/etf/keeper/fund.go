@@ -18,16 +18,16 @@ func (k Keeper) SetFund(ctx sdk.Context, fund types.Fund) {
 	), b)
 }
 
-// GetFund returns a fund from its index
+// GetFund returns a fund from its symbol
 func (k Keeper) GetFund(
 	ctx sdk.Context,
-	index string,
+	symbol string,
 
 ) (val types.Fund, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
 
 	b := store.Get(types.FundKey(
-		index,
+		symbol,
 	))
 	if b == nil {
 		return val, false
@@ -180,6 +180,15 @@ func (k Keeper) GetAllRedeembySymbol(ctx sdk.Context, symbol string) (list []typ
 	}
 
 	return
+}
+
+// SetRebalance set a specific rebalance in the store from its index
+func (k Keeper) SetRebalance(ctx sdk.Context, rebalance types.Rebalance) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+	b := k.cdc.MustMarshal(&rebalance)
+	store.Set(types.RebalanceKey(
+		rebalance.Id,
+	), b)
 }
 
 // GetRebalance returns a rebalance from its index

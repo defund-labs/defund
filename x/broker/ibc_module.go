@@ -161,12 +161,16 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	id := fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)
 	// get the redeem from the store. If not found return nil and do not run logic if found run the redeem timeout logic
-	redeem, found := im.etfKeeper.GetRedeem(ctx, id)
-	if !found {
-		return nil
-	} else {
-		im.keeper.Logger(ctx).Error("redeem %s timedout. Running the redeem timeout logic.", id)
-		im.keeper.OnRedeemFailure(ctx, packet, redeem)
+	redeem, redeemExists := im.etfKeeper.GetRedeem(ctx, id)
+	if redeemExists {
+		im.keeper.Logger(ctx).Error("redeem %s timed out. Running the redeem timeout logic.", id)
+		im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+	}
+	// get the rebalance from the store. If not found return nil and do not run logic if found run the redeem timeout logic
+	rebalance, rebalanceExists := im.etfKeeper.GetRebalance(ctx, id)
+	if rebalanceExists {
+		im.keeper.Logger(ctx).Error("rebalance %s timed out. Running the rebalance timeout logic.", id)
+		im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
 	}
 
 	return nil

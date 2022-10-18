@@ -13,7 +13,7 @@ import (
 
 // SendPendingTransfers takes all pending transfers from the store
 // and sends the IBC transfers for each transfer. These transfers represent
-// the unsuccessful transfers from creates and redeems. If an error occurs we just log and continue to next
+// the unsuccessful transfers from creates. If an error occurs we just log and continue to next
 // iteration as we do not want to stop all transfers for one transfer error.
 func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	transfers := k.brokerKeeper.GetAllTransfer(ctx)
@@ -22,19 +22,19 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 		channel, found := k.channelKeeper.GetChannel(ctx, "transfer", transfer.Channel)
 		if !found {
 			err := sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", transfer.Channel)
-			ctx.Logger().Debug(err.Error())
+			ctx.Logger().Error(err.Error())
 			continue
 		}
 		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 		if !found {
 			err := sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
-			ctx.Logger().Debug(err.Error())
+			ctx.Logger().Error(err.Error())
 			continue
 		}
 		clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
 		if !found {
 			err := sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state for %s not found", connectionEnd.GetClientID())
-			ctx.Logger().Debug(err.Error())
+			ctx.Logger().Error(err.Error())
 			continue
 		}
 		// create timeout info for transfer packet

@@ -25,7 +25,6 @@ import (
 	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querykeeper "github.com/defund-labs/defund/x/query/keeper"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
@@ -96,60 +95,6 @@ func (k Keeper) GetIBCConnection(ctx sdk.Context, connectionID string) (connecti
 	return connection, found
 }
 
-// OnRedeemSuccess runs the redeem etf shares logic which takes escrowed etf shares and
-// proportionally burns them.
-func (k Keeper) OnRedeemSuccess(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
-	// lets burn the etf shares in escrow
-	err := k.bankKeeper.BurnCoins(ctx, "etf", sdk.NewCoins(*redeem.Amount))
-	if err != nil {
-		return err
-	}
-
-	// lets clear up the redeem from the store
-	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
-
-	return nil
-}
-
-// OnRedeemFailure runs the redeem etf shares failure logic which takes escrowed etf shares
-// and proportionally sends them back to the redeemer. This is used in Timeout as well
-func (k Keeper) OnRedeemFailure(ctx sdk.Context, packet channeltypes.Packet, redeem etftypes.Redeem) error {
-	// lets send the etf shares in escrow back to the redeemer
-	redeemer, err := sdk.AccAddressFromBech32(redeem.Creator)
-	if err != nil {
-		return err
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, "etf", redeemer, sdk.NewCoins(*redeem.Amount))
-	if err != nil {
-		return err
-	}
-
-	// lets clear up the redeem from the store
-	k.etfKeeper.RemoveRedeem(ctx, redeem.Id)
-
-	return nil
-}
-
-// OnRebalanceSuccess runs the rebalance etf logic which just deletes the rebalance
-// in the store and updates the funds last rebalance height.
-func (k Keeper) OnRebalanceSuccess(ctx sdk.Context, rebalance etftypes.Rebalance, fund *etftypes.Fund) error {
-	fund.LastRebalanceHeight = int64(ctx.BlockHeight())
-	k.etfKeeper.SetFund(ctx, *fund)
-	// Remove the rebalance from store. Clean up store
-	k.etfKeeper.RemoveRebalance(ctx, rebalance.Id)
-	return nil
-}
-
-// OnRebalanceFailure runs the rebalance etf failure logic which just deletes the rebalance
-// from store. Used for Timeout as well.
-//
-// NOTE: Potentially add a timeout/retry for failed rebalances?
-func (k Keeper) OnRebalanceFailure(ctx sdk.Context, rebalance etftypes.Rebalance, fund *etftypes.Fund) error {
-	// Remove the rebalance from store. Clean up store
-	k.etfKeeper.RemoveRebalance(ctx, rebalance.Id)
-	return nil
-}
-
 // OnAcknowledgementPacketSuccess is the logic called on the IBC OnAcknowledgementPacket callback.
 // In this function we check the incoming packet as an ICS-27 packet. We then take that ICS-27
 // packet and run through each ICA message for the ack.
@@ -177,7 +122,7 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
 			// Run redeem success logic
-			k.OnRedeemSuccess(ctx, packet, redeem)
+			k.etfKeeper.OnRedeemSuccess(ctx, packet, redeem)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
@@ -193,7 +138,7 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.", "response", msgResponse.String())
 			// Run rebalance success logic
-			k.OnRebalanceSuccess(ctx, rebalance, fund)
+			k.etfKeeper.OnRebalanceSuccess(ctx, rebalance, fund)
 
 			return nil
 		default:
@@ -217,10 +162,10 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
 			}
-			k.Logger(ctx).Debug("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response: ", msgResponse.String())
+			k.etfKeeper.Logger(ctx).Debug("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response: ", msgResponse.String())
 
 			// Run redeem failure logic
-			k.OnRedeemFailure(ctx, packet, redeem)
+			k.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
 
 			return nil
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
@@ -240,7 +185,7 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			}
 
 			// Run rebalance failure logic
-			k.OnRebalanceFailure(ctx, rebalance, fund)
+			k.etfKeeper.OnRebalanceFailure(ctx, rebalance, fund)
 
 			return nil
 		default:

@@ -36,7 +36,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 	}
 	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
 	if fund.Shares.Amount.IsZero() {
-		price = fund.StartingPrice
+		price = *fund.StartingPrice
 		return price, nil
 	}
 	for _, holding := range fund.Holdings {

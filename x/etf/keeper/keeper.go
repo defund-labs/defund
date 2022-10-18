@@ -196,7 +196,8 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 	}
 
 	// finally reflect the new shares in the fund store for shares
-	fund.Shares = fund.Shares.Add(numETFShares)
+	newShares := fund.Shares.Add(numETFShares)
+	fund.Shares = &newShares
 	k.SetFund(ctx, fund)
 
 	return numETFShares, nil
@@ -327,7 +328,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 
 // CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
 // by checking the interchain queried pools for the broker specified
-func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
+func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []*types.Holding) error {
 	percentCheck := uint64(0)
 	for _, holding := range holdings {
 		// Add percent composition to percentCheck to later confirm adds to 100%
@@ -459,7 +460,7 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 		totalOverInBaseDenom = totalOverInBaseDenom.Add(amountInBaseDenom)
 
 		holding := types.PricedHolding{
-			Holding:        holding,
+			Holding:        *holding,
 			PriceInBase:    amountInBaseDenom,
 			PriceInHolding: amount.ToDec(),
 		}

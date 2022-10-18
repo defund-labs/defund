@@ -38,17 +38,17 @@ message Fund {
   string description = 4; 
   cosmos.base.v1beta1.Coin shares = 5 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = true
   ];
   repeated Holding holdings = 6 [
-    (gogoproto.moretags) = "yaml:\"holdings\" json:\"holdings\"",
-    (gogoproto.nullable) = false
+    (gogoproto.moretags) = "yaml:\"holdings\"",
+    (gogoproto.nullable) = true
   ];
   int64 rebalance = 7;
   string baseDenom = 8;
   cosmos.base.v1beta1.Coin startingPrice = 9 [
     (gogoproto.moretags) = "yaml:\"starting_price\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = true
   ];
   string creator = 10;
   int64  lastRebalanceHeight = 11;

@@ -5,14 +5,14 @@ import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
 import { MsgCreateInterquery } from "./types/query/tx";
-import { MsgCreateInterqueryTimeout } from "./types/query/tx";
 import { MsgCreateInterqueryResult } from "./types/query/tx";
+import { MsgCreateInterqueryTimeout } from "./types/query/tx";
 
 
 const types = [
   ["/defundlabs.defund.query.MsgCreateInterquery", MsgCreateInterquery],
-  ["/defundlabs.defund.query.MsgCreateInterqueryTimeout", MsgCreateInterqueryTimeout],
   ["/defundlabs.defund.query.MsgCreateInterqueryResult", MsgCreateInterqueryResult],
+  ["/defundlabs.defund.query.MsgCreateInterqueryTimeout", MsgCreateInterqueryTimeout],
   
 ];
 export const MissingWalletError = new Error("wallet is required");
@@ -46,8 +46,8 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
   return {
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
     msgCreateInterquery: (data: MsgCreateInterquery): EncodeObject => ({ typeUrl: "/defundlabs.defund.query.MsgCreateInterquery", value: MsgCreateInterquery.fromPartial( data ) }),
-    msgCreateInterqueryTimeout: (data: MsgCreateInterqueryTimeout): EncodeObject => ({ typeUrl: "/defundlabs.defund.query.MsgCreateInterqueryTimeout", value: MsgCreateInterqueryTimeout.fromPartial( data ) }),
     msgCreateInterqueryResult: (data: MsgCreateInterqueryResult): EncodeObject => ({ typeUrl: "/defundlabs.defund.query.MsgCreateInterqueryResult", value: MsgCreateInterqueryResult.fromPartial( data ) }),
+    msgCreateInterqueryTimeout: (data: MsgCreateInterqueryTimeout): EncodeObject => ({ typeUrl: "/defundlabs.defund.query.MsgCreateInterqueryTimeout", value: MsgCreateInterqueryTimeout.fromPartial( data ) }),
     
   };
 };

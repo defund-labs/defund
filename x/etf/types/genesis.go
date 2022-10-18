@@ -24,7 +24,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.FundList {
 		id := string(FundKey(elem.Symbol))
 		if _, ok := fundIndexMap[id]; ok {
-			return fmt.Errorf("duplicated id for fund")
+			return fmt.Errorf("duplicated symbol for fund %s", elem.Symbol)
 		}
 		fundIndexMap[id] = struct{}{}
 	}

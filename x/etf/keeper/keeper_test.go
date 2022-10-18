@@ -362,7 +362,10 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 		Type:     "spot",
 	}
 	// add the holdings as slice of holdings
-	holdings := []types.Holding{holdingOne, holdingTwo, holdingThree}
+	// add the holdings as slice of holdings
+	holdings := []*types.Holding{&holdingOne, &holdingTwo, &holdingThree}
+	shares := sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.NewInt(5000000))
+	startingPrice := sdk.NewCoin(baseDenom, sdk.NewInt(5000000))
 
 	// create the test fund
 	TestFund := types.Fund{
@@ -370,11 +373,11 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 		Address:       acct.GetAddress().String(),
 		Name:          testFundName,
 		Description:   testFundDesc,
-		Shares:        sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.NewInt(5000000)),
+		Shares:        &shares,
 		Holdings:      holdings,
 		BaseDenom:     baseDenom,
 		Rebalance:     10,
-		StartingPrice: sdk.NewCoin(baseDenom, sdk.NewInt(5000000)),
+		StartingPrice: &startingPrice,
 	}
 	// set the test fund in store
 	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), TestFund)
@@ -468,7 +471,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), interquery)
 		s.Assert().NoError(err)
 
-		holdings := []types.Holding{
+		holdings := []*types.Holding{
 			{
 				Token:    "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
 				Percent:  33,

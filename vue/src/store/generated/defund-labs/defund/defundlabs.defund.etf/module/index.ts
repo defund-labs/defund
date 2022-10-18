@@ -5,14 +5,14 @@ import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
 import { MsgRedeem } from "./types/etf/tx";
-import { MsgCreate } from "./types/etf/tx";
 import { MsgCreateFund } from "./types/etf/tx";
+import { MsgCreate } from "./types/etf/tx";
 
 
 const types = [
   ["/defundlabs.defund.etf.MsgRedeem", MsgRedeem],
-  ["/defundlabs.defund.etf.MsgCreate", MsgCreate],
   ["/defundlabs.defund.etf.MsgCreateFund", MsgCreateFund],
+  ["/defundlabs.defund.etf.MsgCreate", MsgCreate],
   
 ];
 export const MissingWalletError = new Error("wallet is required");
@@ -46,8 +46,8 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
   return {
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
     msgRedeem: (data: MsgRedeem): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgRedeem", value: MsgRedeem.fromPartial( data ) }),
-    msgCreate: (data: MsgCreate): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgCreate", value: MsgCreate.fromPartial( data ) }),
     msgCreateFund: (data: MsgCreateFund): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgCreateFund", value: MsgCreateFund.fromPartial( data ) }),
+    msgCreate: (data: MsgCreate): EncodeObject => ({ typeUrl: "/defundlabs.defund.etf.MsgCreate", value: MsgCreate.fromPartial( data ) }),
     
   };
 };

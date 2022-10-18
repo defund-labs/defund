@@ -46,7 +46,7 @@ func containsString(strings []string, value string) bool {
 
 // RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
 // a fund. If no broker account exists, one is created and then stored in the Broker store
-func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Holding, acc authtypes.AccountI) error {
+func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc authtypes.AccountI) error {
 	// we must keep track of broker accounts registered so we can make sure we create only one
 	// account per broker.
 	var registeredBrokers []string
@@ -78,9 +78,9 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []types.Hold
 
 // Helper function that parses a string of holdings in the format "ATOM:50:osmosis:1,OSMO:50:osmosis:2" (DENOM:PERCENT:BROKER:POOL,...) into a slice of type holding
 // and checks to make sure that the holdings are all supported denoms from the specified broker and pool
-func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, basedenom string) ([]types.Holding, error) {
+func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, basedenom string) ([]*types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
-	holdingsList := []types.Holding{}
+	holdingsList := []*types.Holding{}
 	var foundBaseDenom bool
 	for _, holding := range rawHoldings {
 		sepHoldings := strings.Split(holding, ":")
@@ -96,13 +96,14 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, baseden
 		if sepHoldings[0] == basedenom {
 			foundBaseDenom = true
 		}
-		holdingsList = append(holdingsList, types.Holding{
+		holding := types.Holding{
 			Token:    sepHoldings[0],
 			Percent:  perc,
 			PoolId:   poolid,
 			BrokerId: sepHoldings[2],
 			Type:     sepHoldings[4],
-		})
+		}
+		holdingsList = append(holdingsList, &holding)
 	}
 	// if no base denom holding error
 	if !foundBaseDenom {
@@ -164,6 +165,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		return nil, err
 	}
 	startPrice := sdk.NewCoin(msg.BaseDenom, sdk.NewInt(rawIntStartingPrice))
+	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
 	var fund = types.Fund{
 		Creator:       msg.Creator,
@@ -171,11 +173,11 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Address:       acc.GetAddress().String(),
 		Name:          msg.Name,
 		Description:   msg.Description,
-		Shares:        sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt()),
+		Shares:        &shares,
 		Holdings:      holdings,
 		BaseDenom:     msg.BaseDenom,
 		Rebalance:     msg.Rebalance,
-		StartingPrice: startPrice,
+		StartingPrice: &startPrice,
 	}
 
 	k.SetFund(
@@ -194,7 +196,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with id of %s", fund.Symbol)
+		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", fund.Symbol)
 	}
 
 	timeoutHeight, err := clienttypes.ParseHeight(msg.TimeoutHeight)
