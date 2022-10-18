@@ -15,7 +15,6 @@ export interface Broker {
   id: string;
   connection_id: string;
   pools: Source[];
-  baseDenom: string;
   status: string;
 }
 
@@ -27,6 +26,8 @@ export interface Transfer {
   token: Coin | undefined;
   sender: string;
   receiver: string;
+  /** if we need to stake the transfer on completion or not */
+  stake: boolean;
 }
 
 const baseSource: object = { pool_id: 0, interquery_id: "", status: "" };
@@ -119,12 +120,7 @@ export const Source = {
   },
 };
 
-const baseBroker: object = {
-  id: "",
-  connection_id: "",
-  baseDenom: "",
-  status: "",
-};
+const baseBroker: object = { id: "", connection_id: "", status: "" };
 
 export const Broker = {
   encode(message: Broker, writer: Writer = Writer.create()): Writer {
@@ -137,11 +133,8 @@ export const Broker = {
     for (const v of message.pools) {
       Source.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    if (message.baseDenom !== "") {
-      writer.uint32(34).string(message.baseDenom);
-    }
     if (message.status !== "") {
-      writer.uint32(42).string(message.status);
+      writer.uint32(34).string(message.status);
     }
     return writer;
   },
@@ -164,9 +157,6 @@ export const Broker = {
           message.pools.push(Source.decode(reader, reader.uint32()));
           break;
         case 4:
-          message.baseDenom = reader.string();
-          break;
-        case 5:
           message.status = reader.string();
           break;
         default:
@@ -195,11 +185,6 @@ export const Broker = {
         message.pools.push(Source.fromJSON(e));
       }
     }
-    if (object.baseDenom !== undefined && object.baseDenom !== null) {
-      message.baseDenom = String(object.baseDenom);
-    } else {
-      message.baseDenom = "";
-    }
     if (object.status !== undefined && object.status !== null) {
       message.status = String(object.status);
     } else {
@@ -218,7 +203,6 @@ export const Broker = {
     } else {
       obj.pools = [];
     }
-    message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
     message.status !== undefined && (obj.status = message.status);
     return obj;
   },
@@ -241,11 +225,6 @@ export const Broker = {
         message.pools.push(Source.fromPartial(e));
       }
     }
-    if (object.baseDenom !== undefined && object.baseDenom !== null) {
-      message.baseDenom = object.baseDenom;
-    } else {
-      message.baseDenom = "";
-    }
     if (object.status !== undefined && object.status !== null) {
       message.status = object.status;
     } else {
@@ -262,6 +241,7 @@ const baseTransfer: object = {
   status: "",
   sender: "",
   receiver: "",
+  stake: false,
 };
 
 export const Transfer = {
@@ -286,6 +266,9 @@ export const Transfer = {
     }
     if (message.receiver !== "") {
       writer.uint32(58).string(message.receiver);
+    }
+    if (message.stake === true) {
+      writer.uint32(64).bool(message.stake);
     }
     return writer;
   },
@@ -317,6 +300,9 @@ export const Transfer = {
           break;
         case 7:
           message.receiver = reader.string();
+          break;
+        case 8:
+          message.stake = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -363,6 +349,11 @@ export const Transfer = {
     } else {
       message.receiver = "";
     }
+    if (object.stake !== undefined && object.stake !== null) {
+      message.stake = Boolean(object.stake);
+    } else {
+      message.stake = false;
+    }
     return message;
   },
 
@@ -376,6 +367,7 @@ export const Transfer = {
       (obj.token = message.token ? Coin.toJSON(message.token) : undefined);
     message.sender !== undefined && (obj.sender = message.sender);
     message.receiver !== undefined && (obj.receiver = message.receiver);
+    message.stake !== undefined && (obj.stake = message.stake);
     return obj;
   },
 
@@ -415,6 +407,11 @@ export const Transfer = {
       message.receiver = object.receiver;
     } else {
       message.receiver = "";
+    }
+    if (object.stake !== undefined && object.stake !== null) {
+      message.stake = object.stake;
+    } else {
+      message.stake = false;
     }
     return message;
   },

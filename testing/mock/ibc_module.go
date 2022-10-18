@@ -39,7 +39,7 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if im.IBCApp.OnChanOpenInit != nil {
-		return "", im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 	}
 
 	// Claim channel capability passed back by IBC module

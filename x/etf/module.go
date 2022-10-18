@@ -167,12 +167,12 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	am.keeper.SendPendingTransfers(ctx)
-	am.keeper.CheckRedeemsAndFinishIfDone(ctx)
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.CreateETFQueries(ctx)
+	am.keeper.SendRebalancesEndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

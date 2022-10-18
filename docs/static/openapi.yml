@@ -10582,7 +10582,6 @@ paths:
                   delegation_responses defines all the delegations' info of a
                   delegator.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -10599,6 +10598,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: |-
               QueryDelegatorDelegationsResponse is response type for the
               Query/DelegatorDelegations RPC method.
@@ -10975,7 +10984,6 @@ paths:
 
                     responses.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -10992,6 +11000,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: >-
               QueryRedelegationsResponse is response type for the
               Query/Redelegations RPC
@@ -11322,7 +11340,6 @@ paths:
 
                     for a single validator in an time-ordered list.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -11339,6 +11356,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: >-
               QueryUnbondingDelegatorDelegationsResponse is response type for
               the
@@ -11796,9 +11823,6 @@ paths:
                         jailed defined whether the validator has been jailed
                         from bonded status or not.
                     status:
-                      description: >-
-                        status is the validator status
-                        (bonded/unbonding/unbonded).
                       type: string
                       enum:
                         - BOND_STATUS_UNSPECIFIED
@@ -11806,6 +11830,13 @@ paths:
                         - BOND_STATUS_UNBONDING
                         - BOND_STATUS_BONDED
                       default: BOND_STATUS_UNSPECIFIED
+                      description: |-
+                        BondStatus is the status of a validator.
+
+                         - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                         - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                         - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                         - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                     tokens:
                       type: string
                       description: >-
@@ -11817,9 +11848,6 @@ paths:
                         delegator_shares defines total shares issued to a
                         validator's delegators.
                     description:
-                      description: >-
-                        description defines the description terms for the
-                        validator.
                       type: object
                       properties:
                         moniker:
@@ -11843,6 +11871,7 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
+                      description: Description defines a validator description.
                     unbonding_height:
                       type: string
                       format: int64
@@ -11856,13 +11885,9 @@ paths:
                         unbonding_time defines, if unbonding, the min time for
                         the validator to complete unbonding.
                     commission:
-                      description: commission defines the commission parameters.
                       type: object
                       properties:
                         commission_rates:
-                          description: >-
-                            commission_rates defines the initial commission
-                            rates to be used for creating a validator.
                           type: object
                           properties:
                             rate:
@@ -11881,12 +11906,20 @@ paths:
                                 max_change_rate defines the maximum daily
                                 increase of the validator commission, as a
                                 fraction.
+                          description: >-
+                            CommissionRates defines the initial commission rates
+                            to be used for creating
+
+                            a validator.
                         update_time:
                           type: string
                           format: date-time
                           description: >-
                             update_time is the last time the commission rate was
                             changed.
+                      description: >-
+                        Commission defines commission parameters for a given
+                        validator.
                     min_self_delegation:
                       type: string
                       description: >-
@@ -11917,7 +11950,6 @@ paths:
                     multiplied by exchange rate.
                 description: validators defines the the validators' info of a delegator.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -11934,6 +11966,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: |-
               QueryDelegatorValidatorsResponse is response type for the
               Query/DelegatorValidators RPC method.
@@ -12385,9 +12427,6 @@ paths:
                       jailed defined whether the validator has been jailed from
                       bonded status or not.
                   status:
-                    description: >-
-                      status is the validator status
-                      (bonded/unbonding/unbonded).
                     type: string
                     enum:
                       - BOND_STATUS_UNSPECIFIED
@@ -12395,6 +12434,13 @@ paths:
                       - BOND_STATUS_UNBONDING
                       - BOND_STATUS_BONDED
                     default: BOND_STATUS_UNSPECIFIED
+                    description: |-
+                      BondStatus is the status of a validator.
+
+                       - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                       - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                       - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                       - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                   tokens:
                     type: string
                     description: >-
@@ -12406,9 +12452,6 @@ paths:
                       delegator_shares defines total shares issued to a
                       validator's delegators.
                   description:
-                    description: >-
-                      description defines the description terms for the
-                      validator.
                     type: object
                     properties:
                       moniker:
@@ -12432,6 +12475,7 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
+                    description: Description defines a validator description.
                   unbonding_height:
                     type: string
                     format: int64
@@ -12445,13 +12489,9 @@ paths:
                       unbonding_time defines, if unbonding, the min time for the
                       validator to complete unbonding.
                   commission:
-                    description: commission defines the commission parameters.
                     type: object
                     properties:
                       commission_rates:
-                        description: >-
-                          commission_rates defines the initial commission rates
-                          to be used for creating a validator.
                         type: object
                         properties:
                           rate:
@@ -12469,12 +12509,20 @@ paths:
                             description: >-
                               max_change_rate defines the maximum daily increase
                               of the validator commission, as a fraction.
+                        description: >-
+                          CommissionRates defines the initial commission rates
+                          to be used for creating
+
+                          a validator.
                       update_time:
                         type: string
                         format: date-time
                         description: >-
                           update_time is the last time the commission rate was
                           changed.
+                    description: >-
+                      Commission defines commission parameters for a given
+                      validator.
                   min_self_delegation:
                     type: string
                     description: >-
@@ -12715,14 +12763,12 @@ paths:
             type: object
             properties:
               hist:
-                description: hist defines the historical info at the given height.
                 type: object
                 properties:
                   header:
                     type: object
                     properties:
                       version:
-                        title: basic block info
                         type: object
                         properties:
                           block:
@@ -12748,7 +12794,6 @@ paths:
                         type: string
                         format: date-time
                       last_block_id:
-                        title: prev block info
                         type: object
                         properties:
                           hash:
@@ -12764,6 +12809,7 @@ paths:
                                 type: string
                                 format: byte
                             title: PartsetHeader
+                        title: BlockID
                       last_commit_hash:
                         type: string
                         format: byte
@@ -12987,9 +13033,6 @@ paths:
                             jailed defined whether the validator has been jailed
                             from bonded status or not.
                         status:
-                          description: >-
-                            status is the validator status
-                            (bonded/unbonding/unbonded).
                           type: string
                           enum:
                             - BOND_STATUS_UNSPECIFIED
@@ -12997,6 +13040,13 @@ paths:
                             - BOND_STATUS_UNBONDING
                             - BOND_STATUS_BONDED
                           default: BOND_STATUS_UNSPECIFIED
+                          description: |-
+                            BondStatus is the status of a validator.
+
+                             - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                             - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                             - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                             - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                         tokens:
                           type: string
                           description: >-
@@ -13008,9 +13058,6 @@ paths:
                             delegator_shares defines total shares issued to a
                             validator's delegators.
                         description:
-                          description: >-
-                            description defines the description terms for the
-                            validator.
                           type: object
                           properties:
                             moniker:
@@ -13034,6 +13081,7 @@ paths:
                             details:
                               type: string
                               description: details define other optional details.
+                          description: Description defines a validator description.
                         unbonding_height:
                           type: string
                           format: int64
@@ -13047,13 +13095,9 @@ paths:
                             unbonding_time defines, if unbonding, the min time
                             for the validator to complete unbonding.
                         commission:
-                          description: commission defines the commission parameters.
                           type: object
                           properties:
                             commission_rates:
-                              description: >-
-                                commission_rates defines the initial commission
-                                rates to be used for creating a validator.
                               type: object
                               properties:
                                 rate:
@@ -13073,12 +13117,20 @@ paths:
                                     max_change_rate defines the maximum daily
                                     increase of the validator commission, as a
                                     fraction.
+                              description: >-
+                                CommissionRates defines the initial commission
+                                rates to be used for creating
+
+                                a validator.
                             update_time:
                               type: string
                               format: date-time
                               description: >-
                                 update_time is the last time the commission rate
                                 was changed.
+                          description: >-
+                            Commission defines commission parameters for a given
+                            validator.
                         min_self_delegation:
                           type: string
                           description: >-
@@ -13107,6 +13159,17 @@ paths:
                         bonded shares
 
                         multiplied by exchange rate.
+                description: >-
+                  HistoricalInfo contains header and validator information for a
+                  given block.
+
+                  It is stored as part of staking module's state, which persists
+                  the `n` most
+
+                  recent HistoricalInfo
+
+                  (`n` is set by the staking module's `historical_entries`
+                  parameter).
             description: >-
               QueryHistoricalInfoResponse is response type for the
               Query/HistoricalInfo RPC
@@ -13317,7 +13380,6 @@ paths:
             type: object
             properties:
               params:
-                description: params holds all the parameters of this module.
                 type: object
                 properties:
                   unbonding_time:
@@ -13342,6 +13404,7 @@ paths:
                   bond_denom:
                     type: string
                     description: bond_denom defines the bondable coin denomination.
+                description: Params defines the parameters for the staking module.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -13543,13 +13606,17 @@ paths:
             type: object
             properties:
               pool:
-                description: pool defines the pool info.
                 type: object
                 properties:
                   not_bonded_tokens:
                     type: string
                   bonded_tokens:
                     type: string
+                description: >-
+                  Pool is used for tracking bonded and not-bonded token supply
+                  of the bond
+
+                  denomination.
             description: QueryPoolResponse is response type for the Query/Pool RPC method.
         default:
           description: An unexpected error response.
@@ -13939,9 +14006,6 @@ paths:
                         jailed defined whether the validator has been jailed
                         from bonded status or not.
                     status:
-                      description: >-
-                        status is the validator status
-                        (bonded/unbonding/unbonded).
                       type: string
                       enum:
                         - BOND_STATUS_UNSPECIFIED
@@ -13949,6 +14013,13 @@ paths:
                         - BOND_STATUS_UNBONDING
                         - BOND_STATUS_BONDED
                       default: BOND_STATUS_UNSPECIFIED
+                      description: |-
+                        BondStatus is the status of a validator.
+
+                         - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                         - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                         - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                         - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                     tokens:
                       type: string
                       description: >-
@@ -13960,9 +14031,6 @@ paths:
                         delegator_shares defines total shares issued to a
                         validator's delegators.
                     description:
-                      description: >-
-                        description defines the description terms for the
-                        validator.
                       type: object
                       properties:
                         moniker:
@@ -13986,6 +14054,7 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
+                      description: Description defines a validator description.
                     unbonding_height:
                       type: string
                       format: int64
@@ -13999,13 +14068,9 @@ paths:
                         unbonding_time defines, if unbonding, the min time for
                         the validator to complete unbonding.
                     commission:
-                      description: commission defines the commission parameters.
                       type: object
                       properties:
                         commission_rates:
-                          description: >-
-                            commission_rates defines the initial commission
-                            rates to be used for creating a validator.
                           type: object
                           properties:
                             rate:
@@ -14024,12 +14089,20 @@ paths:
                                 max_change_rate defines the maximum daily
                                 increase of the validator commission, as a
                                 fraction.
+                          description: >-
+                            CommissionRates defines the initial commission rates
+                            to be used for creating
+
+                            a validator.
                         update_time:
                           type: string
                           format: date-time
                           description: >-
                             update_time is the last time the commission rate was
                             changed.
+                      description: >-
+                        Commission defines commission parameters for a given
+                        validator.
                     min_self_delegation:
                       type: string
                       description: >-
@@ -14060,7 +14133,6 @@ paths:
                     multiplied by exchange rate.
                 description: validators contains all the queried validators.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -14077,6 +14149,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             title: >-
               QueryValidatorsResponse is response type for the Query/Validators
               RPC method
@@ -14526,9 +14608,6 @@ paths:
                       jailed defined whether the validator has been jailed from
                       bonded status or not.
                   status:
-                    description: >-
-                      status is the validator status
-                      (bonded/unbonding/unbonded).
                     type: string
                     enum:
                       - BOND_STATUS_UNSPECIFIED
@@ -14536,6 +14615,13 @@ paths:
                       - BOND_STATUS_UNBONDING
                       - BOND_STATUS_BONDED
                     default: BOND_STATUS_UNSPECIFIED
+                    description: |-
+                      BondStatus is the status of a validator.
+
+                       - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                       - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                       - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                       - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                   tokens:
                     type: string
                     description: >-
@@ -14547,9 +14633,6 @@ paths:
                       delegator_shares defines total shares issued to a
                       validator's delegators.
                   description:
-                    description: >-
-                      description defines the description terms for the
-                      validator.
                     type: object
                     properties:
                       moniker:
@@ -14573,6 +14656,7 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
+                    description: Description defines a validator description.
                   unbonding_height:
                     type: string
                     format: int64
@@ -14586,13 +14670,9 @@ paths:
                       unbonding_time defines, if unbonding, the min time for the
                       validator to complete unbonding.
                   commission:
-                    description: commission defines the commission parameters.
                     type: object
                     properties:
                       commission_rates:
-                        description: >-
-                          commission_rates defines the initial commission rates
-                          to be used for creating a validator.
                         type: object
                         properties:
                           rate:
@@ -14610,12 +14690,20 @@ paths:
                             description: >-
                               max_change_rate defines the maximum daily increase
                               of the validator commission, as a fraction.
+                        description: >-
+                          CommissionRates defines the initial commission rates
+                          to be used for creating
+
+                          a validator.
                       update_time:
                         type: string
                         format: date-time
                         description: >-
                           update_time is the last time the commission rate was
                           changed.
+                    description: >-
+                      Commission defines commission parameters for a given
+                      validator.
                   min_self_delegation:
                     type: string
                     description: >-
@@ -14901,7 +14989,6 @@ paths:
                     balance in addition to shares which is more suitable for
                     client responses.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -14918,6 +15005,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             title: |-
               QueryValidatorDelegationsResponse is response type for the
               Query/ValidatorDelegations RPC method
@@ -15755,7 +15852,6 @@ paths:
 
                     for a single validator in an time-ordered list.
               pagination:
-                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -15772,6 +15868,16 @@ paths:
                       PageRequest.count_total
 
                       was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: >-
               QueryValidatorUnbondingDelegationsResponse is response type for
               the
@@ -18726,11 +18832,6 @@ paths:
                             type: string
                           status:
                             type: string
-                          append:
-                            type: string
-                            format: byte
-                    baseDenom:
-                      type: string
                     status:
                       type: string
               pagination:
@@ -19024,11 +19125,6 @@ paths:
                           type: string
                         status:
                           type: string
-                        append:
-                          type: string
-                          format: byte
-                  baseDenom:
-                    type: string
                   status:
                     type: string
             title: QueryBrokerResponse the response type for the Query/Broker RPC
@@ -19279,6 +19375,11 @@ paths:
                           brokerId:
                             type: string
                             title: Broker Id for the Broker
+                          type:
+                            type: string
+                            title: >-
+                              the type of the asset. Valid types are spot,
+                              staked
                     rebalance:
                       type: string
                       format: int64
@@ -19451,6 +19552,9 @@ paths:
                         brokerId:
                           type: string
                           title: Broker Id for the Broker
+                        type:
+                          type: string
+                          title: 'the type of the asset. Valid types are spot, staked'
                   rebalance:
                     type: string
                     format: int64
@@ -40018,9 +40122,6 @@ definitions:
     type: object
     properties:
       commission_rates:
-        description: >-
-          commission_rates defines the initial commission rates to be used for
-          creating a validator.
         type: object
         properties:
           rate:
@@ -40036,6 +40137,11 @@ definitions:
             description: >-
               max_change_rate defines the maximum daily increase of the
               validator commission, as a fraction.
+        description: >-
+          CommissionRates defines the initial commission rates to be used for
+          creating
+
+          a validator.
       update_time:
         type: string
         format: date-time
@@ -40140,7 +40246,6 @@ definitions:
         type: object
         properties:
           version:
-            title: basic block info
             type: object
             properties:
               block:
@@ -40166,7 +40271,6 @@ definitions:
             type: string
             format: date-time
           last_block_id:
-            title: prev block info
             type: object
             properties:
               hash:
@@ -40182,6 +40286,7 @@ definitions:
                     type: string
                     format: byte
                 title: PartsetHeader
+            title: BlockID
           last_commit_hash:
             type: string
             format: byte
@@ -40396,7 +40501,6 @@ definitions:
                 jailed defined whether the validator has been jailed from bonded
                 status or not.
             status:
-              description: status is the validator status (bonded/unbonding/unbonded).
               type: string
               enum:
                 - BOND_STATUS_UNSPECIFIED
@@ -40404,6 +40508,13 @@ definitions:
                 - BOND_STATUS_UNBONDING
                 - BOND_STATUS_BONDED
               default: BOND_STATUS_UNSPECIFIED
+              description: |-
+                BondStatus is the status of a validator.
+
+                 - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                 - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                 - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                 - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
             tokens:
               type: string
               description: tokens define the delegated tokens (incl. self-delegation).
@@ -40413,7 +40524,6 @@ definitions:
                 delegator_shares defines total shares issued to a validator's
                 delegators.
             description:
-              description: description defines the description terms for the validator.
               type: object
               properties:
                 moniker:
@@ -40435,6 +40545,7 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+              description: Description defines a validator description.
             unbonding_height:
               type: string
               format: int64
@@ -40448,13 +40559,9 @@ definitions:
                 unbonding_time defines, if unbonding, the min time for the
                 validator to complete unbonding.
             commission:
-              description: commission defines the commission parameters.
               type: object
               properties:
                 commission_rates:
-                  description: >-
-                    commission_rates defines the initial commission rates to be
-                    used for creating a validator.
                   type: object
                   properties:
                     rate:
@@ -40472,12 +40579,18 @@ definitions:
                       description: >-
                         max_change_rate defines the maximum daily increase of
                         the validator commission, as a fraction.
+                  description: >-
+                    CommissionRates defines the initial commission rates to be
+                    used for creating
+
+                    a validator.
                 update_time:
                   type: string
                   format: date-time
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
+              description: Commission defines commission parameters for a given validator.
             min_self_delegation:
               type: string
               description: >-
@@ -40680,7 +40793,6 @@ definitions:
             responses.
         description: delegation_responses defines all the delegations' info of a delegator.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -40697,6 +40809,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: |-
       QueryDelegatorDelegationsResponse is response type for the
       Query/DelegatorDelegations RPC method.
@@ -40751,7 +40871,6 @@ definitions:
 
             for a single validator in an time-ordered list.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -40768,6 +40887,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: |-
       QueryUnbondingDelegatorDelegationsResponse is response type for the
       Query/UnbondingDelegatorDelegations RPC method.
@@ -40951,7 +41078,6 @@ definitions:
               jailed defined whether the validator has been jailed from bonded
               status or not.
           status:
-            description: status is the validator status (bonded/unbonding/unbonded).
             type: string
             enum:
               - BOND_STATUS_UNSPECIFIED
@@ -40959,6 +41085,13 @@ definitions:
               - BOND_STATUS_UNBONDING
               - BOND_STATUS_BONDED
             default: BOND_STATUS_UNSPECIFIED
+            description: |-
+              BondStatus is the status of a validator.
+
+               - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+               - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+               - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+               - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
           tokens:
             type: string
             description: tokens define the delegated tokens (incl. self-delegation).
@@ -40968,7 +41101,6 @@ definitions:
               delegator_shares defines total shares issued to a validator's
               delegators.
           description:
-            description: description defines the description terms for the validator.
             type: object
             properties:
               moniker:
@@ -40990,6 +41122,7 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
+            description: Description defines a validator description.
           unbonding_height:
             type: string
             format: int64
@@ -41003,13 +41136,9 @@ definitions:
               unbonding_time defines, if unbonding, the min time for the
               validator to complete unbonding.
           commission:
-            description: commission defines the commission parameters.
             type: object
             properties:
               commission_rates:
-                description: >-
-                  commission_rates defines the initial commission rates to be
-                  used for creating a validator.
                 type: object
                 properties:
                   rate:
@@ -41027,10 +41156,16 @@ definitions:
                     description: >-
                       max_change_rate defines the maximum daily increase of the
                       validator commission, as a fraction.
+                description: >-
+                  CommissionRates defines the initial commission rates to be
+                  used for creating
+
+                  a validator.
               update_time:
                 type: string
                 format: date-time
                 description: update_time is the last time the commission rate was changed.
+            description: Commission defines commission parameters for a given validator.
           min_self_delegation:
             type: string
             description: >-
@@ -41246,7 +41381,6 @@ definitions:
                 jailed defined whether the validator has been jailed from bonded
                 status or not.
             status:
-              description: status is the validator status (bonded/unbonding/unbonded).
               type: string
               enum:
                 - BOND_STATUS_UNSPECIFIED
@@ -41254,6 +41388,13 @@ definitions:
                 - BOND_STATUS_UNBONDING
                 - BOND_STATUS_BONDED
               default: BOND_STATUS_UNSPECIFIED
+              description: |-
+                BondStatus is the status of a validator.
+
+                 - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                 - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                 - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                 - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
             tokens:
               type: string
               description: tokens define the delegated tokens (incl. self-delegation).
@@ -41263,7 +41404,6 @@ definitions:
                 delegator_shares defines total shares issued to a validator's
                 delegators.
             description:
-              description: description defines the description terms for the validator.
               type: object
               properties:
                 moniker:
@@ -41285,6 +41425,7 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+              description: Description defines a validator description.
             unbonding_height:
               type: string
               format: int64
@@ -41298,13 +41439,9 @@ definitions:
                 unbonding_time defines, if unbonding, the min time for the
                 validator to complete unbonding.
             commission:
-              description: commission defines the commission parameters.
               type: object
               properties:
                 commission_rates:
-                  description: >-
-                    commission_rates defines the initial commission rates to be
-                    used for creating a validator.
                   type: object
                   properties:
                     rate:
@@ -41322,12 +41459,18 @@ definitions:
                       description: >-
                         max_change_rate defines the maximum daily increase of
                         the validator commission, as a fraction.
+                  description: >-
+                    CommissionRates defines the initial commission rates to be
+                    used for creating
+
+                    a validator.
                 update_time:
                   type: string
                   format: date-time
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
+              description: Commission defines commission parameters for a given validator.
             min_self_delegation:
               type: string
               description: >-
@@ -41356,7 +41499,6 @@ definitions:
             multiplied by exchange rate.
         description: validators defines the the validators' info of a delegator.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -41373,6 +41515,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: |-
       QueryDelegatorValidatorsResponse is response type for the
       Query/DelegatorValidators RPC method.
@@ -41380,14 +41530,12 @@ definitions:
     type: object
     properties:
       hist:
-        description: hist defines the historical info at the given height.
         type: object
         properties:
           header:
             type: object
             properties:
               version:
-                title: basic block info
                 type: object
                 properties:
                   block:
@@ -41413,7 +41561,6 @@ definitions:
                 type: string
                 format: date-time
               last_block_id:
-                title: prev block info
                 type: object
                 properties:
                   hash:
@@ -41429,6 +41576,7 @@ definitions:
                         type: string
                         format: byte
                     title: PartsetHeader
+                title: BlockID
               last_commit_hash:
                 type: string
                 format: byte
@@ -41649,7 +41797,6 @@ definitions:
                     jailed defined whether the validator has been jailed from
                     bonded status or not.
                 status:
-                  description: status is the validator status (bonded/unbonding/unbonded).
                   type: string
                   enum:
                     - BOND_STATUS_UNSPECIFIED
@@ -41657,6 +41804,13 @@ definitions:
                     - BOND_STATUS_UNBONDING
                     - BOND_STATUS_BONDED
                   default: BOND_STATUS_UNSPECIFIED
+                  description: |-
+                    BondStatus is the status of a validator.
+
+                     - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                     - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                     - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                     - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
                 tokens:
                   type: string
                   description: tokens define the delegated tokens (incl. self-delegation).
@@ -41666,7 +41820,6 @@ definitions:
                     delegator_shares defines total shares issued to a
                     validator's delegators.
                 description:
-                  description: description defines the description terms for the validator.
                   type: object
                   properties:
                     moniker:
@@ -41688,6 +41841,7 @@ definitions:
                     details:
                       type: string
                       description: details define other optional details.
+                  description: Description defines a validator description.
                 unbonding_height:
                   type: string
                   format: int64
@@ -41701,13 +41855,9 @@ definitions:
                     unbonding_time defines, if unbonding, the min time for the
                     validator to complete unbonding.
                 commission:
-                  description: commission defines the commission parameters.
                   type: object
                   properties:
                     commission_rates:
-                      description: >-
-                        commission_rates defines the initial commission rates to
-                        be used for creating a validator.
                       type: object
                       properties:
                         rate:
@@ -41725,12 +41875,20 @@ definitions:
                           description: >-
                             max_change_rate defines the maximum daily increase
                             of the validator commission, as a fraction.
+                      description: >-
+                        CommissionRates defines the initial commission rates to
+                        be used for creating
+
+                        a validator.
                     update_time:
                       type: string
                       format: date-time
                       description: >-
                         update_time is the last time the commission rate was
                         changed.
+                  description: >-
+                    Commission defines commission parameters for a given
+                    validator.
                 min_self_delegation:
                   type: string
                   description: >-
@@ -41759,6 +41917,16 @@ definitions:
                 shares
 
                 multiplied by exchange rate.
+        description: >-
+          HistoricalInfo contains header and validator information for a given
+          block.
+
+          It is stored as part of staking module's state, which persists the `n`
+          most
+
+          recent HistoricalInfo
+
+          (`n` is set by the staking module's `historical_entries` parameter).
     description: >-
       QueryHistoricalInfoResponse is response type for the Query/HistoricalInfo
       RPC
@@ -41768,7 +41936,6 @@ definitions:
     type: object
     properties:
       params:
-        description: params holds all the parameters of this module.
         type: object
         properties:
           unbonding_time:
@@ -41791,18 +41958,23 @@ definitions:
           bond_denom:
             type: string
             description: bond_denom defines the bondable coin denomination.
+        description: Params defines the parameters for the staking module.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   cosmos.staking.v1beta1.QueryPoolResponse:
     type: object
     properties:
       pool:
-        description: pool defines the pool info.
         type: object
         properties:
           not_bonded_tokens:
             type: string
           bonded_tokens:
             type: string
+        description: >-
+          Pool is used for tracking bonded and not-bonded token supply of the
+          bond
+
+          denomination.
     description: QueryPoolResponse is response type for the Query/Pool RPC method.
   cosmos.staking.v1beta1.QueryRedelegationsResponse:
     type: object
@@ -41919,7 +42091,6 @@ definitions:
 
             responses.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -41936,6 +42107,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: >-
       QueryRedelegationsResponse is response type for the Query/Redelegations
       RPC
@@ -42040,7 +42219,6 @@ definitions:
             balance in addition to shares which is more suitable for client
             responses.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -42057,6 +42235,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     title: |-
       QueryValidatorDelegationsResponse is response type for the
       Query/ValidatorDelegations RPC method
@@ -42240,7 +42426,6 @@ definitions:
               jailed defined whether the validator has been jailed from bonded
               status or not.
           status:
-            description: status is the validator status (bonded/unbonding/unbonded).
             type: string
             enum:
               - BOND_STATUS_UNSPECIFIED
@@ -42248,6 +42433,13 @@ definitions:
               - BOND_STATUS_UNBONDING
               - BOND_STATUS_BONDED
             default: BOND_STATUS_UNSPECIFIED
+            description: |-
+              BondStatus is the status of a validator.
+
+               - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+               - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+               - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+               - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
           tokens:
             type: string
             description: tokens define the delegated tokens (incl. self-delegation).
@@ -42257,7 +42449,6 @@ definitions:
               delegator_shares defines total shares issued to a validator's
               delegators.
           description:
-            description: description defines the description terms for the validator.
             type: object
             properties:
               moniker:
@@ -42279,6 +42470,7 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
+            description: Description defines a validator description.
           unbonding_height:
             type: string
             format: int64
@@ -42292,13 +42484,9 @@ definitions:
               unbonding_time defines, if unbonding, the min time for the
               validator to complete unbonding.
           commission:
-            description: commission defines the commission parameters.
             type: object
             properties:
               commission_rates:
-                description: >-
-                  commission_rates defines the initial commission rates to be
-                  used for creating a validator.
                 type: object
                 properties:
                   rate:
@@ -42316,10 +42504,16 @@ definitions:
                     description: >-
                       max_change_rate defines the maximum daily increase of the
                       validator commission, as a fraction.
+                description: >-
+                  CommissionRates defines the initial commission rates to be
+                  used for creating
+
+                  a validator.
               update_time:
                 type: string
                 format: date-time
                 description: update_time is the last time the commission rate was changed.
+            description: Commission defines commission parameters for a given validator.
           min_self_delegation:
             type: string
             description: >-
@@ -42398,7 +42592,6 @@ definitions:
 
             for a single validator in an time-ordered list.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -42415,6 +42608,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: |-
       QueryValidatorUnbondingDelegationsResponse is response type for the
       Query/ValidatorUnbondingDelegations RPC method.
@@ -42604,7 +42805,6 @@ definitions:
                 jailed defined whether the validator has been jailed from bonded
                 status or not.
             status:
-              description: status is the validator status (bonded/unbonding/unbonded).
               type: string
               enum:
                 - BOND_STATUS_UNSPECIFIED
@@ -42612,6 +42812,13 @@ definitions:
                 - BOND_STATUS_UNBONDING
                 - BOND_STATUS_BONDED
               default: BOND_STATUS_UNSPECIFIED
+              description: |-
+                BondStatus is the status of a validator.
+
+                 - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+                 - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+                 - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+                 - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
             tokens:
               type: string
               description: tokens define the delegated tokens (incl. self-delegation).
@@ -42621,7 +42828,6 @@ definitions:
                 delegator_shares defines total shares issued to a validator's
                 delegators.
             description:
-              description: description defines the description terms for the validator.
               type: object
               properties:
                 moniker:
@@ -42643,6 +42849,7 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+              description: Description defines a validator description.
             unbonding_height:
               type: string
               format: int64
@@ -42656,13 +42863,9 @@ definitions:
                 unbonding_time defines, if unbonding, the min time for the
                 validator to complete unbonding.
             commission:
-              description: commission defines the commission parameters.
               type: object
               properties:
                 commission_rates:
-                  description: >-
-                    commission_rates defines the initial commission rates to be
-                    used for creating a validator.
                   type: object
                   properties:
                     rate:
@@ -42680,12 +42883,18 @@ definitions:
                       description: >-
                         max_change_rate defines the maximum daily increase of
                         the validator commission, as a fraction.
+                  description: >-
+                    CommissionRates defines the initial commission rates to be
+                    used for creating
+
+                    a validator.
                 update_time:
                   type: string
                   format: date-time
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
+              description: Commission defines commission parameters for a given validator.
             min_self_delegation:
               type: string
               description: >-
@@ -42714,7 +42923,6 @@ definitions:
             multiplied by exchange rate.
         description: validators contains all the queried validators.
       pagination:
-        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -42731,6 +42939,14 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     title: >-
       QueryValidatorsResponse is response type for the Query/Validators RPC
       method
@@ -43180,7 +43396,6 @@ definitions:
           jailed defined whether the validator has been jailed from bonded
           status or not.
       status:
-        description: status is the validator status (bonded/unbonding/unbonded).
         type: string
         enum:
           - BOND_STATUS_UNSPECIFIED
@@ -43188,6 +43403,13 @@ definitions:
           - BOND_STATUS_UNBONDING
           - BOND_STATUS_BONDED
         default: BOND_STATUS_UNSPECIFIED
+        description: |-
+          BondStatus is the status of a validator.
+
+           - BOND_STATUS_UNSPECIFIED: UNSPECIFIED defines an invalid validator status.
+           - BOND_STATUS_UNBONDED: UNBONDED defines a validator that is not bonded.
+           - BOND_STATUS_UNBONDING: UNBONDING defines a validator that is unbonding.
+           - BOND_STATUS_BONDED: BONDED defines a validator that is bonded.
       tokens:
         type: string
         description: tokens define the delegated tokens (incl. self-delegation).
@@ -43197,7 +43419,6 @@ definitions:
           delegator_shares defines total shares issued to a validator's
           delegators.
       description:
-        description: description defines the description terms for the validator.
         type: object
         properties:
           moniker:
@@ -43217,6 +43438,7 @@ definitions:
           details:
             type: string
             description: details define other optional details.
+        description: Description defines a validator description.
       unbonding_height:
         type: string
         format: int64
@@ -43230,13 +43452,9 @@ definitions:
           unbonding_time defines, if unbonding, the min time for the validator
           to complete unbonding.
       commission:
-        description: commission defines the commission parameters.
         type: object
         properties:
           commission_rates:
-            description: >-
-              commission_rates defines the initial commission rates to be used
-              for creating a validator.
             type: object
             properties:
               rate:
@@ -43254,10 +43472,16 @@ definitions:
                 description: >-
                   max_change_rate defines the maximum daily increase of the
                   validator commission, as a fraction.
+            description: >-
+              CommissionRates defines the initial commission rates to be used
+              for creating
+
+              a validator.
           update_time:
             type: string
             format: date-time
             description: update_time is the last time the commission rate was changed.
+        description: Commission defines commission parameters for a given validator.
       min_self_delegation:
         type: string
         description: >-
@@ -47579,11 +47803,6 @@ definitions:
               type: string
             status:
               type: string
-            append:
-              type: string
-              format: byte
-      baseDenom:
-        type: string
       status:
         type: string
   defundlabs.defund.broker.MsgAddConnectionBrokerResponse:
@@ -47612,11 +47831,6 @@ definitions:
                   type: string
                 status:
                   type: string
-                append:
-                  type: string
-                  format: byte
-          baseDenom:
-            type: string
           status:
             type: string
     title: QueryBrokerResponse the response type for the Query/Broker RPC
@@ -47644,11 +47858,6 @@ definitions:
                     type: string
                   status:
                     type: string
-                  append:
-                    type: string
-                    format: byte
-            baseDenom:
-              type: string
             status:
               type: string
       pagination:
@@ -47695,9 +47904,11 @@ definitions:
         type: string
       status:
         type: string
-      append:
+  defundlabs.defund.etf.AddressMap:
+    type: object
+    properties:
+      osmosisAddress:
         type: string
-        format: byte
   defundlabs.defund.etf.Fund:
     type: object
     properties:
@@ -47738,6 +47949,9 @@ definitions:
             brokerId:
               type: string
               title: Broker Id for the Broker
+            type:
+              type: string
+              title: 'the type of the asset. Valid types are spot, staked'
       rebalance:
         type: string
         format: int64
@@ -47800,6 +48014,9 @@ definitions:
       brokerId:
         type: string
         title: Broker Id for the Broker
+      type:
+        type: string
+        title: 'the type of the asset. Valid types are spot, staked'
   defundlabs.defund.etf.MsgCreateFundResponse:
     type: object
   defundlabs.defund.etf.MsgCreateResponse:
@@ -47854,6 +48071,9 @@ definitions:
                   brokerId:
                     type: string
                     title: Broker Id for the Broker
+                  type:
+                    type: string
+                    title: 'the type of the asset. Valid types are spot, staked'
             rebalance:
               type: string
               format: int64
@@ -47981,6 +48201,9 @@ definitions:
                 brokerId:
                   type: string
                   title: Broker Id for the Broker
+                type:
+                  type: string
+                  title: 'the type of the asset. Valid types are spot, staked'
           rebalance:
             type: string
             format: int64

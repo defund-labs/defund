@@ -21,7 +21,7 @@ export interface MsgCreateFundResponse {}
 export interface MsgCreate {
   creator: string;
   fund: string;
-  tokens: Coin[];
+  tokenIn: Coin | undefined;
   channel: string;
   /**
    * Timeout height relative to the current block height.
@@ -37,11 +37,16 @@ export interface MsgCreate {
 
 export interface MsgCreateResponse {}
 
+export interface AddressMap {
+  osmosisAddress: string;
+}
+
 export interface MsgRedeem {
   creator: string;
   fund: string;
   amount: Coin | undefined;
   channel: string;
+  addresses: AddressMap | undefined;
 }
 
 export interface MsgRedeemResponse {}
@@ -285,8 +290,8 @@ export const MsgCreate = {
     if (message.fund !== "") {
       writer.uint32(18).string(message.fund);
     }
-    for (const v of message.tokens) {
-      Coin.encode(v!, writer.uint32(26).fork()).ldelim();
+    if (message.tokenIn !== undefined) {
+      Coin.encode(message.tokenIn, writer.uint32(26).fork()).ldelim();
     }
     if (message.channel !== "") {
       writer.uint32(34).string(message.channel);
@@ -304,7 +309,6 @@ export const MsgCreate = {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseMsgCreate } as MsgCreate;
-    message.tokens = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -315,7 +319,7 @@ export const MsgCreate = {
           message.fund = reader.string();
           break;
         case 3:
-          message.tokens.push(Coin.decode(reader, reader.uint32()));
+          message.tokenIn = Coin.decode(reader, reader.uint32());
           break;
         case 4:
           message.channel = reader.string();
@@ -336,7 +340,6 @@ export const MsgCreate = {
 
   fromJSON(object: any): MsgCreate {
     const message = { ...baseMsgCreate } as MsgCreate;
-    message.tokens = [];
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
@@ -347,10 +350,10 @@ export const MsgCreate = {
     } else {
       message.fund = "";
     }
-    if (object.tokens !== undefined && object.tokens !== null) {
-      for (const e of object.tokens) {
-        message.tokens.push(Coin.fromJSON(e));
-      }
+    if (object.tokenIn !== undefined && object.tokenIn !== null) {
+      message.tokenIn = Coin.fromJSON(object.tokenIn);
+    } else {
+      message.tokenIn = undefined;
     }
     if (object.channel !== undefined && object.channel !== null) {
       message.channel = String(object.channel);
@@ -377,11 +380,10 @@ export const MsgCreate = {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.fund !== undefined && (obj.fund = message.fund);
-    if (message.tokens) {
-      obj.tokens = message.tokens.map((e) => (e ? Coin.toJSON(e) : undefined));
-    } else {
-      obj.tokens = [];
-    }
+    message.tokenIn !== undefined &&
+      (obj.tokenIn = message.tokenIn
+        ? Coin.toJSON(message.tokenIn)
+        : undefined);
     message.channel !== undefined && (obj.channel = message.channel);
     message.timeout_height !== undefined &&
       (obj.timeout_height = message.timeout_height);
@@ -392,7 +394,6 @@ export const MsgCreate = {
 
   fromPartial(object: DeepPartial<MsgCreate>): MsgCreate {
     const message = { ...baseMsgCreate } as MsgCreate;
-    message.tokens = [];
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
@@ -403,10 +404,10 @@ export const MsgCreate = {
     } else {
       message.fund = "";
     }
-    if (object.tokens !== undefined && object.tokens !== null) {
-      for (const e of object.tokens) {
-        message.tokens.push(Coin.fromPartial(e));
-      }
+    if (object.tokenIn !== undefined && object.tokenIn !== null) {
+      message.tokenIn = Coin.fromPartial(object.tokenIn);
+    } else {
+      message.tokenIn = undefined;
     }
     if (object.channel !== undefined && object.channel !== null) {
       message.channel = object.channel;
@@ -468,6 +469,62 @@ export const MsgCreateResponse = {
   },
 };
 
+const baseAddressMap: object = { osmosisAddress: "" };
+
+export const AddressMap = {
+  encode(message: AddressMap, writer: Writer = Writer.create()): Writer {
+    if (message.osmosisAddress !== "") {
+      writer.uint32(10).string(message.osmosisAddress);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): AddressMap {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseAddressMap } as AddressMap;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.osmosisAddress = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddressMap {
+    const message = { ...baseAddressMap } as AddressMap;
+    if (object.osmosisAddress !== undefined && object.osmosisAddress !== null) {
+      message.osmosisAddress = String(object.osmosisAddress);
+    } else {
+      message.osmosisAddress = "";
+    }
+    return message;
+  },
+
+  toJSON(message: AddressMap): unknown {
+    const obj: any = {};
+    message.osmosisAddress !== undefined &&
+      (obj.osmosisAddress = message.osmosisAddress);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<AddressMap>): AddressMap {
+    const message = { ...baseAddressMap } as AddressMap;
+    if (object.osmosisAddress !== undefined && object.osmosisAddress !== null) {
+      message.osmosisAddress = object.osmosisAddress;
+    } else {
+      message.osmosisAddress = "";
+    }
+    return message;
+  },
+};
+
 const baseMsgRedeem: object = { creator: "", fund: "", channel: "" };
 
 export const MsgRedeem = {
@@ -483,6 +540,9 @@ export const MsgRedeem = {
     }
     if (message.channel !== "") {
       writer.uint32(34).string(message.channel);
+    }
+    if (message.addresses !== undefined) {
+      AddressMap.encode(message.addresses, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -505,6 +565,9 @@ export const MsgRedeem = {
           break;
         case 4:
           message.channel = reader.string();
+          break;
+        case 5:
+          message.addresses = AddressMap.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -536,6 +599,11 @@ export const MsgRedeem = {
     } else {
       message.channel = "";
     }
+    if (object.addresses !== undefined && object.addresses !== null) {
+      message.addresses = AddressMap.fromJSON(object.addresses);
+    } else {
+      message.addresses = undefined;
+    }
     return message;
   },
 
@@ -546,6 +614,10 @@ export const MsgRedeem = {
     message.amount !== undefined &&
       (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     message.channel !== undefined && (obj.channel = message.channel);
+    message.addresses !== undefined &&
+      (obj.addresses = message.addresses
+        ? AddressMap.toJSON(message.addresses)
+        : undefined);
     return obj;
   },
 
@@ -570,6 +642,11 @@ export const MsgRedeem = {
       message.channel = object.channel;
     } else {
       message.channel = "";
+    }
+    if (object.addresses !== undefined && object.addresses !== null) {
+      message.addresses = AddressMap.fromPartial(object.addresses);
+    } else {
+      message.addresses = undefined;
     }
     return message;
   },

@@ -29,10 +29,15 @@ func (p PricesSort) Less(i, j int) bool {
 
 // CreateFundPrice creates a current fund price for a fund symbol in the funds base denom
 func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin, err error) {
-	comp := []sdk.Int{}
+	comp := []sdk.Dec{}
 	fund, found := k.GetFund(ctx, symbol)
 	if !found {
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
+	}
+	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
+	if fund.Shares.Amount.IsZero() {
+		price = *fund.StartingPrice
+		return price, nil
 	}
 	for _, holding := range fund.Holdings {
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
@@ -71,17 +76,11 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		holdingBalance := balances.Coins.Sort().AmountOf(holding.Token).ToDec()
 		// compute the weighted price by taking the holding balance of token, multiplying by price in base denom
 		// to obtain the balance in base denom.
-		priceWeighted := holdingBalance.Mul(priceInBaseDenom).RoundInt()
+		priceWeighted := holdingBalance.Mul(priceInBaseDenom)
 		comp = append(comp, priceWeighted)
 	}
-	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
-	if fund.Shares.Amount.Uint64() == 0 {
-		price = fund.StartingPrice
-	}
-	if fund.Shares.Amount.Uint64() > 0 {
-		total := sumInts(comp)
-		price = sdk.NewCoin(fund.BaseDenom, total)
-	}
+	total := sumDecs(comp).Mul(sdk.NewDec(1000000)).RoundInt()
+	price = sdk.NewCoin(fund.BaseDenom, total.Quo(fund.Shares.Amount))
 	return price, nil
 }
 

@@ -2,6 +2,7 @@ package broker
 
 import (
 	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,19 +14,22 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
+	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 )
 
 var _ porttypes.IBCModule = IBCModule{}
 
 // IBCModule implements the ICS26 interface for interchain accounts controller chains
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper    keeper.Keeper
+	etfKeeper etfkeeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper, etfkeeper etfkeeper.Keeper) IBCModule {
 	return IBCModule{
-		keeper: k,
+		keeper:    k,
+		etfKeeper: etfkeeper,
 	}
 }
 
@@ -155,6 +159,20 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	id := fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)
+	// get the redeem from the store. If not found return nil and do not run logic if found run the redeem timeout logic
+	redeem, redeemExists := im.etfKeeper.GetRedeem(ctx, id)
+	if redeemExists {
+		im.keeper.Logger(ctx).Error("redeem %s timed out. Running the redeem timeout logic.", id)
+		im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+	}
+	// get the rebalance from the store. If not found return nil and do not run logic if found run the redeem timeout logic
+	rebalance, rebalanceExists := im.etfKeeper.GetRebalance(ctx, id)
+	if rebalanceExists {
+		im.keeper.Logger(ctx).Error("rebalance %s timed out. Running the rebalance timeout logic.", id)
+		im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+	}
+
 	return nil
 }
 

@@ -27,8 +27,10 @@ func networkWithFundObjects(t *testing.T, n int) (*network.Network, []types.Fund
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
+		holdings := []*types.Holding{}
 		state.FundList = append(state.FundList, types.Fund{
-			Symbol: strconv.Itoa(i),
+			Symbol:   strconv.Itoa(i),
+			Holdings: holdings,
 		})
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)

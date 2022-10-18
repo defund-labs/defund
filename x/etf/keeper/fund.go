@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -19,16 +18,16 @@ func (k Keeper) SetFund(ctx sdk.Context, fund types.Fund) {
 	), b)
 }
 
-// GetFund returns a fund from its index
+// GetFund returns a fund from its symbol
 func (k Keeper) GetFund(
 	ctx sdk.Context,
-	index string,
+	symbol string,
 
 ) (val types.Fund, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
 
 	b := store.Get(types.FundKey(
-		index,
+		symbol,
 	))
 	if b == nil {
 		return val, false
@@ -117,24 +116,20 @@ func (k Keeper) SetRedeem(ctx sdk.Context, redeem types.Redeem) {
 // GetRedeem returns a redeem if the redeem includes the transferId
 func (k Keeper) GetRedeem(
 	ctx sdk.Context,
-	transferId string,
+	id string,
 
-) (val types.Redeem, transfer brokertypes.Transfer, found bool) {
+) (val types.Redeem, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RedeemKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Redeem
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		for _, t := range val.Transfers {
-			if t.Id == transferId {
-				return val, t, true
-			}
-		}
+	b := store.Get(types.RedeemKey(
+		id,
+	))
+	if b == nil {
+		return val, false
 	}
-	return val, transfer, false
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
 }
 
 // RemoveRedeem removes an redeem from the store
@@ -185,6 +180,15 @@ func (k Keeper) GetAllRedeembySymbol(ctx sdk.Context, symbol string) (list []typ
 	}
 
 	return
+}
+
+// SetRebalance set a specific rebalance in the store from its index
+func (k Keeper) SetRebalance(ctx sdk.Context, rebalance types.Rebalance) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RebalanceKeyPrefix))
+	b := k.cdc.MustMarshal(&rebalance)
+	store.Set(types.RebalanceKey(
+		rebalance.Id,
+	), b)
 }
 
 // GetRebalance returns a rebalance from its index

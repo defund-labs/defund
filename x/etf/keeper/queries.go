@@ -16,25 +16,25 @@ func (k Keeper) CreateBalances(ctx sdk.Context) {
 	funds := k.GetAllFund(ctx)
 	for _, fund := range funds {
 		for _, holding := range fund.Holdings {
-			// get the broker
-			broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
-			if !found {
-				err := sdkerrors.Wrap(brokertypes.ErrBrokerNotFound, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
-				ctx.Logger().Debug(err.Error())
-			}
-
-			portID, err := icatypes.NewControllerPortID(fund.Address)
-			if err != nil {
-				ctx.Logger().Debug(err.Error())
-			}
-			addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
-			if !found {
-				err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
-				ctx.Logger().Debug(err.Error())
-			}
-
 			switch holding.BrokerId {
 			case "osmosis":
+				// get the broker
+				broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
+				if !found {
+					err := sdkerrors.Wrap(brokertypes.ErrBrokerNotFound, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
+					ctx.Logger().Debug(err.Error())
+				}
+
+				portID, err := icatypes.NewControllerPortID(fund.Address)
+				if err != nil {
+					ctx.Logger().Debug(err.Error())
+				}
+				addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
+				if !found {
+					err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
+					ctx.Logger().Debug(err.Error())
+				}
+
 				k.brokerKeeper.CreateQueryOsmosisBalance(ctx, addr)
 			}
 		}

@@ -16,7 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	osmosisbalancertypes "github.com/osmosis-labs/osmosis/v8/x/gamm/pool-models/balancer"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
@@ -164,14 +163,9 @@ func (k Keeper) GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Ba
 
 // CalculateOsmosisSpotPrice gets a pool from an interquery result and computes the price of that pool pair
 func (k Keeper) CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error) {
-	query, found := k.queryKeeper.GetInterqueryResult(ctx, fmt.Sprintf("osmosis-%d", poolId))
-	if !found {
-		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrInvalidPool, "could not find pool query for %s", fmt.Sprintf("osmosis-%d", poolId))
-	}
-	var pool = osmosisbalancertypes.Pool{}
-	err := pool.Unmarshal(query.Data)
+	pool, err := k.GetOsmosisPool(ctx, poolId)
 	if err != nil {
-		return sdk.Dec{}, sdkerrors.Wrapf(types.ErrMarshallingError, "cannot decode osmosis pool query (%s)", query.Storeid)
+		return sdk.Dec{}, err
 	}
 	inPoolAsset, err := pool.GetPoolAsset(tokenInDenom)
 	if err != nil {

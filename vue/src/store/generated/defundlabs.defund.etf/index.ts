@@ -5,9 +5,10 @@ import { Holding } from "defund-labs-defund-client-ts/defundlabs.defund.etf/type
 import { Fund } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
 import { Redeem } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
 import { Rebalance } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { AddressMap } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
 
 
-export { FundPrice, Holding, Fund, Redeem, Rebalance };
+export { FundPrice, Holding, Fund, Redeem, Rebalance, AddressMap };
 
 function initClient(vuexGetters) {
 	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
@@ -48,6 +49,7 @@ const getDefaultState = () => {
 						Fund: getStructure(Fund.fromPartial({})),
 						Redeem: getStructure(Redeem.fromPartial({})),
 						Rebalance: getStructure(Rebalance.fromPartial({})),
+						AddressMap: getStructure(AddressMap.fromPartial({})),
 						
 		},
 		_Registry: registry,
@@ -202,16 +204,16 @@ export default {
 		},
 		
 		
-		async sendMsgCreateFund({ rootGetters }, { value, fee = [], memo = '' }) {
+		async sendMsgRedeem({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const client=await initClient(rootGetters)
-				const result = await client.DefundlabsDefundEtf.tx.sendMsgCreateFund({ value, fee: {amount: fee, gas: "200000"}, memo })
+				const result = await client.DefundlabsDefundEtf.tx.sendMsgRedeem({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgCreateFund:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgRedeem:Init Could not initialize signing client. Wallet is required.')
 				}else{
-					throw new Error('TxClient:MsgCreateFund:Send Could not broadcast Tx: '+ e.message)
+					throw new Error('TxClient:MsgRedeem:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
@@ -228,30 +230,30 @@ export default {
 				}
 			}
 		},
-		async sendMsgRedeem({ rootGetters }, { value, fee = [], memo = '' }) {
+		async sendMsgCreateFund({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const client=await initClient(rootGetters)
-				const result = await client.DefundlabsDefundEtf.tx.sendMsgRedeem({ value, fee: {amount: fee, gas: "200000"}, memo })
+				const result = await client.DefundlabsDefundEtf.tx.sendMsgCreateFund({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgRedeem:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgCreateFund:Init Could not initialize signing client. Wallet is required.')
 				}else{
-					throw new Error('TxClient:MsgRedeem:Send Could not broadcast Tx: '+ e.message)
+					throw new Error('TxClient:MsgCreateFund:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
 		
-		async MsgCreateFund({ rootGetters }, { value }) {
+		async MsgRedeem({ rootGetters }, { value }) {
 			try {
 				const client=initClient(rootGetters)
-				const msg = await client.DefundlabsDefundEtf.tx.msgCreateFund({value})
+				const msg = await client.DefundlabsDefundEtf.tx.msgRedeem({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgCreateFund:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgRedeem:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgCreateFund:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgRedeem:Create Could not create message: ' + e.message)
 				}
 			}
 		},
@@ -268,16 +270,16 @@ export default {
 				}
 			}
 		},
-		async MsgRedeem({ rootGetters }, { value }) {
+		async MsgCreateFund({ rootGetters }, { value }) {
 			try {
 				const client=initClient(rootGetters)
-				const msg = await client.DefundlabsDefundEtf.tx.msgRedeem({value})
+				const msg = await client.DefundlabsDefundEtf.tx.msgCreateFund({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgRedeem:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgCreateFund:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgRedeem:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgCreateFund:Create Could not create message: ' + e.message)
 				}
 			}
 		},

@@ -365,6 +365,16 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	var transferStack porttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
@@ -391,7 +401,7 @@ func New(
 
 	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, app.QueryKeeper, app.EtfKeeper, app.BankKeeper)
 	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
-	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper)
+	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper, app.EtfKeeper)
 
 	icaControllerIBCModule := icacontroller.NewIBCMiddleware(brokerIBCModule, app.ICAControllerKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
@@ -408,15 +418,6 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
-	// Create Transfer Keepers
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
-	)
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = etfmodule.NewIBCMiddleware(transferStack, app.EtfKeeper)
 
 	app.EtfKeeper = *etfmodulekeeper.NewKeeper(
@@ -438,10 +439,11 @@ func New(
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
+	ibcRouter.
+		AddRoute(brokermoduletypes.ModuleName, icaControllerIBCModule).
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, transferStack).
-		AddRoute(brokermoduletypes.ModuleName, icaControllerIBCModule)
+		AddRoute(ibctransfertypes.ModuleName, transferStack)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition

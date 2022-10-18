@@ -28,4 +28,6 @@ message Transfer {
     cosmos.base.v1beta1.Coin token = 5;
     string sender = 6;
     string receiver = 7;
+    // if we need to stake the transfer on completion or not
+    bool stake = 8;
 }

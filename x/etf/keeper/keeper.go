@@ -113,8 +113,8 @@ func containsAssets(assets []osmosisgammtypes.PoolAsset, denom string) bool {
 	return false
 }
 
-func sumInts(items []sdk.Int) sdk.Int {
-	sum := sdk.NewInt(0)
+func sumDecs(items []sdk.Dec) sdk.Dec {
+	sum := sdk.NewDec(0)
 	for _, item := range items {
 		sum = sum.Add(item)
 	}
@@ -170,7 +170,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			Id:       fmt.Sprintf("%s-%d", channel, sequence),
 			Channel:  channel,
 			Sequence: sequence,
-			Status:   "tranferring",
+			Status:   types.TransferStateTransferring,
 			Token:    &sendCoin,
 			Sender:   fund.Address,
 			Receiver: fundBrokerAddress,
@@ -196,7 +196,8 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 	}
 
 	// finally reflect the new shares in the fund store for shares
-	fund.Shares = fund.Shares.Add(numETFShares)
+	newShares := fund.Shares.Add(numETFShares)
+	fund.Shares = &newShares
 	k.SetFund(ctx, fund)
 
 	return numETFShares, nil
@@ -204,48 +205,56 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.
 // Initializes the redemption of shares process which continues in Broker module in OnAckRec.
-func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, channel string, amount sdk.Coin, fundAccount string, addressMap types.AddressMap) error {
-	// Placeholder for current coin to be set below
-	currentCoin := sdk.Coin{}
+func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, amount sdk.Coin, addressMap types.AddressMap) error {
 	// Map for holding all the messages for each broker to send later
 	msgs := make(map[string][]*banktypes.MsgSend)
+	// Map for keeping track of the total of etf shares redeeming for each broker tx so we can
+	// perform logic on acks based on success or failure
+	redeem := make(map[string]sdk.Int)
 
-	fundDefundAcc, err := sdk.AccAddressFromBech32(fund.Address)
+	// Add Osmosis broker to the mappings
+	msgs["osmosis"] = []*banktypes.MsgSend{}
+	redeem["osmosis"] = sdk.NewInt(0)
+
+	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
 		return err
 	}
 
 	// get the amount of tokens that these shares represent
-	ownership, err := k.GetOwnershipSharesInFund(ctx, fund, amount)
+	ownershipRaw, err := k.GetOwnershipSharesInFund(ctx, fund, amount)
 	if err != nil {
 		return err
 	}
 
-	id := k.GetNextRedeemID(ctx)
-
-	// Create the redeem store
-	redeem := types.Redeem{
-		Id:        fmt.Sprint(id),
-		Creator:   creator,
-		Fund:      &fund,
-		Amount:    &amount,
-		Status:    "pending",
-		Transfers: []brokertypes.Transfer{},
-	}
+	ownership := sdk.NewCoins(ownershipRaw...)
 
 	for _, holding := range fund.Holdings {
 
-		// get the token to redeem for the current holding in loop
-		for i, coin := range ownership {
-			if coin.Denom == holding.Token {
-				currentCoin = coin
-				break
-			}
-			// if we are at the end of the list and it has not broke, we are missing the token. Return error
-			if (len(ownership) - 1) == i {
-				return sdkerrors.Wrapf(types.ErrInvalidDenom, "could not find supplied token representing holding denom: %s", holding.Token)
-			}
+		// get the current holding amount and coin from ownership coins
+		currentCoinAmt := ownership.Sort().AmountOf(holding.Token)
+		currentCoin := sdk.NewCoin(holding.Token, currentCoinAmt)
+
+		// get the current price of this fund (in base denom)
+		fundPrice, err := k.CreateFundPrice(ctx, fund.Symbol)
+		if err != nil {
+			return err
 		}
+		// multiply the fund price by the current amount of etf tokens to get the basedenom total amount
+		totalWorthOfFundTokensInBaseDenom := fundPrice.Amount.Mul(amount.Amount)
+		// get the amount in base denom the ownership of this holding represents
+		spotPrice, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		if err != nil {
+			return err
+		}
+		// calculate the ownership amount in basedenom
+		totalOwnershipInBaseDenom := spotPrice.Mul(currentCoinAmt.ToDec())
+		// calculate the percent amount of fund token this ownership represents
+		percentOwnership := totalOwnershipInBaseDenom.Quo(totalWorthOfFundTokensInBaseDenom.ToDec())
+		// multiply total etf shares amount by ownership percent
+		etfSharesThisHoldingRepresents := amount.Amount.ToDec().Mul(percentOwnership).RoundInt()
+		// Add the amount of the etf shares this holding redeem represents in basedenom
+		redeem["osmosis"] = redeem["osmosis"].Add(etfSharesThisHoldingRepresents)
 
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
@@ -277,13 +286,13 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, c
 		}
 
 		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], msg)
+	}
 
-		// take the fund etf shares and escrow them in the fund account. in the ack callback, on success
-		// of all sequences we will burn these shares. If unsuccessful we will send them back to the user (same on timeout).
-		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, fundDefundAcc, types.ModuleName, sdk.NewCoins(amount))
-		if err != nil {
-			return err
-		}
+	// take the fund etf shares and escrow them in the module account. in the ack callback, on success
+	// of sequence we will burn proportionally. If unsuccessful the transfer is reattempted until successful.
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creatorAcc, types.ModuleName, sdk.NewCoins(amount))
+	if err != nil {
+		return err
 	}
 
 	// send each ICA message and add it to the redeem which will be used in end blocker
@@ -294,42 +303,32 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, c
 		if !found {
 			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", broker.Id))
 		}
-		// create the ica multi send message
-		sequence, channelICA, err := k.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
+		// send the send message to broker chain
+		sequence, channel, err := k.brokerKeeper.SendIBCSend(ctx, msg, fund.Address, broker.ConnectionId)
 		if err != nil {
 			return err
 		}
-		// get the ica account address port
-		portID, err := icatypes.NewControllerPortID(fund.Address)
-		if err != nil {
-			return err
-		}
-		// get the ica account address
-		accAddress, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
-		if !found {
-			err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
-			return err
-		}
-		transfer := brokertypes.Transfer{
-			Id:       fmt.Sprintf("%s-%d", channelICA, sequence),
-			Channel:  channelICA,
-			Sequence: sequence,
-			Status:   "tranferring",
-			Token:    &currentCoin,
-			Sender:   accAddress,
-			Receiver: fund.Address,
-		}
-		redeem.Transfers = append(redeem.Transfers, transfer)
-	}
 
-	k.SetRedeem(ctx, redeem)
+		etfAmount := sdk.NewCoin(fund.Shares.Denom, redeem[brokerId])
+
+		// Create the redeem store
+		redeem := types.Redeem{
+			Id:      fmt.Sprintf("%s-%d", channel, sequence),
+			Creator: creator,
+			Fund:    &fund,
+			Amount:  &etfAmount,
+			Status:  types.RedeemState,
+		}
+
+		k.SetRedeem(ctx, redeem)
+	}
 
 	return nil
 }
 
 // CheckHoldings checks to make sure the specified holdings and the pool for each holding are valid
 // by checking the interchain queried pools for the broker specified
-func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
+func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []*types.Holding) error {
 	percentCheck := uint64(0)
 	for _, holding := range holdings {
 		// Add percent composition to percentCheck to later confirm adds to 100%
@@ -340,7 +339,7 @@ func (k Keeper) CheckHoldings(ctx sdk.Context, holdings []types.Holding) error {
 		}
 		// Checks to see if the holding pool contains the holding token specified and if not returns error
 		if !containsAssets(pool.GetAllPoolAssets(), holding.Token) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid/unsupported denom (%s) in pool (%d)", holding.Token, holding.PoolId)
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid denom (%s) for pool (%d) on broker (%s)", holding.Token, holding.PoolId, holding.BrokerId)
 		}
 		// checks to ensure we have the right holding types current: spot, add: staked
 		if holding.Type != "spot" {
@@ -414,16 +413,14 @@ func (k Keeper) getOsmosisRoutes(ctx sdk.Context, currentDenom string, needDenom
 
 // CreateRebalanceMsgs creates the rebalance messages and returns them for the fund in standard interface
 // format.
-func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[string][]interface{}, error) {
+func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.RebalanceMsgs, error) {
 
-	msgs := make(map[string][]interface{})
+	msgs := types.RebalanceMsgs{}
 
-	// slice to store the amount of each holding in the base denom as a coin type
-	allHoldingsInBaseDenom := []sdk.Coin{}
-	// slice to store all the holdings in base denom amounts so we can add them to get total for etf
-	allHoldingsInBaseDenomAmount := []sdk.Int{}
-	// slice to store all the holdings in holding denom as coin type
-	allHoldingsInHoldingDenom := []sdk.Coin{}
+	// slice to store the holdings with price info
+	holdings := types.PricedHoldings{}
+	// used to store the total amount of surplus in basedenom
+	totalOverInBaseDenom := sdk.NewDec(0)
 
 	for _, holding := range fund.Holdings {
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
@@ -450,25 +447,27 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 			}
 		}
 		// get amount of holding token from balances
-		amount := balances.GetCoins().AmountOf(holding.Token)
+		amount := balances.GetCoins().Sort().AmountOf(holding.Token)
 		// get the price of the asset in base denom
-		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
 		if err != nil {
 			return msgs, err
 		}
 		// calculate the amount held of holding in base denom by taking amount and multiplying by price in base denom
-		amountInBaseDenom := amount.Quo(priceInBaseDenom.RoundInt())
+		amountInBaseDenom := amount.ToDec().Mul(priceInBaseDenom)
 
-		// add the pricing/amounts to the slices needed
-		allHoldingsInBaseDenomAmount = append(allHoldingsInBaseDenomAmount, amountInBaseDenom)
-		allHoldingsInBaseDenom = append(allHoldingsInBaseDenom, sdk.NewCoin(fund.BaseDenom, amountInBaseDenom))
-		allHoldingsInHoldingDenom = append(allHoldingsInHoldingDenom, sdk.NewCoin(holding.Token, amount))
+		// add to the totalOverInBaseDenom
+		totalOverInBaseDenom = totalOverInBaseDenom.Add(amountInBaseDenom)
+
+		holding := types.PricedHolding{
+			Holding:        *holding,
+			PriceInBase:    amountInBaseDenom,
+			PriceInHolding: amount.ToDec(),
+		}
+
+		holdings = append(holdings, holding)
+
 	}
-
-	// conversion of slices for convenience
-	allHoldingsInBaseDenomCoins := sdk.NewCoins(allHoldingsInBaseDenom...)
-	allHoldingsInHoldingDenomCoins := sdk.NewCoins(allHoldingsInHoldingDenom...)
-	totalInBaseDenom := sumInts(allHoldingsInBaseDenomAmount)
 
 	// for loop that creates the ICA messages to swap all proportioned surplus holdings to base denom
 	for _, holding := range fund.Holdings {
@@ -487,23 +486,39 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 		}
 		// use some math to get the current composition % for this holding in the fund
 		// (holding in base denom / total in base denom)
-		currentComposition := allHoldingsInBaseDenomCoins.AmountOf(holding.Token).Quo(totalInBaseDenom)
+		currentComposition, err := holdings.GetPercentComposition(holding.Token)
+		if err != nil {
+			return msgs, err
+		}
 		// get the surplus composition % by subtracting the current composition % from what its supposed to be
-		overUnderCompPerc := currentComposition.Sub(sdk.NewInt(holding.Percent / 100))
+		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDecWithPrec(holding.Percent, 2))
 
 		// if we over own the asset
 		if overUnderCompPerc.IsPositive() && !overUnderCompPerc.IsZero() {
+			// convert overUnderCompPerc to absolute value (if negative)
+			overUnderCompPerc = overUnderCompPerc.Abs()
 			// compute the % needed to swap into by multiplying % overUnderCompPerc by the balance of
 			// this holding
-			needToSwapTokenInHoldingDenom := overUnderCompPerc.Mul(allHoldingsInHoldingDenomCoins.Sort().AmountOf(holding.Token))
-			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(allHoldingsInBaseDenomCoins.Sort().AmountOf(holding.Token))
+			amtInHoldingDenom, err := holdings.GetAmountOf(holding.Token, true)
+			if err != nil {
+				return msgs, err
+			}
+			// lets calculate the amount we should have
+			amountWeShouldHaveInBaseDenom := totalOverInBaseDenom.Mul(sdk.NewDecWithPrec(holding.Percent, 2))
+			// get the price of the asset in holding denom
+			priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+			if err != nil {
+				return msgs, err
+			}
+			needToSwapTokenInHoldingDenom := amtInHoldingDenom.Sub(amountWeShouldHaveInBaseDenom).Mul(priceInBaseDenom).RoundInt()
+			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
 			tokenIn := sdk.NewCoin(holding.Token, needToSwapTokenInHoldingDenom)
 			// create the min amount out by using the current holding amount in base denom and then
 			// NOTE: creating a 2% slippage on it (potentially add this as fund param?)
 			tokenOut := needToSwapTokenInBaseDenomDenom.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100))
 			// create holder for msg in switch statement
-			var msg interface{}
+			var msg *osmosisgammtypes.MsgSwapExactAmountIn
 			switch holding.BrokerId {
 			case "osmosis":
 				// get the routes needed to swap for from this current denom to base denom
@@ -517,7 +532,7 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 				}
 			}
 			// append the new message for the broker
-			msgs[holding.BrokerId] = append(msgs[holding.BrokerId], msg)
+			msgs.Osmosis = append(msgs.Osmosis, msg)
 		}
 	}
 
@@ -540,26 +555,37 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 		}
 		// use some math to get the current composition % for this holding in the fund
 		// (holding in base denom / total in base denom)
-		currentComposition := allHoldingsInBaseDenomCoins.AmountOf(holding.Token).Quo(totalInBaseDenom)
+		currentComposition, err := holdings.GetPercentComposition(holding.Token)
+		if err != nil {
+			return msgs, err
+		}
 		// get the surplus composition % by subtracting the current composition % from what its supposed to be
-		overUnderCompPerc := currentComposition.Sub(sdk.NewInt(holding.Percent / 100))
+		overUnderCompPerc := currentComposition.CurrentComp.Sub(sdk.NewDec(holding.Percent).Quo(sdk.NewDec(100)))
 
 		if overUnderCompPerc.IsNegative() && !overUnderCompPerc.IsZero() {
-			// compute the % needed to swap into by multiplying % overUnderCompPerc by the balance of
-			// this holding
-			needToSwapTokenInHoldingDenom := overUnderCompPerc.Mul(allHoldingsInHoldingDenomCoins.Sort().AmountOf(holding.Token))
-			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(allHoldingsInBaseDenomCoins.Sort().AmountOf(holding.Token))
+			// if the current denom is the base denom, we can just skip for base denom as the holding
+			// already is in base denom from the above
+			if fund.BaseDenom == holding.Token {
+				continue
+			}
+			// convert overUnderCompPerc to absolute value (if negative)
+			overUnderCompPerc = overUnderCompPerc.Abs()
+			needToSwapTokenInBaseDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
-			tokenIn := sdk.NewCoin(fund.BaseDenom, needToSwapTokenInBaseDenomDenom)
+			tokenIn := sdk.NewCoin(fund.BaseDenom, needToSwapTokenInBaseDenom)
+			tokenPriceInHoldingDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom)
+			if err != nil {
+				return msgs, err
+			}
 			// create the min amount out by using the current holding amount in base denom and then
 			// NOTE: creating a 2% slippage on it (potentially add this as fund param?)
-			tokenOut := needToSwapTokenInHoldingDenom.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100))
+			tokenOut := needToSwapTokenInBaseDenom.ToDec().Mul(tokenPriceInHoldingDenom).Mul(sdk.NewDec(98)).Quo(sdk.NewDec(100)).RoundInt()
 			// create holder for msg in switch statement
-			var msg interface{}
+			var msg *osmosisgammtypes.MsgSwapExactAmountIn
 			switch holding.BrokerId {
 			case "osmosis":
 				// get the routes needed to swap for from this current denom to base denom
-				routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom)
+				routes, err := k.getOsmosisRoutes(ctx, fund.BaseDenom, holding.Token)
 				if err != nil {
 					return msgs, err
 				}
@@ -569,46 +595,34 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (map[strin
 				}
 			}
 			// append the new message for the broker
-			msgs[holding.BrokerId] = append(msgs[holding.BrokerId], msg)
+			msgs.Osmosis = append(msgs.Osmosis, msg)
 		}
 	}
 
 	return msgs, nil
 }
 
-// SendRebalanceTx sends an ICA tx to each broker chain for each msg that will rebalance the underlying
+// SendRebalanceTx sends an ICA tx to each broker chain with msgs that will rebalance the underlying
 // holdings for the fund
 func (k Keeper) SendRebalanceTx(ctx sdk.Context, fund types.Fund) error {
-
 	// Create the rebalance messages
 	msgs, err := k.CreateRebalanceMsgs(ctx, fund)
 	if err != nil {
 		return err
 	}
 
-	// send msgs for each broker
-	for brokerId, msg := range msgs {
-		broker, found := k.brokerKeeper.GetBroker(ctx, brokerId)
+	// send trades for each supported brokers as long as we have more then one rebalance message for it
+
+	// Osmosis Broker Send
+	// TODO: add a SendStakingTxs function after SendOsmosisTrades for staking ETFs for each holding thats staked
+	if len(msgs.Osmosis) > 0 {
+		broker, found := k.brokerKeeper.GetBroker(ctx, "osmosis")
 		if !found {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", brokerId))
+			return status.Errorf(codes.NotFound, "broker %s not found", "osmosis")
 		}
-		// send messages depending on the broker
-		switch brokerId {
-		case "osmosis":
-			// convert the standard interface to osmosis messages
-			osmoMsgs := []*osmosisgammtypes.MsgSwapExactAmountIn{}
-			for i, m := range msg {
-				newMsg, ok := m.(osmosisgammtypes.MsgSwapExactAmountIn)
-				if !ok {
-					return sdkerrors.Wrap(types.ErrMarshallingError, fmt.Sprintf("SendRebalanceTx: could not convert message at index %d to osmosis msg", i))
-				}
-				osmoMsgs = append(osmoMsgs, &newMsg)
-			}
-			// send the trade through ICA
-			_, err := k.brokerKeeper.SendOsmosisTrades(ctx, osmoMsgs, fund.Address, broker.ConnectionId)
-			if err != nil {
-				return err
-			}
+		_, err = k.brokerKeeper.SendOsmosisTrades(ctx, msgs.Osmosis, fund.Address, broker.ConnectionId)
+		if err != nil {
+			return err
 		}
 	}
 

@@ -1,6 +1,6 @@
 /*
-	This file contains the variables, constants, and default values
-	used in the testing package and commonly defined in tests.
+This file contains the variables, constants, and default values
+used in the testing package and commonly defined in tests.
 */
 package ibctesting
 
@@ -14,6 +14,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v4/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v4/modules/light-clients/07-tendermint/types"
 	"github.com/cosmos/ibc-go/v4/testing/mock"
+	"github.com/cosmos/ibc-go/v4/testing/simapp"
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	// Application Ports
 	TransferPort = ibctransfertypes.ModuleName
 	MockPort     = mock.ModuleName
+	MockFeePort  = simapp.MockFeePort
 
 	// used for testing proposals
 	Title       = "title"
@@ -46,7 +48,9 @@ var (
 
 	// Default params variables used to create a TM client
 	DefaultTrustLevel ibctmtypes.Fraction = ibctmtypes.DefaultTrustLevel
-	TestCoin                              = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+
+	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
