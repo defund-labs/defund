@@ -1,7 +1,6 @@
 <template>
   <div>
     <SpTheme>
-      <Maintenance />
       <Navbar
         :links="navbarLinks"
         :active-route="router.currentRoute.value.path"
@@ -30,13 +29,12 @@ import { useStore } from 'vuex'
 import Success from './components/Success.vue'
 import Warning from './components/Warning.vue'
 import Sending from './components/Sending.vue'
-import Maintenance from './components/Maintenance.vue'
 import { store } from './store/local/store.js'
 import { initializeApp } from "firebase/app";
 import flatten from 'flat';
 import _ from 'lodash';
 export default {
-  components: { SpTheme, Navbar, Success, Warning, Sending, Maintenance },
+  components: { SpTheme, Navbar, Success, Warning, Sending },
 
   beforeCreate() {
     // Setup Firebase

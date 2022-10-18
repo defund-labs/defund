@@ -216,6 +216,9 @@ create-connection:
 init: kill-dev 
 	@echo "Initializing both blockchains..."
 	./network/init.sh
+	@echo "Optimizing network"
+	./testnet/private/update_configs.sh
+	@echo "Starting up network"
 	./network/start.sh
 
 init-rly:
@@ -224,6 +227,8 @@ init-rly:
 	./network/relayer/restore-keys.sh
 
 start: 
+	@echo "Optimizing network"
+	./testnet/private/update_configs.sh
 	@echo "Starting up network"
 	./network/start.sh
 
