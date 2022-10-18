@@ -11,6 +11,7 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		Brokers: []Broker{},
+		Params:  DefaultParams(),
 		// this line is used by starport scaffolding # genesis/types/default
 	}
 }

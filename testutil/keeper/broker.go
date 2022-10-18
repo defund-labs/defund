@@ -41,6 +41,7 @@ func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(
 		codec.NewProtoCodec(registry),
 		storeKey,
+		a.GetSubspace(types.ModuleName),
 		a.ICAControllerKeeper,
 		scopedBrokerKeeper,
 		a.TransferKeeper,

@@ -62,7 +62,7 @@ export interface V1Beta1QueryInflationResponse {
  * QueryParamsResponse is the response type for the Query/Params RPC method.
  */
 export interface V1Beta1QueryParamsResponse {
-  /** params defines the parameters of the module. */
+  /** Params holds parameters for the mint module. */
   params?: V1Beta1Params;
 }
 

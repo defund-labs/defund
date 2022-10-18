@@ -1,39 +1,35 @@
 global:
     api-listen-addr: :5183
-    timeout: 60s
+    timeout: 10s
     memo: ""
     light-cache-size: 20
 chains:
-    defund:
-        type: cosmos
-        value:
-            key: defund
-            chain-id: defund
-            rpc-addr: http://localhost:26657
-            account-prefix: defund
-            keyring-backend: test
-            block-timeout: 6s
-            gas-adjustment: 1.2
-            gas-prices: 0.01ufetf
-            debug: true
-            timeout: 60s
-            output-format: json
-            sign-mode: direct
-    osmosis:
-        type: cosmos
-        value:
-            key: osmo
-            chain-id: osmo-test-4
-            rpc-addr: http://46.166.172.232:26657
-            account-prefix: osmo
-            keyring-backend: test
-            gas-adjustment: 1.2
-            block-timeout: 6s
-            gas-prices: 0.01uosmo
-            debug: true
-            timeout: 60s
-            output-format: json
-            sign-mode: direct
+    - type: cosmos
+      value:
+        key: defund
+        chain-id: defund
+        rpc-addr: https://localhost:26657
+        account-prefix: defund
+        keyring-backend: test
+        gas-adjustment: 1.2
+        gas-prices: 0.01ufetf
+        debug: true
+        timeout: 20s
+        output-format: json
+        sign-mode: direct
+    - type: cosmos
+      value:
+        key: osmo
+        chain-id: osmo-test-4
+        rpc-addr: https://rpc-test.osmosis.zone:443
+        account-prefix: osmo
+        keyring-backend: test
+        gas-adjustment: 1.2
+        gas-prices: 0.01uosmo
+        debug: true
+        timeout: 20s
+        output-format: json
+        sign-mode: direct
 paths:
     defundosmosis:
         src:
@@ -42,8 +38,8 @@ paths:
             connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2320
-            connection-id: connection-1865
+            client-id: 07-tendermint-2517
+            connection-id: connection-2030
         src-channel-filter:
             rule: ""
             channel-list: []

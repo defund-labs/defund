@@ -46,12 +46,15 @@ func AddOsmosisToBrokers(ctx sdk.Context, k keeper.Keeper) error {
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the brokers Defund supports at genesis
 	AddOsmosisToBrokers(ctx, k)
+	// set the broker params
+	k.SetParams(ctx, genState.Params)
 	// this line is used by starport scaffolding # genesis/module/init
 }
 
 // ExportGenesis returns the brokers module's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
+	genesis.Params = k.GetParams(ctx)
 
 	genesis.Brokers = k.GetAllBrokers(ctx)
 	// this line is used by starport scaffolding # genesis/module/export

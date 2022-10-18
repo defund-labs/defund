@@ -11,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -132,6 +133,12 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	)
 	if isFound {
 		return nil, sdkerrors.Wrap(types.ErrSymbolExists, fmt.Sprintf("symbol %s already exists", msg.Symbol))
+	}
+
+	// check to make sure proper base denom is used
+	brokerparams := k.brokerKeeper.GetParam(ctx, brokertypes.KeyBaseDenoms)
+	if msg.BaseDenom != brokerparams.AtomTrace.IBCDenom() && msg.BaseDenom != brokerparams.OsmoTrace.IBCDenom() {
+		return nil, sdkerrors.Wrap(types.ErrWrongBaseDenom, fmt.Sprintf("denom %s is not a valid base denom. must be %s or %s", msg.BaseDenom, brokerparams.AtomTrace.IBCDenom(), brokerparams.OsmoTrace.IBCDenom()))
 	}
 
 	// Generate and get a new fund address
