@@ -70,7 +70,7 @@ type BrokerKeeper interface {
 	GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgammtypes.PoolI, err error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
-	CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
+	CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, account string, denom string) error
 	CreateOsmosisTrade(ctx sdk.Context, trader string, routes []osmosisgammtypes.SwapAmountInRoute, tokenin sdk.Coin, tokenoutminamount sdk.Int) (*osmosisgammtypes.MsgSwapExactAmountIn, error)
 	SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (sequence uint64, err error)
 	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, channel string, err error)

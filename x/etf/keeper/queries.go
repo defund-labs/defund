@@ -32,7 +32,7 @@ func (k Keeper) CreateBalances(ctx sdk.Context, fund types.Fund) error {
 				return status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
 			}
 
-			err = k.brokerKeeper.CreateQueryOsmosisBalance(ctx, addr)
+			err = k.brokerKeeper.CreateQueryOsmosisBalance(ctx, fund.Symbol, addr, holding.Token)
 			if err != nil {
 				return err
 			}

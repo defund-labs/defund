@@ -81,6 +81,10 @@ func AccAddressFromBech32Osmo(address string) (addr sdk.AccAddress, err error) {
 	return sdk.AccAddress(bz), nil
 }
 
+func CreatePrefixedAccountStoreKey(addr []byte, denom []byte) []byte {
+	return append(banktypes.CreateAccountBalancesPrefix(addr), denom...)
+}
+
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 	path := "/store/gamm/key"
@@ -98,16 +102,16 @@ func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
 }
 
 // CreateQueryOsmosisBalance sets an interquery request in store for a Osmosis account balance to be run by relayers
-func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, account string) error {
+func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, account string, denom string) error {
 	path := "/store/bank/key"
 	connectionid := "connection-0"
 	accAddr, err := AccAddressFromBech32Osmo(account)
 	if err != nil {
 		return err
 	}
-	key := banktypes.CreateAccountBalancesPrefix(accAddr.Bytes())
+	key := CreatePrefixedAccountStoreKey(accAddr, []byte(denom))
 	timeoutHeight := uint64(ctx.BlockHeight() + 50)
-	storeid := fmt.Sprintf("account-%s", account)
+	storeid := fmt.Sprintf("balance:%s:osmosis:%s:%s", symbol, account, denom)
 	chainid := "osmo-test-4"
 
 	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
