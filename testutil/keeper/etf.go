@@ -60,7 +60,7 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.QueryKeeper,
-		&a.BrokerKeeper,
+		a.BrokerKeeper,
 		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ClientKeeper,
 		a.ICAControllerKeeper,

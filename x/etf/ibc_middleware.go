@@ -38,7 +38,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	return im.keeper.OnAcknowledgementPacket(ctx, packet, acknowledgement)
+	return nil
 }
 
 // SendPacket implements the ICS4 Wrapper interface

@@ -20,6 +20,10 @@ message FundPrice {
   string symbol = 5;
 }
 
+message Balances {
+  repeated cosmos.base.v1beta1.Coin balances = 1;
+}
+
 message Holding {
   string token = 1;
   int64 percent = 2;
@@ -52,6 +56,7 @@ message Fund {
   ];
   string creator = 10;
   int64  lastRebalanceHeight = 11;
+  map<string, Balances> balances = 12;
 }
 
 message Redeem {

@@ -182,8 +182,7 @@ func (s *KeeperTestSuite) NewICAPath(TestPortID string, TestVersion string, tran
 	return path
 }
 
-func (s *KeeperTestSuite) CreateChannelICA(owner string, transferPath *ibctesting.Path) (connectionId string, portId string) {
-	TestPortID, _ := icatypes.NewControllerPortID(owner)
+func (s *KeeperTestSuite) CreateChannelICA(portid string, transferPath *ibctesting.Path) (connectionId string, portId string) {
 	// TestVersion defines a reusable interchainaccounts version string for testing purposes
 	TestVersion := string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
 		Version:                icatypes.Version,
@@ -193,7 +192,7 @@ func (s *KeeperTestSuite) CreateChannelICA(owner string, transferPath *ibctestin
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
 
-	icaPath := s.NewICAPath(TestPortID, TestVersion, transferPath)
+	icaPath := s.NewICAPath(portid, TestVersion, transferPath)
 
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
@@ -245,25 +244,23 @@ func (s *KeeperTestSuite) CreateFundBalanceQuery(icaAddress string, tokens []sdk
 	for i := range tokens {
 		tokens[i].Amount.Mul(sdk.NewInt(multiplier))
 	}
-	balances := banktypes.Balance{
-		Address: icaAddress,
-		Coins:   sdk.Coins(tokens),
+	for _, token := range tokens {
+		data, err := token.Marshal()
+		s.Assert().NoError(err)
+		height := clienttypes.NewHeight(0, 0)
+		query := querytypes.InterqueryResult{
+			Creator:     s.chainA.SenderAccount.GetAddress().String(),
+			Storeid:     fmt.Sprintf("balance:test:osmosis:%s:%s", icaAddress, token.Denom),
+			Chainid:     s.chainA.ChainID,
+			Data:        data,
+			Height:      &height,
+			LocalHeight: uint64(0),
+			Success:     true,
+			Proved:      true,
+		}
+		err = s.GetDefundApp(s.chainA).EtfKeeper.OnFundBalanceSubmissionCallback(s.chainA.GetContext(), &query)
+		s.Assert().NoError(err)
 	}
-	data, err := balances.Marshal()
-	s.Assert().NoError(err)
-	height := clienttypes.NewHeight(0, 0)
-	query := querytypes.InterqueryResult{
-		Creator:     s.chainA.SenderAccount.GetAddress().String(),
-		Storeid:     fmt.Sprintf("balance-%s", icaAddress),
-		Chainid:     s.chainA.ChainID,
-		Data:        data,
-		Height:      &height,
-		LocalHeight: uint64(0),
-		Success:     true,
-		Proved:      true,
-	}
-	err = s.GetDefundApp(s.chainA).QueryKeeper.SetInterqueryResult(s.chainA.GetContext(), query)
-	s.Assert().NoError(err)
 }
 
 func (s *KeeperTestSuite) CreatePoolQueries(fund types.Fund) {
@@ -304,10 +301,10 @@ func (s *KeeperTestSuite) CreatePoolQueries(fund types.Fund) {
 
 // initTestFund creates a test fund in store and initializes all the requirements
 // for this fund
-func (s *KeeperTestSuite) CreateTestFund() types.Fund {
+func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund types.Fund, connectionId string, portId string, icaAddress string) {
 
 	// create test account address
-	addr := NewFundAddress(fmt.Sprintf("defund1njx8c8yjfsj5g4xnzej9lfl2ugmhldfh4x8c5%d", setupAccountCounter))
+	addr := NewFundAddress("test")
 	// add one to the account counter
 	setupAccountCounter = setupAccountCounter.Add(sdk.OneInt())
 	// create a new module account for the fund account
@@ -333,9 +330,10 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 	portID, err := icatypes.NewControllerPortID(acct.GetAddress().String())
 	s.Assert().NoError(err)
 
+	connectionId, portID = s.CreateChannelICA(portID, transferPath)
+
 	// set the interchain accounts in store since IBC callback will not
-	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetActiveChannelID(s.chainA.GetContext(), broker.ConnectionId, portID, testChannelId)
-	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetInterchainAccountAddress(s.chainA.GetContext(), broker.ConnectionId, portID, acct.GetAddress().String())
+	s.GetDefundApp(s.chainA).ICAControllerKeeper.SetInterchainAccountAddress(s.chainA.GetContext(), connectionId, portID, acct.GetAddress().String())
 
 	// init all the tokens. returns all the initialized coins that were sent to module
 	testAtomIBC, testOsmoIBC, testAktIBC := s.CreateTestTokens()
@@ -362,10 +360,20 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 		Type:     "spot",
 	}
 	// add the holdings as slice of holdings
-	// add the holdings as slice of holdings
 	holdings := []*types.Holding{&holdingOne, &holdingTwo, &holdingThree}
 	shares := sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.NewInt(5000000))
 	startingPrice := sdk.NewCoin(baseDenom, sdk.NewInt(5000000))
+
+	osmosisAccount, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), "connection-0", portID)
+	s.Assert().True(found)
+
+	balances := map[string]*types.Balances{
+		osmosisAccount: {
+			Balances: []*sdk.Coin{
+				&testAtomIBC, &testOsmoIBC, &testAktIBC,
+			},
+		},
+	}
 
 	// create the test fund
 	TestFund := types.Fund{
@@ -378,11 +386,12 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 		BaseDenom:     baseDenom,
 		Rebalance:     10,
 		StartingPrice: &startingPrice,
+		Balances:      balances,
 	}
 	// set the test fund in store
 	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), TestFund)
 
-	return TestFund
+	return TestFund, connectionId, portID, osmosisAccount
 }
 
 func (s *KeeperTestSuite) CreateOsmosisBroker() brokertypes.Broker {
@@ -436,6 +445,20 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 	path := s.NewTransferPath()
 	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
+	s.CreateTestFund(path)
+	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), "test")
+	s.Assert().NoError(err)
+	// Commit new block to store info
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
+	// add them to an account balance
+	err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
+	s.Assert().NoError(err)
+	err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
+	s.Assert().NoError(err)
+	err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
+	s.Assert().NoError(err)
+	s.CreatePoolQueries(fund)
 
 	s.Run("CheckHoldings", func() {
 		s.CreateOsmosisBroker()
@@ -499,24 +522,6 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	})
 
 	s.Run("Create", func() {
-		fund := s.CreateTestFund()
-		// Commit new block to store info
-		s.coordinator.CommitBlock(s.chainA, s.chainB)
-		// We must create an ICA channel here on the broker chain with the test fund address as the owner
-		connectionId, portId := s.CreateChannelICA(fund.Address, path)
-		accAddress, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), connectionId, portId)
-		s.Assert().True(found)
-		atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
-		// add them to an account balance
-		err := s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(atomCoin))
-		s.Assert().NoError(err)
-		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(osmoCoin))
-		s.Assert().NoError(err)
-		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(aktCoin))
-		s.Assert().NoError(err)
-		// create the fake balance query for fund
-		s.CreateFundBalanceQuery(accAddress, []sdk.Coin{atomCoin, osmoCoin, aktCoin}, 1)
-		s.CreatePoolQueries(fund)
 		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(44565793))
 		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)

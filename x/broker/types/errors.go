@@ -16,4 +16,5 @@ var (
 	ErrNotPositiveWeight      = sdkerrors.Register(ModuleName, 9, "token weight should be greater than 0")
 	ErrWeightTooLarge         = sdkerrors.Register(ModuleName, 10, "user specified token weight should be less than 2^20")
 	ErrDenomNotFoundInPool    = sdkerrors.Register(ModuleName, 11, "denom does not exist in pool")
+	ErrInvalidAccount         = sdkerrors.Register(ModuleName, 12, "error with remote account balance query")
 )

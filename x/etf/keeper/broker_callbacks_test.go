@@ -13,11 +13,9 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 	path := s.NewTransferPath()
 	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
 
-	fund := s.CreateTestFund()
+	fund, connectionId, portId, _ := s.CreateTestFund(path)
 	// Commit new block to store info
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
-	// We must create an ICA channel here on the broker chain with the test fund address as the owner
-	connectionId, portId := s.CreateChannelICA(fund.Address, path)
 	accAddress, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), connectionId, portId)
 	s.Assert().True(found)
 	atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()

@@ -68,7 +68,6 @@ type BrokerKeeper interface {
 	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
 	RemoveTransfer(ctx sdk.Context, id string)
 	GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgammtypes.PoolI, err error)
-	GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
 	CreateQueryOsmosisBalance(ctx sdk.Context, account string) error

@@ -27,6 +27,26 @@ func (p PricesSort) Less(i, j int) bool {
 	return p[i].Height < p[j].Height
 }
 
+func (k Keeper) GetBalanceForFundByAddress(ctx sdk.Context, symbol string, address string) (banktypes.Balance, error) {
+	var coins []sdk.Coin
+
+	fund, found := k.GetFund(ctx, symbol)
+	if !found {
+		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
+	}
+
+	for i := range fund.Balances[address].Balances {
+		coins = append(coins, *fund.Balances[address].Balances[i])
+	}
+
+	balance := banktypes.Balance{
+		Address: address,
+		Coins:   sdk.NewCoins(coins...),
+	}
+
+	return balance, nil
+}
+
 // CreateFundPrice creates a current fund price for a fund symbol in the funds base denom
 func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin, err error) {
 	comp := []sdk.Dec{}
@@ -59,18 +79,19 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 			return price, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %d not found on broker %s", holding.PoolId, holding.BrokerId)
 		}
 		var balances banktypes.Balance
+		var priceInBaseDenom sdk.Dec
 		switch holding.BrokerId {
 		case "osmosis":
 			// get the account balances for the fund account on the broker chain
-			balances, err = k.brokerKeeper.GetOsmosisBalance(ctx, fundBrokerAddress)
+			balances, err = k.GetBalanceForFundByAddress(ctx, fund.Symbol, fundBrokerAddress)
 			if err != nil {
 				return price, err
 			}
-		}
-		// Calculate spot price for 1 holding token in base denom
-		priceInBaseDenom, err := k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
-		if err != nil {
-			return price, err
+			// Calculate spot price for 1 holding token in base denom
+			priceInBaseDenom, err = k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
+			if err != nil {
+				return price, err
+			}
 		}
 		// get the holding denom amount from balances
 		holdingBalance := balances.Coins.Sort().AmountOf(holding.Token).ToDec()
@@ -109,7 +130,7 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 			return ownership, status.Errorf(codes.NotFound, "no account found for portID %s", portID)
 		}
 		// get the ica accounts token balances
-		accBalance, err := k.brokerKeeper.GetOsmosisBalance(ctx, accAddress)
+		accBalance, err := k.GetBalanceForFundByAddress(ctx, fund.Symbol, accAddress)
 		if err != nil {
 			return ownership, err
 		}

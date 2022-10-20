@@ -45,15 +45,18 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	}
 }
 
-// SendRebalancesEndBlocker is the end blocker function that sends rebalance ICA's to all broker
-// chains for each fund. If there is an error we just log it and continue
-func (k Keeper) SendRebalancesEndBlocker(ctx sdk.Context) {
+// EndBlocker is the end blocker function for the etf module
+func (k Keeper) EndBlocker(ctx sdk.Context) {
 	funds := k.GetAllFund(ctx)
 
 	for _, fund := range funds {
-		err := k.SendRebalanceTx(ctx, fund)
-		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("rebalance failed for fund %s with error: %s", fund.Symbol, err.Error()))
+		// only need to rebalance if there are assets to actually rebalance aka if we have shares
+		// for this fund
+		if fund.Shares.Amount.GT(sdk.NewInt(0)) {
+			err := k.CreateBalances(ctx, fund)
+			if err != nil {
+				ctx.Logger().Error(fmt.Sprintf("error while creating account balances interqueries for fund %s... Error: %s", fund.Symbol, err.Error()))
+			}
 		}
 	}
 }

@@ -432,7 +432,7 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 		if err != nil {
 			return msgs, err
 		}
-		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
+		fundBrokerAddress, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
 		if !found {
 			return msgs, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
@@ -441,7 +441,7 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 		switch broker.Id {
 		case "osmosis":
 			// get the account balances for the fund account on the broker chain
-			balances, err = k.brokerKeeper.GetOsmosisBalance(ctx, fundBrokerAddress)
+			balances, err = k.GetBalanceForFundByAddress(ctx, fund.Symbol, fundBrokerAddress)
 			if err != nil {
 				return msgs, err
 			}

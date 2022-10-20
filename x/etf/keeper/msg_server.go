@@ -37,8 +37,8 @@ func GetFundDenom(symbol string) string {
 }
 
 func containsString(strings []string, value string) bool {
-	for _, string := range strings {
-		if string == value {
+	for _, v := range strings {
+		if v == value {
 			return true
 		}
 	}
@@ -47,7 +47,7 @@ func containsString(strings []string, value string) bool {
 
 // RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
 // a fund. If no broker account exists, one is created and then stored in the Broker store
-func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc authtypes.AccountI) error {
+func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc string) error {
 	// we must keep track of broker accounts registered so we can make sure we create only one
 	// account per broker.
 	var registeredBrokers []string
@@ -67,7 +67,7 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Hol
 		}
 
 		// Create and save the broker fund ICA account on the broker chain
-		err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc.GetAddress().String())
+		err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc)
 		if err != nil {
 			return err
 		}
@@ -123,9 +123,6 @@ func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, baseden
 func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (*types.MsgCreateFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Basic CreateFund validation
-	msg.ValidateBasic()
-
 	// Check if the value already exists
 	_, isFound := k.GetFund(
 		ctx,
@@ -161,7 +158,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	}
 
 	// Check and create all broker accounts for fund
-	err = k.RegisterBrokerAccounts(ctx, holdings, acc)
+	err = k.RegisterBrokerAccounts(ctx, holdings, fundAddress.String())
 	if err != nil {
 		return nil, err
 	}

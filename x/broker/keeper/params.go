@@ -6,7 +6,7 @@ import (
 )
 
 // Gets the base denom param directly from params
-func (k *Keeper) GetParam(ctx sdk.Context, key []byte) (bd *types.BaseDenoms) {
+func (k Keeper) GetParam(ctx sdk.Context, key []byte) (bd *types.BaseDenoms) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ParamsKey)
 	if bz == nil {

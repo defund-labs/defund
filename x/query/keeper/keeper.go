@@ -19,6 +19,8 @@ type (
 		storeKey sdk.StoreKey
 		memKey   sdk.StoreKey
 
+		callbacks []func(ctx sdk.Context, result *types.InterqueryResult) error
+
 		accountKeeper    types.AccountKeeper
 		connectionKeeper types.ConnectionKeeper
 		clientKeeper     types.ClientKeeper
@@ -129,4 +131,9 @@ func (k Keeper) ModuleEndBlocker(ctx sdk.Context) {
 
 	//Emit the query event
 	ctx.EventManager().EmitEvents(events)
+}
+
+// AddCallback adds a callback to be run on a MsgSubmitInterqueryResult
+func (k *Keeper) AddCallback(callback func(ctx sdk.Context, result *types.InterqueryResult) error) {
+	k.callbacks = append(k.callbacks, callback)
 }

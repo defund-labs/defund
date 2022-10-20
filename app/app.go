@@ -176,8 +176,8 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		etfmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
-		icatypes.ModuleName:            nil,
 		brokermoduletypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+		icatypes.ModuleName:            nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -308,9 +308,9 @@ func New(
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedBrokerKeeper := app.CapabilityKeeper.ScopeToModule(brokermoduletypes.ModuleName)
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
+	scopedBrokerKeeper := app.CapabilityKeeper.ScopeToModule(brokermoduletypes.ModuleName)
 	scopedETFKeeper := app.CapabilityKeeper.ScopeToModule(etfmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
@@ -429,13 +429,16 @@ func New(
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.QueryKeeper,
-		&app.BrokerKeeper,
+		app.BrokerKeeper,
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
 		app.ICAControllerKeeper,
 		app.TransferKeeper,
 	)
-	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, &app.BrokerKeeper)
+	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
+
+	// add the ETF interquery callbacks
+	app.QueryKeeper.AddCallback(app.EtfKeeper.OnFundBalanceSubmissionCallback)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
