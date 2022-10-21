@@ -166,6 +166,7 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	am.keeper.EtfQueryCleanerBeginBlocker(ctx)
 	am.keeper.SendPendingTransfers(ctx)
 }
 

@@ -171,6 +171,8 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	startPrice := sdk.NewCoin(msg.BaseDenom, sdk.NewInt(rawIntStartingPrice))
 	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
+	balances := make(map[string]*types.Balances)
+
 	var fund = types.Fund{
 		Creator:       msg.Creator,
 		Symbol:        msg.Symbol,
@@ -182,6 +184,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		BaseDenom:     msg.BaseDenom,
 		Rebalance:     msg.Rebalance,
 		StartingPrice: &startPrice,
+		Balances:      balances,
 	}
 
 	k.SetFund(

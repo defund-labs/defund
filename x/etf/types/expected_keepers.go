@@ -84,6 +84,8 @@ type ChannelKeeper interface {
 
 type InterqueryKeeper interface {
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
+	GetAllInterqueryResult(ctx sdk.Context) (list []querytypes.InterqueryResult)
+	RemoveInterqueryResult(ctx sdk.Context, storeid string)
 }
 
 type ConnectionKeeper interface {

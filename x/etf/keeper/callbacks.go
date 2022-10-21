@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	"github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
@@ -59,35 +60,53 @@ func (k Keeper) OnFundBalanceSubmissionCallback(ctx sdk.Context, result *queryty
 			return status.Errorf(codes.InvalidArgument, "account mismatch. ICA fund account for fund %s on broker %s is %s (received %s)", fundSymbol, brokerId, icaAddr, account)
 		}
 
-		bals := types.Balances{
-			Balances: []*sdk.Coin{},
-		}
-
-		if _, ok := fund.Balances[account]; ok {
-			// remove this balance from the list of balances
-			for i := range bals.Balances {
-				if bals.Balances[i].Denom == denom {
-					bals.Balances = removeCoin(bals.Balances, i)
-					break
-				}
-			}
-		} else {
-			fund.Balances[account] = &bals
-		}
-
-		// lets add the balance to list of balances for broker
 		var coin sdk.Coin
 		err = coin.Unmarshal(result.Data)
 		if err != nil {
 			return err
 		}
-		bals.Balances = append(bals.Balances, &coin)
 
-		// set the new balances for this broker
-		fund.Balances[account].Balances = bals.Balances
+		m := make(map[string]*types.Balances)
+
+		newBals := types.Balances{
+			Balances: []*sdk.Coin{&coin},
+		}
+		m[account] = &newBals
+
+		for key, value := range fund.Balances {
+			// if the key from the old balances is the account we are updating
+			if key == account {
+				for _, c := range value.Balances {
+					// if the coin is not the denom we are updating append
+					if c.Denom != denom {
+						newBals.Balances = append(newBals.Balances, c)
+						m[account] = &newBals
+					}
+				}
+			} else {
+				// if the account is not the account we are updating, just add to the new map
+				m[key] = value
+			}
+		}
+
 		// reset fund with updated balances
+		fund.Balances = m
 		k.SetFund(ctx, fund)
 	}
 
 	return nil
+}
+
+func (k Keeper) EtfQueryCleanerBeginBlocker(ctx sdk.Context) {
+	results := k.queryKeeper.GetAllInterqueryResult(ctx)
+	for _, result := range results {
+		err := k.OnFundBalanceSubmissionCallback(ctx, &result)
+		if err != nil {
+			retErr := sdkerrors.Wrapf(types.ErrBeginBlocker, "EtfQueryCleanerBeginBlocker: error running OnFundBalanceSubmissionCallback (%s)", err.Error())
+			k.Logger(ctx).Error(retErr.Error())
+			continue
+		}
+		// clean the store result
+		k.queryKeeper.RemoveInterqueryResult(ctx, result.Storeid)
+	}
 }

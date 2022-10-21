@@ -144,14 +144,6 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 
 		// Create the interquery result in the store
 		k.SetInterqueryResult(ctx, interqueryresult)
-
-		// run all the icq success callbacks
-		for _, callback := range k.callbacks {
-			err := callback(ctx, &interqueryresult)
-			if err != nil {
-				return nil, sdkerrors.Wrapf(types.ErrFailedCallback, err.Error())
-			}
-		}
 	} else {
 		// if we got a nil response, verify non inclusion proof.
 		if err := merkleProof.VerifyNonMembership(tmclientstate.ProofSpecs, consensusState.GetRoot(), path); err != nil {

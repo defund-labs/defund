@@ -53,10 +53,14 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 		// only need to rebalance if there are assets to actually rebalance aka if we have shares
 		// for this fund
 		if fund.Shares.Amount.GT(sdk.NewInt(0)) {
-			err := k.CreateBalances(ctx, fund)
+			err := k.SendRebalanceTx(ctx, fund)
 			if err != nil {
-				ctx.Logger().Error(fmt.Sprintf("error while creating account balances interqueries for fund %s... Error: %s", fund.Symbol, err.Error()))
+				ctx.Logger().Error(fmt.Sprintf("rebalance failed for fund %s with error: %s", fund.Symbol, err.Error()))
 			}
+		}
+		err := k.CreateBalances(ctx, fund)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("error while creating account balance interqueries for fund %s... Error: %s", fund.Symbol, err.Error()))
 		}
 	}
 }
