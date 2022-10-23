@@ -88,7 +88,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 				return price, err
 			}
 			// Calculate spot price for 1 holding token in base denom
-			priceInBaseDenom, err = k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom, holding.Token)
+			priceInBaseDenom, err = k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
 			if err != nil {
 				return price, err
 			}
@@ -101,7 +101,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		comp = append(comp, priceWeighted)
 	}
 	total := sumDecs(comp).Mul(sdk.NewDec(1000000)).RoundInt()
-	price = sdk.NewCoin(fund.BaseDenom, total.Quo(fund.Shares.Amount))
+	price = sdk.NewCoin(fund.BaseDenom.OnBroker, total.Quo(fund.Shares.Amount))
 	return price, nil
 }
 
@@ -149,8 +149,8 @@ func (k Keeper) GetOwnershipSharesInFund(ctx sdk.Context, fund types.Fund, fundS
 // The base denom must be used for the tokenIn or it will error.
 func (k Keeper) GetAmountETFSharesForToken(ctx sdk.Context, fund types.Fund, tokenIn sdk.Coin) (etfShares sdk.Coin, err error) {
 	// Make sure the tokenIn is the correct base denom for the fund
-	if fund.BaseDenom != tokenIn.Denom {
-		return etfShares, sdkerrors.Wrapf(types.ErrWrongBaseDenom, "the base denom for the fund is %s not %s", fund.BaseDenom, tokenIn.Denom)
+	if fund.BaseDenom.OnDefund != tokenIn.Denom {
+		return etfShares, sdkerrors.Wrapf(types.ErrWrongBaseDenom, "the base denom for the fund is %s not %s", fund.BaseDenom.OnDefund, tokenIn.Denom)
 	}
 
 	fundPrice, err := k.CreateFundPrice(ctx, fund.Symbol)

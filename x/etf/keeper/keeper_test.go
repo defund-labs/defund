@@ -47,7 +47,6 @@ var (
 	testFundDesc        = "test"
 	testFundName        = "test"
 	baseDenom           = "uosmo"
-	testChannelId       = "channel-0"
 
 	poolsOsmosis = []uint64{
 		1, 3,
@@ -375,6 +374,13 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		},
 	}
 
+	basedenoms := s.GetDefundApp(s.chainA).BrokerKeeper.GetParam(s.chainA.GetContext(), brokertypes.ParamsKey)
+
+	basedenom := types.BaseDenom{
+		OnDefund: basedenoms.OsmoTrace.IBCDenom(),
+		OnBroker: "uosmo",
+	}
+
 	// create the test fund
 	TestFund := types.Fund{
 		Symbol:        testFundSymbol,
@@ -383,7 +389,7 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		Description:   testFundDesc,
 		Shares:        &shares,
 		Holdings:      holdings,
-		BaseDenom:     baseDenom,
+		BaseDenom:     &basedenom,
 		Rebalance:     10,
 		StartingPrice: &startingPrice,
 		Balances:      balances,
@@ -410,7 +416,7 @@ func (s *KeeperTestSuite) CreateOsmosisBroker() brokertypes.Broker {
 		Id:           "osmosis",
 		ConnectionId: "connection-0",
 		Pools:        pools,
-		Status:       "inactive",
+		Status:       "active",
 	}
 
 	s.GetDefundApp(s.chainA).BrokerKeeper.SetBroker(s.chainA.GetContext(), broker)
@@ -522,7 +528,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	})
 
 	s.Run("Create", func() {
-		tokenIn := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(44565793))
+		tokenIn := sdk.NewCoin(fund.BaseDenom.OnBroker, sdk.NewInt(44565793))
 		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		s.Assert().Equal(shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(1000000)))
@@ -544,8 +550,13 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 			OsmosisAddress: s.chainA.SenderAccount.GetAddress().String(),
 		}
 
+		// mint and then send the etf coins to the redeemer
+		err := s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), "etf", sdk.NewCoins(tokenInRedeem))
+		s.Assert().NoError(err)
+		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), "etf", s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenInRedeem))
+
 		// redeem the created shares from above
-		err := s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
 		s.Assert().NoError(err)
 	})
 

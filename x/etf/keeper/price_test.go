@@ -36,7 +36,7 @@ func (s *KeeperTestSuite) TestCreatePrice() {
 
 	s.Run("GetAmountETFSharesForTokens", func() {
 		// create fund shares
-		newShares := sdk.NewCoin(fund.BaseDenom, sdk.NewInt(44565793))
+		newShares := sdk.NewCoin(fund.BaseDenom.OnDefund, sdk.NewInt(44565793))
 
 		ownership, err := s.GetDefundApp(s.chainA).EtfKeeper.GetAmountETFSharesForToken(s.chainA.GetContext(), fund, newShares)
 		s.Assert().NoError(err)

@@ -68,3 +68,8 @@ echo -E "${contents}" > ./network/data/defund/config/genesis.json
 # Change brokers in broker in genesis file to blank so it will run broker function
 contents="$(jq '.app_state.broker.brokers = []' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json
+# Change base denoms in genesis file
+contents="$(jq '.app_state.broker.params.base_denoms.AtomTrace.path = "transfer/channel-0/transfer/channel-0"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
+contents="$(jq '.app_state.broker.params.base_denoms.OsmoTrace.path = "transfer/channel-0"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json

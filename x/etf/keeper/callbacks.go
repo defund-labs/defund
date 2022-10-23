@@ -12,16 +12,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func removeCoin(s []*sdk.Coin, i int) []*sdk.Coin {
-	coins := []*sdk.Coin{}
-	for index := range s {
-		if index != i {
-			coins = append(coins, s[i])
-		}
-	}
-	return coins
-}
-
 // OnFundBalanceSubmissionCallback is called on the submission of an interquery result. It runs if the
 // interquery is a /store/bank/key. It takes the raw balance query for each denom from the remote
 // broker chains and adjusts the balances store for the fund on Defund to reflect the updated balance

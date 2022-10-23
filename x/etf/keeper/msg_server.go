@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
@@ -45,6 +46,23 @@ func containsString(strings []string, value string) bool {
 	return false
 }
 
+func removeLastChannel(path string) string {
+	var newPath string = ""
+	splits := strings.Split(path, "/")
+	if len(splits) > 2 {
+		for i := range splits[0 : len(splits)-2] {
+			newPath = newPath + splits[i]
+			if i != len(splits)-3 {
+				newPath = newPath + "/"
+			}
+		}
+	}
+	if len(splits) == 2 {
+		newPath = ""
+	}
+	return newPath
+}
+
 // RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
 // a fund. If no broker account exists, one is created and then stored in the Broker store
 func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc string) error {
@@ -77,7 +95,7 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Hol
 	return nil
 }
 
-// Helper function that parses a string of holdings in the format "ATOM:50:osmosis:1,OSMO:50:osmosis:2" (DENOM:PERCENT:BROKER:POOL,...) into a slice of type holding
+// Helper function that parses a string of holdings in the format "uatom:50:osmosis:1:spot,uosmo:50:osmosis:2:spot" (DENOM:PERCENT:BROKER:POOL:TYPE,...) into a slice of type holding
 // and checks to make sure that the holdings are all supported denoms from the specified broker and pool
 func (k msgServer) ParseStringHoldings(ctx sdk.Context, holdings string, basedenom string) ([]*types.Holding, error) {
 	rawHoldings := strings.Split(holdings, ",")
@@ -133,9 +151,31 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	}
 
 	// check to make sure proper base denom is used
-	brokerparams := k.brokerKeeper.GetParam(ctx, brokertypes.ParamsKey)
-	if msg.BaseDenom != brokerparams.AtomTrace.IBCDenom() && msg.BaseDenom != brokerparams.OsmoTrace.IBCDenom() {
-		return nil, sdkerrors.Wrap(types.ErrWrongBaseDenom, fmt.Sprintf("denom %s is not a valid base denom. must be %s or %s", msg.BaseDenom, brokerparams.AtomTrace.IBCDenom(), brokerparams.OsmoTrace.IBCDenom()))
+	if msg.BaseDenom != "atom" && msg.BaseDenom != "osmo" {
+		return nil, sdkerrors.Wrap(types.ErrWrongBaseDenom, fmt.Sprintf("denom %s is not a valid base denom. must be atom or osmo", msg.BaseDenom))
+	}
+
+	var basedenom types.BaseDenom
+	basedenoms := k.brokerKeeper.GetParam(ctx, brokertypes.ParamsKey)
+	if msg.BaseDenom == "atom" {
+		basedenom.OnDefund = basedenoms.AtomTrace.IBCDenom()
+		// create the broker chain denom
+		newPath := removeLastChannel(basedenoms.AtomTrace.Path)
+		newTrace := ibctransfertypes.DenomTrace{
+			Path:      newPath,
+			BaseDenom: basedenoms.AtomTrace.BaseDenom,
+		}
+		basedenom.OnBroker = newTrace.IBCDenom()
+	}
+	if msg.BaseDenom == "osmo" {
+		basedenom.OnDefund = basedenoms.OsmoTrace.IBCDenom()
+		// create the broker chain denom
+		newPath := removeLastChannel(basedenoms.OsmoTrace.Path)
+		newTrace := ibctransfertypes.DenomTrace{
+			Path:      newPath,
+			BaseDenom: basedenoms.OsmoTrace.BaseDenom,
+		}
+		basedenom.OnBroker = newTrace.IBCDenom()
 	}
 
 	// Generate and get a new fund address
@@ -152,7 +192,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	))
 	k.accountKeeper.SetAccount(ctx, acc)
 
-	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings, msg.BaseDenom)
+	holdings, err := k.ParseStringHoldings(ctx, msg.Holdings, basedenom.OnBroker)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +208,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	if err != nil {
 		return nil, err
 	}
-	startPrice := sdk.NewCoin(msg.BaseDenom, sdk.NewInt(rawIntStartingPrice))
+	startPrice := sdk.NewCoin(basedenom.OnBroker, sdk.NewInt(rawIntStartingPrice))
 	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
 	balances := make(map[string]*types.Balances)
@@ -181,7 +221,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Description:   msg.Description,
 		Shares:        &shares,
 		Holdings:      holdings,
-		BaseDenom:     msg.BaseDenom,
+		BaseDenom:     &basedenom,
 		Rebalance:     msg.Rebalance,
 		StartingPrice: &startPrice,
 		Balances:      balances,
@@ -204,6 +244,11 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", fund.Symbol)
+	}
+
+	// base denom tokenIn check
+	if msg.TokenIn.Denom != fund.BaseDenom.OnDefund {
+		return nil, sdkerrors.Wrap(types.ErrWrongBaseDenom, fmt.Sprintf("denom %s is not a valid base denom for token in. the base denom for this fund is %s", msg.TokenIn.Denom, fund.BaseDenom.OnDefund))
 	}
 
 	timeoutHeight, err := clienttypes.ParseHeight(msg.TimeoutHeight)

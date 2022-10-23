@@ -8,6 +8,11 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
+message BaseDenom {
+  string onDefund = 1;
+  string onBroker = 2;
+}
+
 message FundPrice {
   string id = 1;
   int64 height = 2;
@@ -49,7 +54,7 @@ message Fund {
     (gogoproto.nullable) = true
   ];
   int64 rebalance = 7;
-  string baseDenom = 8;
+  BaseDenom baseDenom = 8;
   cosmos.base.v1beta1.Coin startingPrice = 9 [
     (gogoproto.moretags) = "yaml:\"starting_price\"",
     (gogoproto.nullable) = true

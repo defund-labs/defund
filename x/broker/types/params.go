@@ -39,7 +39,7 @@ func NewParams(
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		"", "uatom", "", "uosmo",
+		"transfer/channel-0/transfer/channel-0", "uatom", "transfer/channel-0", "uosmo",
 	)
 }
 
