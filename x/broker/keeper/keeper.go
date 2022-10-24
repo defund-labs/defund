@@ -22,6 +22,7 @@ import (
 	"github.com/defund-labs/defund/x/broker/types"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	transferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
@@ -34,6 +35,8 @@ type Keeper struct {
 
 	storeKey sdk.StoreKey
 
+	paramstore paramtypes.Subspace
+
 	scopedKeeper        capabilitykeeper.ScopedKeeper
 	icaControllerKeeper icacontrollerkeeper.Keeper
 	transferKeeper      transferkeeper.Keeper
@@ -45,10 +48,12 @@ type Keeper struct {
 	bankKeeper          bankkeeper.Keeper
 }
 
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper, etfkeeper etfkeeper.Keeper, bankkeeper bankkeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Subspace, iaKeeper icacontrollerkeeper.Keeper, scopedKeeper capabilitykeeper.ScopedKeeper, transferKeeper transferkeeper.Keeper, channelKeeper channelkeeper.Keeper, connectionkeeper connectionkeeper.Keeper, clientkeeper clientkeeper.Keeper, querykeeper querykeeper.Keeper, etfkeeper etfkeeper.Keeper, bankkeeper bankkeeper.Keeper) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
+
+		paramstore: paramstore,
 
 		scopedKeeper:        scopedKeeper,
 		icaControllerKeeper: iaKeeper,

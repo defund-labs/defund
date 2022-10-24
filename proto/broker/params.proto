@@ -1,0 +1,18 @@
+syntax = "proto3";
+package defundlabs.defund.broker;
+
+import "gogoproto/gogo.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
+
+option go_package = "github.com/defund-labs/defund/x/broker/types";
+
+message BaseDenoms{
+    ibc.applications.transfer.v1.DenomTrace AtomTrace = 1;
+    ibc.applications.transfer.v1.DenomTrace OsmoTrace = 2;
+}
+
+// Params defines the parameters for the broker module.
+message Params {
+    // set the base denoms
+    BaseDenoms base_denoms = 1;
+}

@@ -1,6 +1,8 @@
 package etf
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -38,7 +40,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	return im.keeper.OnAcknowledgementPacket(ctx, packet, acknowledgement)
+	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 // SendPacket implements the ICS4 Wrapper interface
@@ -47,7 +49,7 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
-	return nil
+	return im.keeper.SendPacket(ctx, chanCap, packet)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -57,7 +59,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return nil
+	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -116,7 +118,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -125,17 +127,17 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
-// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) (ack exported.Acknowledgement) {
-	return ack
+	im.keeper.Logger(ctx).Debug(fmt.Sprintf("received transfer packet (sequence: %d) through etf middleware", packet.Sequence))
+	return im.app.OnRecvPacket(ctx, packet, relayer)
 }
 
 func (im IBCMiddleware) OnTimeoutPacket(
@@ -143,7 +145,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return nil
+	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
 // GetAppVersion returns the application version of the underlying application

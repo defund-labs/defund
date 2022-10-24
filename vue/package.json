@@ -1,5 +1,5 @@
 {
-  "author": "Tendermint, Inc \u003chello@tendermint.com\u003e",
+  "author": "Defund Labs",
   "dependencies": {
     "@cosmjs/launchpad": "0.27.0",
     "@cosmjs/proto-signing": "0.27.0",
@@ -28,7 +28,7 @@
     "vuetify": "^3.0.0-beta.1",
     "vuex": "^4.0.2"
   },
-  "description": "A Vue 3 boilerplate project utilizing @starport/vue and @starport/vuex",
+  "description": "Defund Labs HQ Web App",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-dynamic-import-vars": "^1.4.1",
@@ -41,8 +41,8 @@
     "vite-plugin-dynamic-import": "^0.1.1",
     "vite-plugin-env-compatible": "^1.1.1"
   },
-  "name": "@starport/template",
-  "private": true,
+  "name": "defundfrontend",
+  "private": false,
   "scripts": {
     "build": "vite build",
     "dev": "vite",

@@ -1,13 +1,15 @@
 /* eslint-disable */
 import { Broker } from "../broker/broker";
+import { Params } from "../broker/params";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
 /** GenesisState defines the broker module's genesis state. */
 export interface GenesisState {
-  /** this line is used by starport scaffolding # genesis/proto/state */
   brokers: Broker[];
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  params: Params | undefined;
 }
 
 const baseGenesisState: object = {};
@@ -16,6 +18,9 @@ export const GenesisState = {
   encode(message: GenesisState, writer: Writer = Writer.create()): Writer {
     for (const v of message.brokers) {
       Broker.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -30,6 +35,9 @@ export const GenesisState = {
       switch (tag >>> 3) {
         case 1:
           message.brokers.push(Broker.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.params = Params.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -47,6 +55,11 @@ export const GenesisState = {
         message.brokers.push(Broker.fromJSON(e));
       }
     }
+    if (object.params !== undefined && object.params !== null) {
+      message.params = Params.fromJSON(object.params);
+    } else {
+      message.params = undefined;
+    }
     return message;
   },
 
@@ -59,6 +72,8 @@ export const GenesisState = {
     } else {
       obj.brokers = [];
     }
+    message.params !== undefined &&
+      (obj.params = message.params ? Params.toJSON(message.params) : undefined);
     return obj;
   },
 
@@ -69,6 +84,11 @@ export const GenesisState = {
       for (const e of object.brokers) {
         message.brokers.push(Broker.fromPartial(e));
       }
+    }
+    if (object.params !== undefined && object.params !== null) {
+      message.params = Params.fromPartial(object.params);
+    } else {
+      message.params = undefined;
     }
     return message;
   },

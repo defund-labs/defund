@@ -60,6 +60,7 @@ func TestShowFund(t *testing.T) {
 
 			args: common,
 			obj:  objs[0],
+			err:  nil,
 		},
 		{
 			desc:    "not found",

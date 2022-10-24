@@ -67,11 +67,24 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 
 	// replace the base64 encoded data with bytes
 	data, err := base64.StdEncoding.DecodeString(msg.Data)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get the interquery from store
 	interquery, isFound := k.GetInterquery(ctx, msg.Storeid)
 	if !isFound {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Interquery with StoreId %s could not be found.", msg.Storeid))
+	}
+	// get past interquery result from store if it exists. If it doesnts proceed
+	interqueryResult, isFound := k.GetInterqueryResult(ctx, msg.Storeid)
+
+	// if a past interquery exists, if the height of this data is less then the current height, abort
+	// as we only accept updated data.
+	if isFound {
+		if interqueryResult.Height.RevisionHeight > msg.Height.RevisionHeight {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Interquery results must be a higher block then current result. current interquery height: %d. submitted interquery height: %d", interqueryResult.Height.RevisionHeight, msg.Height.RevisionHeight))
+		}
 	}
 
 	pathList := strings.Split(interquery.Path, "/")
@@ -127,8 +140,10 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 			Success:     true,
 			Proved:      true,
 		}
-		k.Logger(ctx).Debug("interquery result proof validated", "module", types.ModuleName, "queryId", msg.Storeid)
+		k.Logger(ctx).Debug("interquery result proof validated. Updating query state", "module", types.ModuleName, "queryId", msg.Storeid)
 
+		// Create the interquery result in the store
+		k.SetInterqueryResult(ctx, interqueryresult)
 	} else {
 		// if we got a nil response, verify non inclusion proof.
 		if err := merkleProof.VerifyNonMembership(tmclientstate.ProofSpecs, consensusState.GetRoot(), path); err != nil {
@@ -142,11 +157,8 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 			Success: false,
 			Proved:  true,
 		}
-		k.Logger(ctx).Debug("interquery result non-inclusion proof has been validated!", "module", types.ModuleName, "queryId", msg.Storeid)
+		k.Logger(ctx).Debug("interquery result non-inclusion proof has been validated! Not updating query state", "module", types.ModuleName, "queryId", msg.Storeid)
 	}
-
-	// Create the interquery result in the store
-	k.SetInterqueryResult(ctx, interqueryresult)
 
 	// Remove/cleanup the pending interquery from the store
 	k.RemoveInterquery(ctx, interqueryresult.Storeid)

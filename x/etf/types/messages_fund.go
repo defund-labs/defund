@@ -57,11 +57,5 @@ func (msg *MsgCreateFund) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	// Ensure that an allowed basedenom is used. Currently we support uosmo, uatom (osmosis ibc denom),
-	// and axlusdc (osmosis ibc type)
-	if (msg.BaseDenom != "uosmo") && (msg.BaseDenom != "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2") {
-		return sdkerrors.Wrapf(ErrWrongBaseDenom, "invalid base denom (%s). must be uosmo or ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 (uatom)", msg.BaseDenom)
-	}
-
 	return nil
 }

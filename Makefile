@@ -213,9 +213,12 @@ create-connection:
 	@echo "Creating Defund -> Osmosis Connection"
 	hermes -c ./network/hermes/config.toml create connection defund osmosis
 
-init: kill-dev 
+init:
 	@echo "Initializing both blockchains..."
 	./network/init.sh
+	@echo "Optimizing network"
+	./testnet/private/update_configs.sh
+	@echo "Starting up network"
 	./network/start.sh
 
 init-rly:
@@ -224,6 +227,8 @@ init-rly:
 	./network/relayer/restore-keys.sh
 
 start: 
+	@echo "Optimizing network"
+	./testnet/private/update_configs.sh
 	@echo "Starting up network"
 	./network/start.sh
 
@@ -243,12 +248,12 @@ install-all:
 	./network/ts-relayer/install.sh
 
 kill-dev:
-	@echo "Killing defundd, osmosis, hermes, ts-relayer and removing previous data"
+	@echo "Killing defundd, osmosis, hermes, ts-relayer (node processses) and removing previous data"
 	-@rm -rf ./network/data
 	-@killall defundd 2>/dev/null
 	-@killall node 2>/dev/null
-	-@killall osmosis 2>/dev/null
-	-@killall rly 2>/dev/null
+	-@killall hermes 2>/dev/null
+#	-@killall rly 2>/dev/null
 
 ###############################################################################
 ###                                  Test                                   ###

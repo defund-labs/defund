@@ -68,13 +68,13 @@ type BrokerKeeper interface {
 	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
 	RemoveTransfer(ctx sdk.Context, id string)
 	GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgammtypes.PoolI, err error)
-	GetOsmosisBalance(ctx sdk.Context, account string) (banktypes.Balance, error)
 	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
-	CreateQueryOsmosisBalance(ctx sdk.Context, account string) error
+	CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, account string, denom string) error
 	CreateOsmosisTrade(ctx sdk.Context, trader string, routes []osmosisgammtypes.SwapAmountInRoute, tokenin sdk.Coin, tokenoutminamount sdk.Int) (*osmosisgammtypes.MsgSwapExactAmountIn, error)
 	SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (sequence uint64, err error)
 	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, channel string, err error)
+	GetParam(ctx sdk.Context, key []byte) *brokertypes.BaseDenoms
 }
 
 type ChannelKeeper interface {
@@ -84,6 +84,8 @@ type ChannelKeeper interface {
 
 type InterqueryKeeper interface {
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
+	GetAllInterqueryResult(ctx sdk.Context) (list []querytypes.InterqueryResult)
+	RemoveInterqueryResult(ctx sdk.Context, storeid string)
 }
 
 type ConnectionKeeper interface {

@@ -5,7 +5,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	"github.com/defund-labs/defund/x/etf/types"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
 )
 
 func (s *KeeperTestSuite) TestBrokerCallbacks() {
@@ -13,11 +12,9 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 	path := s.NewTransferPath()
 	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
 
-	fund := s.CreateTestFund()
+	fund, connectionId, portId, _ := s.CreateTestFund(path)
 	// Commit new block to store info
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
-	// We must create an ICA channel here on the broker chain with the test fund address as the owner
-	connectionId, portId := s.CreateChannelICA(fund.Address, path)
 	accAddress, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), connectionId, portId)
 	s.Assert().True(found)
 	atomCoin, osmoCoin, aktCoin := s.CreateTestTokens()
@@ -44,7 +41,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		moduleAccount := s.GetDefundApp(s.chainA).AccountKeeper.GetModuleAddress("etf")
 		balance := s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), moduleAccount)
 		s.Assert().Contains(balance, amount)
-		redeem := etftypes.Redeem{
+		redeem := types.Redeem{
 			Creator: s.chainA.SenderAccount.GetAddress().String(),
 			Fund:    &fund,
 			Amount:  &amount,
@@ -68,7 +65,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		moduleAccount := s.GetDefundApp(s.chainA).AccountKeeper.GetModuleAddress("etf")
 		balance := s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), moduleAccount)
 		s.Assert().Contains(balance, amount)
-		redeem := etftypes.Redeem{
+		redeem := types.Redeem{
 			Creator: s.chainA.SenderAccount.GetAddress().String(),
 			Fund:    &fund,
 			Amount:  &amount,
@@ -90,7 +87,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 	})
 
 	s.Run("OnRebalanceSuccess", func() {
-		rebalance := etftypes.Rebalance{
+		rebalance := types.Rebalance{
 			Id:     "channel-1-1",
 			Fund:   &fund,
 			Height: 1,
@@ -113,7 +110,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 	})
 
 	s.Run("OnRebalanceFailure", func() {
-		rebalance := etftypes.Rebalance{
+		rebalance := types.Rebalance{
 			Id:     "channel-1-1",
 			Fund:   &fund,
 			Height: 1,

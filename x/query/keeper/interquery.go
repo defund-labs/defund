@@ -139,11 +139,7 @@ func (k Keeper) GetInterqueryResult(
 }
 
 // RemoveInterqueryResult removes an interquery result from the store
-func (k Keeper) RemoveInterqueryResult(
-	ctx sdk.Context,
-	storeid string,
-
-) {
+func (k Keeper) RemoveInterqueryResult(ctx sdk.Context, storeid string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.InterqueryResultKeyPrefix)
 	store.Delete(types.InterqueryResultKey(
 		storeid,

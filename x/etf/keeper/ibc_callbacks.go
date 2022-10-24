@@ -12,8 +12,9 @@ import (
 // OnTransferSuccess runs the transfer success logic which deletes the transfer from the store
 func (k Keeper) OnTransferSuccess(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	transfer, found := k.brokerKeeper.GetTransfer(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+	// if not found continue with logic
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCreateNotFound, "transfer %s not found", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+		return nil
 	}
 	ctx.Logger().Debug(fmt.Sprintf("transfer %s was completed successfully", transfer.Id))
 	k.brokerKeeper.RemoveTransfer(ctx, transfer.Id)
@@ -24,8 +25,9 @@ func (k Keeper) OnTransferSuccess(ctx sdk.Context, packet channeltypes.Packet, a
 // In the future may add a retry limit.
 func (k Keeper) OnTransferFailure(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	transfer, found := k.brokerKeeper.GetTransfer(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+	// if not found continue with logic
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCreateNotFound, "transfer %s not found", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+		return nil
 	}
 	ctx.Logger().Debug(fmt.Sprintf("transfer %s failed", transfer.Id))
 	return nil

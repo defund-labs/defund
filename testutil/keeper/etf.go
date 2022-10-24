@@ -13,6 +13,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/defund-labs/defund/app"
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
@@ -31,11 +33,13 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 	storeKeyAcc := sdk.NewKVStoreKey(authtypes.StoreKey)
+	storeKeyIcaC := sdk.NewKVStoreKey(icacontrollertypes.StoreKey)
 
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, sdk.StoreTypeMemory, nil)
 	stateStore.MountStoreWithDB(storeKeyAcc, sdk.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeyIcaC, sdk.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	registry := codectypes.NewInterfaceRegistry()
@@ -50,6 +54,12 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		codec.NewProtoCodec(registry), storeKeyAcc, a.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
+	)
+	a.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+		codec.NewProtoCodec(registry), storeKeyIcaC, a.GetSubspace(icacontrollertypes.SubModuleName),
+		a.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+		a.IBCKeeper.ChannelKeeper, &a.IBCKeeper.PortKeeper,
+		a.ScopedICAControllerKeeper, a.MsgServiceRouter(),
 	)
 
 	k := keeper.NewKeeper(

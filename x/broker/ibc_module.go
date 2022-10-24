@@ -33,13 +33,7 @@ func NewIBCModule(k keeper.Keeper, etfkeeper etfkeeper.Keeper) IBCModule {
 	}
 }
 
-// OnChanOpenInit performs basic validation of channel initialization.
-// The channel order must be UNORDERED to match the Transfer module,
-// the counterparty port identifier must be either transfer or ibcaccount,
-// the channel version must be equal to the version in the types package,
-// there must not be an active channel for the specfied port identifier,
-// and the interchain accounts module must be able to claim the channel
-// capability.
+// OnChanOpenInit implements the IBCModule interface
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,

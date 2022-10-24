@@ -407,18 +407,18 @@ export default {
 		},
 		
 		
-		async sendMsgFundCommunityPool({ rootGetters }, { value, fee = [], memo = '' }) {
+		async sendMsgSetWithdrawAddress({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgFundCommunityPool(value)
+				const msg = await txClient.msgSetWithdrawAddress(value)
 				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
 	gas: "200000" }, memo})
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgFundCommunityPool:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgSetWithdrawAddress:Init Could not initialize signing client. Wallet is required.')
 				}else{
-					throw new Error('TxClient:MsgFundCommunityPool:Send Could not broadcast Tx: '+ e.message)
+					throw new Error('TxClient:MsgSetWithdrawAddress:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
@@ -452,32 +452,32 @@ export default {
 				}
 			}
 		},
-		async sendMsgSetWithdrawAddress({ rootGetters }, { value, fee = [], memo = '' }) {
+		async sendMsgFundCommunityPool({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSetWithdrawAddress(value)
+				const msg = await txClient.msgFundCommunityPool(value)
 				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
 	gas: "200000" }, memo})
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgSetWithdrawAddress:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgFundCommunityPool:Init Could not initialize signing client. Wallet is required.')
 				}else{
-					throw new Error('TxClient:MsgSetWithdrawAddress:Send Could not broadcast Tx: '+ e.message)
+					throw new Error('TxClient:MsgFundCommunityPool:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
 		
-		async MsgFundCommunityPool({ rootGetters }, { value }) {
+		async MsgSetWithdrawAddress({ rootGetters }, { value }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgFundCommunityPool(value)
+				const msg = await txClient.msgSetWithdrawAddress(value)
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgFundCommunityPool:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgSetWithdrawAddress:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgFundCommunityPool:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgSetWithdrawAddress:Create Could not create message: ' + e.message)
 				}
 			}
 		},
@@ -507,16 +507,16 @@ export default {
 				}
 			}
 		},
-		async MsgSetWithdrawAddress({ rootGetters }, { value }) {
+		async MsgFundCommunityPool({ rootGetters }, { value }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSetWithdrawAddress(value)
+				const msg = await txClient.msgFundCommunityPool(value)
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgSetWithdrawAddress:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgFundCommunityPool:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgSetWithdrawAddress:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgFundCommunityPool:Create Could not create message: ' + e.message)
 				}
 			}
 		},
