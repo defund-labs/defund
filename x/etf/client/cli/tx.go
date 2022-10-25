@@ -99,7 +99,7 @@ func CmdCreateFund() *cobra.Command {
 func CmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [fund] [tokenIn] [channel]",
-		Short: "Create shares for the dETF ticker using the IBC channel specified and the tokens supplied (comma seperated list of coins i.e 1000000uosmo,1000000uatom).",
+		Short: "Create shares for the dETF ticker using the IBC channel specified and the token in (in base denom) supplied.",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
@@ -155,14 +155,13 @@ func CmdCreate() *cobra.Command {
 
 func CmdRedeem() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redeem [fund] [amount] [channel] [addresses]",
-		Short: "Redeem shares for the dETF ticker to supplied addresses using the IBC channel specified, and the tokens supplied. Sends redeemed assets to the addresses supplied i.e '{osmosisAddress: 'osmo123456789'}'",
-		Args:  cobra.ExactArgs(4),
+		Use:   "redeem [fund] [amount] [addresses]",
+		Short: "Redeem shares for the dETF ticker to supplied addresses for the dETF tokens provided. Sends redeemed assets to the addresses supplied on each underlying dETF assets native chain i.e '{osmosisAddress: 'osmo123456789'}'",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argFund := args[0]
 			argAmount := args[1]
-			argChannel := args[2]
-			argAddresses := args[3]
+			argAddresses := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -194,7 +193,6 @@ func CmdRedeem() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argFund,
 				&amount,
-				argChannel,
 				timeoutHeight.String(),
 				timeoutTimestamp,
 				addresses,

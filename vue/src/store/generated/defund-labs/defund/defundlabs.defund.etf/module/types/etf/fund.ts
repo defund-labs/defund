@@ -6,12 +6,21 @@ import { Coin } from "../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
+export interface BaseDenom {
+  onDefund: string;
+  onBroker: string;
+}
+
 export interface FundPrice {
   id: string;
   height: number;
   time: Date | undefined;
   amount: Coin | undefined;
   symbol: string;
+}
+
+export interface Balances {
+  balances: Coin[];
 }
 
 export interface Holding {
@@ -33,10 +42,16 @@ export interface Fund {
   shares: Coin | undefined;
   holdings: Holding[];
   rebalance: number;
-  baseDenom: string;
+  baseDenom: BaseDenom | undefined;
   startingPrice: Coin | undefined;
   creator: string;
   lastRebalanceHeight: number;
+  balances: { [key: string]: Balances };
+}
+
+export interface Fund_BalancesEntry {
+  key: string;
+  value: Balances | undefined;
 }
 
 export interface Redeem {
@@ -57,6 +72,78 @@ export interface Rebalance {
   height: number;
   broker: string;
 }
+
+const baseBaseDenom: object = { onDefund: "", onBroker: "" };
+
+export const BaseDenom = {
+  encode(message: BaseDenom, writer: Writer = Writer.create()): Writer {
+    if (message.onDefund !== "") {
+      writer.uint32(10).string(message.onDefund);
+    }
+    if (message.onBroker !== "") {
+      writer.uint32(18).string(message.onBroker);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): BaseDenom {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseBaseDenom } as BaseDenom;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.onDefund = reader.string();
+          break;
+        case 2:
+          message.onBroker = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BaseDenom {
+    const message = { ...baseBaseDenom } as BaseDenom;
+    if (object.onDefund !== undefined && object.onDefund !== null) {
+      message.onDefund = String(object.onDefund);
+    } else {
+      message.onDefund = "";
+    }
+    if (object.onBroker !== undefined && object.onBroker !== null) {
+      message.onBroker = String(object.onBroker);
+    } else {
+      message.onBroker = "";
+    }
+    return message;
+  },
+
+  toJSON(message: BaseDenom): unknown {
+    const obj: any = {};
+    message.onDefund !== undefined && (obj.onDefund = message.onDefund);
+    message.onBroker !== undefined && (obj.onBroker = message.onBroker);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<BaseDenom>): BaseDenom {
+    const message = { ...baseBaseDenom } as BaseDenom;
+    if (object.onDefund !== undefined && object.onDefund !== null) {
+      message.onDefund = object.onDefund;
+    } else {
+      message.onDefund = "";
+    }
+    if (object.onBroker !== undefined && object.onBroker !== null) {
+      message.onBroker = object.onBroker;
+    } else {
+      message.onBroker = "";
+    }
+    return message;
+  },
+};
 
 const baseFundPrice: object = { id: "", height: 0, symbol: "" };
 
@@ -184,6 +271,70 @@ export const FundPrice = {
       message.symbol = object.symbol;
     } else {
       message.symbol = "";
+    }
+    return message;
+  },
+};
+
+const baseBalances: object = {};
+
+export const Balances = {
+  encode(message: Balances, writer: Writer = Writer.create()): Writer {
+    for (const v of message.balances) {
+      Coin.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Balances {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseBalances } as Balances;
+    message.balances = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.balances.push(Coin.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Balances {
+    const message = { ...baseBalances } as Balances;
+    message.balances = [];
+    if (object.balances !== undefined && object.balances !== null) {
+      for (const e of object.balances) {
+        message.balances.push(Coin.fromJSON(e));
+      }
+    }
+    return message;
+  },
+
+  toJSON(message: Balances): unknown {
+    const obj: any = {};
+    if (message.balances) {
+      obj.balances = message.balances.map((e) =>
+        e ? Coin.toJSON(e) : undefined
+      );
+    } else {
+      obj.balances = [];
+    }
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Balances>): Balances {
+    const message = { ...baseBalances } as Balances;
+    message.balances = [];
+    if (object.balances !== undefined && object.balances !== null) {
+      for (const e of object.balances) {
+        message.balances.push(Coin.fromPartial(e));
+      }
     }
     return message;
   },
@@ -324,7 +475,6 @@ const baseFund: object = {
   name: "",
   description: "",
   rebalance: 0,
-  baseDenom: "",
   creator: "",
   lastRebalanceHeight: 0,
 };
@@ -352,8 +502,8 @@ export const Fund = {
     if (message.rebalance !== 0) {
       writer.uint32(56).int64(message.rebalance);
     }
-    if (message.baseDenom !== "") {
-      writer.uint32(66).string(message.baseDenom);
+    if (message.baseDenom !== undefined) {
+      BaseDenom.encode(message.baseDenom, writer.uint32(66).fork()).ldelim();
     }
     if (message.startingPrice !== undefined) {
       Coin.encode(message.startingPrice, writer.uint32(74).fork()).ldelim();
@@ -364,6 +514,12 @@ export const Fund = {
     if (message.lastRebalanceHeight !== 0) {
       writer.uint32(88).int64(message.lastRebalanceHeight);
     }
+    Object.entries(message.balances).forEach(([key, value]) => {
+      Fund_BalancesEntry.encode(
+        { key: key as any, value },
+        writer.uint32(98).fork()
+      ).ldelim();
+    });
     return writer;
   },
 
@@ -372,6 +528,7 @@ export const Fund = {
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseFund } as Fund;
     message.holdings = [];
+    message.balances = {};
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -397,7 +554,7 @@ export const Fund = {
           message.rebalance = longToNumber(reader.int64() as Long);
           break;
         case 8:
-          message.baseDenom = reader.string();
+          message.baseDenom = BaseDenom.decode(reader, reader.uint32());
           break;
         case 9:
           message.startingPrice = Coin.decode(reader, reader.uint32());
@@ -407,6 +564,12 @@ export const Fund = {
           break;
         case 11:
           message.lastRebalanceHeight = longToNumber(reader.int64() as Long);
+          break;
+        case 12:
+          const entry12 = Fund_BalancesEntry.decode(reader, reader.uint32());
+          if (entry12.value !== undefined) {
+            message.balances[entry12.key] = entry12.value;
+          }
           break;
         default:
           reader.skipType(tag & 7);
@@ -419,6 +582,7 @@ export const Fund = {
   fromJSON(object: any): Fund {
     const message = { ...baseFund } as Fund;
     message.holdings = [];
+    message.balances = {};
     if (object.symbol !== undefined && object.symbol !== null) {
       message.symbol = String(object.symbol);
     } else {
@@ -455,9 +619,9 @@ export const Fund = {
       message.rebalance = 0;
     }
     if (object.baseDenom !== undefined && object.baseDenom !== null) {
-      message.baseDenom = String(object.baseDenom);
+      message.baseDenom = BaseDenom.fromJSON(object.baseDenom);
     } else {
-      message.baseDenom = "";
+      message.baseDenom = undefined;
     }
     if (object.startingPrice !== undefined && object.startingPrice !== null) {
       message.startingPrice = Coin.fromJSON(object.startingPrice);
@@ -476,6 +640,11 @@ export const Fund = {
       message.lastRebalanceHeight = Number(object.lastRebalanceHeight);
     } else {
       message.lastRebalanceHeight = 0;
+    }
+    if (object.balances !== undefined && object.balances !== null) {
+      Object.entries(object.balances).forEach(([key, value]) => {
+        message.balances[key] = Balances.fromJSON(value);
+      });
     }
     return message;
   },
@@ -497,7 +666,10 @@ export const Fund = {
       obj.holdings = [];
     }
     message.rebalance !== undefined && (obj.rebalance = message.rebalance);
-    message.baseDenom !== undefined && (obj.baseDenom = message.baseDenom);
+    message.baseDenom !== undefined &&
+      (obj.baseDenom = message.baseDenom
+        ? BaseDenom.toJSON(message.baseDenom)
+        : undefined);
     message.startingPrice !== undefined &&
       (obj.startingPrice = message.startingPrice
         ? Coin.toJSON(message.startingPrice)
@@ -505,12 +677,19 @@ export const Fund = {
     message.creator !== undefined && (obj.creator = message.creator);
     message.lastRebalanceHeight !== undefined &&
       (obj.lastRebalanceHeight = message.lastRebalanceHeight);
+    obj.balances = {};
+    if (message.balances) {
+      Object.entries(message.balances).forEach(([k, v]) => {
+        obj.balances[k] = Balances.toJSON(v);
+      });
+    }
     return obj;
   },
 
   fromPartial(object: DeepPartial<Fund>): Fund {
     const message = { ...baseFund } as Fund;
     message.holdings = [];
+    message.balances = {};
     if (object.symbol !== undefined && object.symbol !== null) {
       message.symbol = object.symbol;
     } else {
@@ -547,9 +726,9 @@ export const Fund = {
       message.rebalance = 0;
     }
     if (object.baseDenom !== undefined && object.baseDenom !== null) {
-      message.baseDenom = object.baseDenom;
+      message.baseDenom = BaseDenom.fromPartial(object.baseDenom);
     } else {
-      message.baseDenom = "";
+      message.baseDenom = undefined;
     }
     if (object.startingPrice !== undefined && object.startingPrice !== null) {
       message.startingPrice = Coin.fromPartial(object.startingPrice);
@@ -568,6 +747,89 @@ export const Fund = {
       message.lastRebalanceHeight = object.lastRebalanceHeight;
     } else {
       message.lastRebalanceHeight = 0;
+    }
+    if (object.balances !== undefined && object.balances !== null) {
+      Object.entries(object.balances).forEach(([key, value]) => {
+        if (value !== undefined) {
+          message.balances[key] = Balances.fromPartial(value);
+        }
+      });
+    }
+    return message;
+  },
+};
+
+const baseFund_BalancesEntry: object = { key: "" };
+
+export const Fund_BalancesEntry = {
+  encode(
+    message: Fund_BalancesEntry,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Balances.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Fund_BalancesEntry {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseFund_BalancesEntry } as Fund_BalancesEntry;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.key = reader.string();
+          break;
+        case 2:
+          message.value = Balances.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Fund_BalancesEntry {
+    const message = { ...baseFund_BalancesEntry } as Fund_BalancesEntry;
+    if (object.key !== undefined && object.key !== null) {
+      message.key = String(object.key);
+    } else {
+      message.key = "";
+    }
+    if (object.value !== undefined && object.value !== null) {
+      message.value = Balances.fromJSON(object.value);
+    } else {
+      message.value = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: Fund_BalancesEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined &&
+      (obj.value = message.value ? Balances.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Fund_BalancesEntry>): Fund_BalancesEntry {
+    const message = { ...baseFund_BalancesEntry } as Fund_BalancesEntry;
+    if (object.key !== undefined && object.key !== null) {
+      message.key = object.key;
+    } else {
+      message.key = "";
+    }
+    if (object.value !== undefined && object.value !== null) {
+      message.value = Balances.fromPartial(object.value);
+    } else {
+      message.value = undefined;
     }
     return message;
   },

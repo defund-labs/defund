@@ -20,7 +20,6 @@ import (
 	ibctesting "github.com/defund-labs/defund/testing"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
-	etftypes "github.com/defund-labs/defund/x/etf/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
@@ -367,7 +366,7 @@ func (s *KeeperTestSuite) CreateTestFund() types.Fund {
 	shares := sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.NewInt(5000000))
 	startingPrice := sdk.NewCoin(baseDenom, sdk.NewInt(5000000))
 
-	baseDenom := etftypes.BaseDenom{
+	baseDenom := types.BaseDenom{
 		OnDefund: "",
 		OnBroker: "uosmo",
 	}

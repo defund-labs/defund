@@ -250,7 +250,7 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
+	timeoutTimestamp := uint64(time.Now().Add(2 * time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
 		return sequence, err

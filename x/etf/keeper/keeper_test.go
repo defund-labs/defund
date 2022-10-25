@@ -381,6 +381,8 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		OnBroker: "uosmo",
 	}
 
+	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainA.GetContext(), *basedenoms.OsmoTrace)
+
 	// create the test fund
 	TestFund := types.Fund{
 		Symbol:        testFundSymbol,
@@ -528,7 +530,11 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	})
 
 	s.Run("Create", func() {
-		tokenIn := sdk.NewCoin(fund.BaseDenom.OnBroker, sdk.NewInt(44565793))
+		tokenIn := sdk.NewCoin(fund.BaseDenom.OnDefund, sdk.NewInt(44565793))
+		err := s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), "etf", sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
+		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
 		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		s.Assert().Equal(shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(1000000)))

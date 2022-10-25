@@ -67,6 +67,10 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Sub
 	}
 }
 
+func (k *Keeper) SetEtfKeeper(keeper etfkeeper.Keeper) {
+	k.etfKeeper = keeper
+}
+
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", host.ModuleName, types.ModuleName))

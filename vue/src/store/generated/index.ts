@@ -17,6 +17,7 @@ import CosmosCosmosSdkCosmosUpgradeV1Beta1 from './cosmos/cosmos-sdk/cosmos.upgr
 import CosmosCosmosSdkCosmosVestingV1Beta1 from './cosmos/cosmos-sdk/cosmos.vesting.v1beta1'
 import DefundLabsDefundDefundlabsDefundBroker from './defund-labs/defund/defundlabs.defund.broker'
 import DefundLabsDefundDefundlabsDefundEtf from './defund-labs/defund/defundlabs.defund.etf'
+import DefundLabsDefundDefundlabsDefundIcabroker from './defund-labs/defund/defundlabs.defund.icabroker'
 import DefundLabsDefundDefundlabsDefundQuery from './defund-labs/defund/defundlabs.defund.query'
 import IbcGoV4IbcApplicationsInterchainAccountsControllerV1 from './ibc-go/v4/ibc.applications.interchain_accounts.controller.v1'
 import IbcGoV4IbcApplicationsInterchainAccountsHostV1 from './ibc-go/v4/ibc.applications.interchain_accounts.host.v1'
@@ -44,6 +45,7 @@ export default {
   CosmosCosmosSdkCosmosVestingV1Beta1: load(CosmosCosmosSdkCosmosVestingV1Beta1, 'cosmos.vesting.v1beta1'),
   DefundLabsDefundDefundlabsDefundBroker: load(DefundLabsDefundDefundlabsDefundBroker, 'defundlabs.defund.broker'),
   DefundLabsDefundDefundlabsDefundEtf: load(DefundLabsDefundDefundlabsDefundEtf, 'defundlabs.defund.etf'),
+  DefundLabsDefundDefundlabsDefundIcabroker: load(DefundLabsDefundDefundlabsDefundIcabroker, 'defundlabs.defund.icabroker'),
   DefundLabsDefundDefundlabsDefundQuery: load(DefundLabsDefundDefundlabsDefundQuery, 'defundlabs.defund.query'),
   IbcGoV4IbcApplicationsInterchainAccountsControllerV1: load(IbcGoV4IbcApplicationsInterchainAccountsControllerV1, 'ibc.applications.interchain_accounts.controller.v1'),
   IbcGoV4IbcApplicationsInterchainAccountsHostV1: load(IbcGoV4IbcApplicationsInterchainAccountsHostV1, 'ibc.applications.interchain_accounts.host.v1'),

@@ -35,6 +35,11 @@ func (k Keeper) GetBalanceForFundByAddress(ctx sdk.Context, symbol string, addre
 		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 
+	// check to ensure that we have a balance for this address
+	if _, ok := fund.Balances[address]; !ok {
+		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidBalance, "fund with symbol %s account balance %s does not exist", symbol, address)
+	}
+
 	for i := range fund.Balances[address].Balances {
 		coins = append(coins, *fund.Balances[address].Balances[i])
 	}

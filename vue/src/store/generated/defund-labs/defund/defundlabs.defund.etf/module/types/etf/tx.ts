@@ -45,7 +45,6 @@ export interface MsgRedeem {
   creator: string;
   fund: string;
   amount: Coin | undefined;
-  channel: string;
   addresses: AddressMap | undefined;
 }
 
@@ -525,7 +524,7 @@ export const AddressMap = {
   },
 };
 
-const baseMsgRedeem: object = { creator: "", fund: "", channel: "" };
+const baseMsgRedeem: object = { creator: "", fund: "" };
 
 export const MsgRedeem = {
   encode(message: MsgRedeem, writer: Writer = Writer.create()): Writer {
@@ -538,11 +537,8 @@ export const MsgRedeem = {
     if (message.amount !== undefined) {
       Coin.encode(message.amount, writer.uint32(26).fork()).ldelim();
     }
-    if (message.channel !== "") {
-      writer.uint32(34).string(message.channel);
-    }
     if (message.addresses !== undefined) {
-      AddressMap.encode(message.addresses, writer.uint32(42).fork()).ldelim();
+      AddressMap.encode(message.addresses, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -564,9 +560,6 @@ export const MsgRedeem = {
           message.amount = Coin.decode(reader, reader.uint32());
           break;
         case 4:
-          message.channel = reader.string();
-          break;
-        case 5:
           message.addresses = AddressMap.decode(reader, reader.uint32());
           break;
         default:
@@ -594,11 +587,6 @@ export const MsgRedeem = {
     } else {
       message.amount = undefined;
     }
-    if (object.channel !== undefined && object.channel !== null) {
-      message.channel = String(object.channel);
-    } else {
-      message.channel = "";
-    }
     if (object.addresses !== undefined && object.addresses !== null) {
       message.addresses = AddressMap.fromJSON(object.addresses);
     } else {
@@ -613,7 +601,6 @@ export const MsgRedeem = {
     message.fund !== undefined && (obj.fund = message.fund);
     message.amount !== undefined &&
       (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
-    message.channel !== undefined && (obj.channel = message.channel);
     message.addresses !== undefined &&
       (obj.addresses = message.addresses
         ? AddressMap.toJSON(message.addresses)
@@ -637,11 +624,6 @@ export const MsgRedeem = {
       message.amount = Coin.fromPartial(object.amount);
     } else {
       message.amount = undefined;
-    }
-    if (object.channel !== undefined && object.channel !== null) {
-      message.channel = object.channel;
-    } else {
-      message.channel = "";
     }
     if (object.addresses !== undefined && object.addresses !== null) {
       message.addresses = AddressMap.fromPartial(object.addresses);

@@ -22,4 +22,5 @@ var (
 	ErrInvalidHolding       = sdkerrors.Register(ModuleName, 11, "Holding is invalid")
 	ErrInvalidRebalance     = sdkerrors.Register(ModuleName, 12, "Rebalance failed")
 	ErrBeginBlocker         = sdkerrors.Register(ModuleName, 13, "Begin blocker failed")
+	ErrInvalidBalance       = sdkerrors.Register(ModuleName, 14, "Error on getting remote account balance")
 )

@@ -50,9 +50,8 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	funds := k.GetAllFund(ctx)
 
 	for _, fund := range funds {
-		// only need to rebalance if there are assets to actually rebalance aka if we have shares
-		// for this fund
-		if fund.Shares.Amount.GT(sdk.NewInt(0)) {
+		// only need to rebalance if there are balances/assets for this fund
+		if len(fund.Balances) > 0 {
 			err := k.SendRebalanceTx(ctx, fund)
 			if err != nil {
 				ctx.Logger().Error(fmt.Sprintf("rebalance failed for fund %s with error: %s", fund.Symbol, err.Error()))

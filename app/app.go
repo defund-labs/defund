@@ -434,6 +434,9 @@ func New(
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 
+	// reset the etf module within broker module
+	app.BrokerKeeper.SetEtfKeeper(app.EtfKeeper)
+
 	// finish transfer stack
 	transferStack := etfmodule.NewIBCMiddleware(transferIBCModule, app.EtfKeeper)
 
