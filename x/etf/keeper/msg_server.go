@@ -85,7 +85,7 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Hol
 		}
 
 		// Create and save the broker fund ICA account on the broker chain
-		err := k.brokerKeeper.RegisterBrokerAccount(ctx, broker.ConnectionId, acc)
+		err := k.RegisterBrokerAccount(ctx, broker.ConnectionId, acc)
 		if err != nil {
 			return err
 		}

@@ -322,7 +322,7 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	broker := s.CreateOsmosisBroker()
 
 	// create the ica account
-	err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), broker.ConnectionId, acct.GetAddress().String())
+	err := s.GetDefundApp(s.chainA).EtfKeeper.RegisterBrokerAccount(s.chainA.GetContext(), broker.ConnectionId, acct.GetAddress().String())
 	s.Assert().NoError(err)
 
 	// generate new portId for ica account
@@ -435,7 +435,7 @@ func (s *KeeperTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoin
 
 	channelSequence := s.GetDefundApp(s.chainA).IBCKeeper.ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext())
 
-	if err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := s.GetDefundApp(s.chainA).EtfKeeper.RegisterBrokerAccount(s.chainA.GetContext(), endpoint.ConnectionID, owner); err != nil {
 		return err
 	}
 
@@ -572,6 +572,8 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 		msgs, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
 		s.Assert().NoError(err)
+
+		s.chainA.Log(msgs)
 
 		s.Assert().Equal(msgs.Osmosis[0].TokenIn, sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(27598242)))
 		s.Assert().Equal(msgs.Osmosis[0].TokenOutMinAmount, sdk.NewInt(88779146))

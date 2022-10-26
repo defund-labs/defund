@@ -164,8 +164,6 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(ctx sdk.Context, areb abci.RequestBeginBlock) {
-	// Run All Broker Hooks
-	am.keeper.SetPoolStatusHookOsmosis(ctx)
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It

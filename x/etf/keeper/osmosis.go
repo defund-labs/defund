@@ -127,7 +127,7 @@ func (k Keeper) ChangeBrokerPoolStatus(ctx sdk.Context, broker types.Broker, poo
 	for i, item := range broker.Pools {
 		if item.PoolId == poolId {
 			broker.Pools[i].Status = status
-			k.SetBroker(ctx, broker)
+			k.brokerKeeper.SetBroker(ctx, broker)
 			return nil
 		}
 	}
@@ -136,7 +136,7 @@ func (k Keeper) ChangeBrokerPoolStatus(ctx sdk.Context, broker types.Broker, poo
 
 // QueryOsmosisPools queries all pools specified in the Osmosis broker
 func (k Keeper) CreateQueryOsmosisPools(ctx sdk.Context) {
-	broker, found := k.GetBroker(ctx, "osmosis")
+	broker, found := k.brokerKeeper.GetBroker(ctx, "osmosis")
 	if !found {
 		return
 	}
@@ -215,7 +215,7 @@ func (k Keeper) CreateOsmosisTrade(ctx sdk.Context, trader string, routes []osmo
 }
 
 // This keeper function creates and sends a list of trades via ICA to Osmosis
-func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (sequence uint64, err error) {
+func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (channel string, sequence uint64, err error) {
 
 	seralizeMsgs := []sdk.Msg{}
 	for _, msg := range msgs {
@@ -225,22 +225,22 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
-		return 0, err
+		return channel, 0, err
 	}
 
 	channelID, found := k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
-		return 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
+		return channel, 0, sdkerrors.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel for port %s", portID)
 	}
 
 	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if !found {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return channel, 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	data, err := icatypes.SerializeCosmosTx(k.cdc, seralizeMsgs)
 	if err != nil {
-		return sequence, err
+		return channel, sequence, err
 	}
 
 	packetData := icatypes.InterchainAccountPacketData{
@@ -250,13 +250,13 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := uint64(time.Now().Add(2 * time.Minute).UnixNano())
+	timeoutTimestamp := uint64(time.Now().Add(1 * time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
-		return sequence, err
+		return channel, sequence, err
 	}
 
-	return sequence, nil
+	return channelID, sequence, nil
 }
 
 // SetPoolStatusHook is a hook run at begin blocker to set the status of all pools
@@ -265,7 +265,7 @@ func (k Keeper) SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgS
 // NOTE: CHANGE RECENT BLOCK PARAM TO MODULE PARAM SET BY GOVERNANCE
 func (k Keeper) SetPoolStatusHookOsmosis(ctx sdk.Context) {
 	k.Logger(ctx).Debug("SetPoolStatusHookOsmosis: Running Update Osmosis Pool Status Hook")
-	osmosisBroker, found := k.GetBroker(ctx, "osmosis")
+	osmosisBroker, found := k.brokerKeeper.GetBroker(ctx, "osmosis")
 	if !found {
 		err := sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
 		k.Logger(ctx).Error(err.Error())

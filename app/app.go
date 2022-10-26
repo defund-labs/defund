@@ -310,7 +310,6 @@ func New(
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-	scopedBrokerKeeper := app.CapabilityKeeper.ScopeToModule(brokermoduletypes.ModuleName)
 	scopedETFKeeper := app.CapabilityKeeper.ScopeToModule(etfmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
@@ -398,29 +397,20 @@ func New(
 	)
 	queryModule := querymodule.NewAppModule(appCodec, app.QueryKeeper, app.AccountKeeper)
 
-	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.GetSubspace(brokermoduletypes.ModuleName), app.ICAControllerKeeper, scopedBrokerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, app.QueryKeeper, app.EtfKeeper, app.BankKeeper)
+	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.GetSubspace(brokermoduletypes.ModuleName), app.ICAControllerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, app.QueryKeeper, app.EtfKeeper, app.BankKeeper)
 	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
-	brokerIBCModule := brokermodule.NewIBCModule(app.BrokerKeeper, app.EtfKeeper)
-
-	icaControllerIBCModule := icacontroller.NewIBCMiddleware(brokerIBCModule, app.ICAControllerKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
-
-	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
-	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper, app.SlashingKeeper,
-	)
-	// If evidence needs to be handled for the app, set routes in router here and seal
-	app.EvidenceKeeper = *evidenceKeeper
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, govRouter,
 	)
 
-	app.EtfKeeper = *etfmodulekeeper.NewKeeper(
+	app.EtfKeeper = etfmodulekeeper.NewKeeper(
 		appCodec,
 		keys[etfmoduletypes.StoreKey],
 		keys[etfmoduletypes.MemStoreKey],
+
+		scopedETFKeeper,
 
 		app.AccountKeeper,
 		app.BankKeeper,
@@ -433,9 +423,17 @@ func New(
 		app.TransferKeeper,
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
+	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.EtfKeeper, app.BrokerKeeper)
 
-	// reset the etf module within broker module
-	app.BrokerKeeper.SetEtfKeeper(app.EtfKeeper)
+	icaControllerIBCModule := icacontroller.NewIBCMiddleware(etfIBCModule, app.ICAControllerKeeper)
+	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+
+	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
+	evidenceKeeper := evidencekeeper.NewKeeper(
+		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper, app.SlashingKeeper,
+	)
+	// If evidence needs to be handled for the app, set routes in router here and seal
+	app.EvidenceKeeper = *evidenceKeeper
 
 	// finish transfer stack
 	transferStack := etfmodule.NewIBCMiddleware(transferIBCModule, app.EtfKeeper)
@@ -446,7 +444,7 @@ func New(
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(brokermoduletypes.ModuleName, icaControllerIBCModule)
+		AddRoute(etfmoduletypes.ModuleName, icaControllerIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
@@ -582,7 +580,6 @@ func New(
 	app.ScopedTransferKeeper = scopedTransferKeeper
 	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
-	app.ScopedBrokerKeeper = scopedBrokerKeeper
 	app.ScopedETFKeeper = scopedETFKeeper
 	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 

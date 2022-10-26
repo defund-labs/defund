@@ -1,19 +1,21 @@
-package broker
+package etf
 
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/defund-labs/defund/x/broker/keeper"
+	"github.com/defund-labs/defund/x/etf/keeper"
 	proto "github.com/gogo/protobuf/proto"
 
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
+	brokerkeeper "github.com/defund-labs/defund/x/broker/keeper"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
 )
 
@@ -21,15 +23,17 @@ var _ porttypes.IBCModule = IBCModule{}
 
 // IBCModule implements the ICS26 interface for interchain accounts controller chains
 type IBCModule struct {
-	keeper    keeper.Keeper
-	etfKeeper etfkeeper.Keeper
+	keeper       keeper.Keeper
+	etfKeeper    etfkeeper.Keeper
+	brokerKeeper brokerkeeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper, etfkeeper etfkeeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper, etfkeeper etfkeeper.Keeper, brokerkeeper brokerkeeper.Keeper) IBCModule {
 	return IBCModule{
-		keeper:    k,
-		etfKeeper: etfkeeper,
+		keeper:       k,
+		etfKeeper:    etfkeeper,
+		brokerKeeper: brokerkeeper,
 	}
 }
 
@@ -92,8 +96,16 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for broker channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	// reopen the ICA channel if it gets closed
+	owner := strings.Split(portID, "icacontroller-")
+	channel, found := im.keeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
+	}
+	if err := im.keeper.RegisterBrokerAccount(ctx, channel.ConnectionHops[0], owner[0]); err != nil {
+		return err
+	}
+	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -102,8 +114,16 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for broker channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	// reopen the ICA channel if it gets closed
+	owner := strings.Split(portID, "icacontroller-")
+	channel, found := im.keeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
+	}
+	if err := im.keeper.RegisterBrokerAccount(ctx, channel.ConnectionHops[0], owner[0]); err != nil {
+		return err
+	}
+	return nil
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -139,7 +159,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	case 0:
 		return nil
 	default:
-		err := im.keeper.OnAcknowledgementPacket(ctx, packet, ack, txMsgData)
+		err := im.keeper.OnAcknowledgementPacketICA(ctx, packet, ack, txMsgData)
 		if err != nil {
 			return err
 		}
@@ -155,16 +175,20 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	id := fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)
 	// get the redeem from the store. If not found return nil and do not run logic if found run the redeem timeout logic
-	redeem, redeemExists := im.etfKeeper.GetRedeem(ctx, id)
+	redeem, redeemExists := im.brokerKeeper.GetRedeem(ctx, id)
 	if redeemExists {
 		im.keeper.Logger(ctx).Error("redeem %s timed out. Running the redeem timeout logic.", id)
 		im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+	} else {
+		im.keeper.Logger(ctx).Debug(fmt.Sprintf("Redeem %s not found. Skipping redeem timeout logic.", id))
 	}
 	// get the rebalance from the store. If not found return nil and do not run logic if found run the redeem timeout logic
-	rebalance, rebalanceExists := im.etfKeeper.GetRebalance(ctx, id)
+	rebalance, rebalanceExists := im.brokerKeeper.GetRebalance(ctx, id)
 	if rebalanceExists {
-		im.keeper.Logger(ctx).Error("rebalance %s timed out. Running the rebalance timeout logic.", id)
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("rebalance %s timed out. Running the rebalance timeout logic.", id))
 		im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+	} else {
+		im.keeper.Logger(ctx).Debug(fmt.Sprintf("Rebalance %s not found. Skipping rebalance timeout logic.", id))
 	}
 
 	return nil

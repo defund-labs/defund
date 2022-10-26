@@ -31,3 +31,22 @@ message Transfer {
     // if we need to stake the transfer on completion or not
     bool stake = 8;
 }
+
+message Redeem {
+    string id = 1;
+    string creator = 2;
+    string fund = 3;
+    cosmos.base.v1beta1.Coin amount = 4;
+    string status = 5;
+    string type = 6;
+    // if the type is staked, we need a timestamp for when it will be unstaked
+    string unstakeTimestamp = 7;
+  }
+  
+  message Rebalance {
+    string id = 1;
+    string fund = 2;
+    // the height the rebalance was created
+    int64 height = 3;
+    string broker = 4;
+  }

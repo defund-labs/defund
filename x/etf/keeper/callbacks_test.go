@@ -20,7 +20,7 @@ func (s *KeeperTestSuite) TestICQCallbacks() {
 
 		portID, err := icatypes.NewControllerPortID(fund.Address)
 		s.Assert().NoError(err)
-		address, found := s.GetDefundApp(s.chainA).BrokerKeeper.GetBrokerAccount(s.chainA.GetContext(), "connection-0", portID)
+		address, found := s.GetDefundApp(s.chainA).EtfKeeper.GetBrokerAccount(s.chainA.GetContext(), "connection-0", portID)
 		s.Assert().True(found)
 		testQueryId := fmt.Sprintf("balance:test:osmosis:%s:uosmo", address)
 		height := clienttypes.NewHeight(4, 7266410)

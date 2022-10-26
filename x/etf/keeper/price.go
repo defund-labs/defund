@@ -74,7 +74,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		if err != nil {
 			return price, err
 		}
-		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
+		fundBrokerAddress, found := k.GetBrokerAccount(ctx, broker.ConnectionId, portID)
 		if !found {
 			return price, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
@@ -93,7 +93,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 				return price, err
 			}
 			// Calculate spot price for 1 holding token in base denom
-			priceInBaseDenom, err = k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
+			priceInBaseDenom, err = k.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
 			if err != nil {
 				return price, err
 			}
