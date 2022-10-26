@@ -3,7 +3,6 @@ package etf
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -96,15 +95,6 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// reopen the ICA channel if it gets closed
-	owner := strings.Split(portID, "icacontroller-")
-	channel, found := im.keeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
-	}
-	if err := im.keeper.RegisterBrokerAccount(ctx, channel.ConnectionHops[0], owner[0]); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -114,15 +104,6 @@ func (im IBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// reopen the ICA channel if it gets closed
-	owner := strings.Split(portID, "icacontroller-")
-	channel, found := im.keeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
-	}
-	if err := im.keeper.RegisterBrokerAccount(ctx, channel.ConnectionHops[0], owner[0]); err != nil {
-		return err
-	}
 	return nil
 }
 

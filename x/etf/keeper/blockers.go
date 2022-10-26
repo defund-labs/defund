@@ -6,9 +6,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
+	etftypes "github.com/defund-labs/defund/x/etf/types"
 )
 
 // SendPendingTransfers takes all pending transfers from the store
@@ -45,12 +48,41 @@ func (k Keeper) SendPendingTransfers(ctx sdk.Context) {
 	}
 }
 
+func (k Keeper) EnsureICAChannelStaysOpen(ctx sdk.Context, brokerId string, fund etftypes.Fund) error {
+	broker, found := k.brokerKeeper.GetBroker(ctx, brokerId)
+	if !found {
+		return sdkerrors.Wrap(brokertypes.ErrBrokerNotFound, fmt.Sprintf("broker %s not found", brokerId))
+	}
+
+	// get the ica account address port
+	portID, err := icatypes.NewControllerPortID(fund.Address)
+	if err != nil {
+		return err
+	}
+	_, open := k.icaControllerKeeper.GetOpenActiveChannel(ctx, broker.ConnectionId, portID)
+	if !open {
+		err := k.RegisterBrokerAccount(ctx, brokerId, fund.Address)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // EndBlocker is the end blocker function for the etf module
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	funds := k.GetAllFund(ctx)
 
 	for _, fund := range funds {
-		// check if the fund ica for each broker
+		// check if the channel for ica for each broker is open, if not re-open
+		for i := range fund.Holdings {
+			err := k.EnsureICAChannelStaysOpen(ctx, fund.Holdings[i].BrokerId, fund)
+			if err != nil {
+				ctx.Logger().Error(fmt.Sprintf("error while ensuring ICA channel is open for fund %s with broker %s (error = %s)", fund.Symbol, fund.Holdings[i].BrokerId, err.Error()))
+			}
+		}
+
 		// only need to rebalance if there are balances/assets for this fund and if it isn't currently rebalancing
 		if len(fund.Balances) > 0 && !fund.Rebalancing {
 			// only have to run rebalance if this is rebalance period (aka no remainder)
@@ -61,6 +93,8 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 				}
 			}
 		}
+
+		// create the balance queries we need for funds
 		err := k.CreateBalances(ctx, fund)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("error while creating account balance interqueries for fund %s... Error: %s", fund.Symbol, err.Error()))
