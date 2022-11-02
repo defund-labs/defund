@@ -59,12 +59,23 @@ func (k Keeper) EnsureICAChannelStaysOpen(ctx sdk.Context, brokerId string, fund
 	if err != nil {
 		return err
 	}
-	_, open := k.icaControllerKeeper.GetOpenActiveChannel(ctx, broker.ConnectionId, portID)
-	if !open {
-		err := k.RegisterBrokerAccount(ctx, brokerId, fund.Address)
-		if err != nil {
-			return err
+
+	activeChannelId, activeFound := k.icaControllerKeeper.GetActiveChannelID(ctx, broker.ConnectionId, portID)
+
+	if activeFound {
+		channel, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelId)
+		if !found {
+			ctx.Logger().Error(fmt.Sprintf("ICA channel %s could not be found", activeChannelId))
 		}
+		if channel.State == channeltypes.CLOSED {
+			ctx.Logger().Info(fmt.Sprintf("ICA channel for connection %s at port %s is closed. Attempting reopening of channel.", broker.ConnectionId, portID))
+			err := k.RegisterBrokerAccount(ctx, broker.ConnectionId, fund.Address)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		ctx.Logger().Error(fmt.Sprintf("ICA channel for connection %s at port %s could not be found.", broker.ConnectionId, portID))
 	}
 
 	return nil

@@ -1,26 +1,20 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Source } from "./module/types/broker/broker"
-import { Broker } from "./module/types/broker/broker"
-import { Transfer } from "./module/types/broker/broker"
-import { BrokerPacketData } from "./module/types/broker/packet"
-import { NoData } from "./module/types/broker/packet"
-import { BaseDenoms } from "./module/types/broker/params"
-import { Params } from "./module/types/broker/params"
+import { Source } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { Broker } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { Transfer } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { Redeem } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { Rebalance } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { BrokerPacketData } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { NoData } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { BaseDenoms } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
+import { Params } from "defund-labs-defund-client-ts/defundlabs.defund.broker/types"
 
 
-export { Source, Broker, Transfer, BrokerPacketData, NoData, BaseDenoms, Params };
+export { Source, Broker, Transfer, Redeem, Rebalance, BrokerPacketData, NoData, BaseDenoms, Params };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -34,17 +28,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Broker: {},
@@ -54,6 +49,8 @@ const getDefaultState = () => {
 						Source: getStructure(Source.fromPartial({})),
 						Broker: getStructure(Broker.fromPartial({})),
 						Transfer: getStructure(Transfer.fromPartial({})),
+						Redeem: getStructure(Redeem.fromPartial({})),
+						Rebalance: getStructure(Rebalance.fromPartial({})),
 						BrokerPacketData: getStructure(BrokerPacketData.fromPartial({})),
 						NoData: getStructure(NoData.fromPartial({})),
 						BaseDenoms: getStructure(BaseDenoms.fromPartial({})),
@@ -140,8 +137,8 @@ export default {
 		async QueryBroker({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryBroker( key.broker)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundBroker.query.queryBroker( key.broker)).data
 				
 					
 				commit('QUERY', { query: 'Broker', key: { params: {...key}, query}, value })
@@ -162,12 +159,12 @@ export default {
 		async QueryBrokers({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryBrokers(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundBroker.query.queryBrokers(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryBrokers({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundBroker.query.queryBrokers({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Brokers', key: { params: {...key}, query}, value })
@@ -180,27 +177,10 @@ export default {
 		},
 		
 		
-		async sendMsgAddConnectionBroker({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgAddConnectionBroker(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgAddConnectionBroker:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgAddLiquiditySource({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgAddLiquiditySource(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundBroker.tx.sendMsgAddLiquiditySource({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -210,30 +190,43 @@ export default {
 				}
 			}
 		},
-		
-		async MsgAddConnectionBroker({ rootGetters }, { value }) {
+		async sendMsgAddConnectionBroker({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgAddConnectionBroker(value)
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundBroker.tx.sendMsgAddConnectionBroker({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgAddConnectionBroker:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgAddConnectionBroker:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgAddLiquiditySource({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgAddLiquiditySource(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundBroker.tx.msgAddLiquiditySource({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgAddLiquiditySource:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgAddLiquiditySource:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgAddConnectionBroker({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundBroker.tx.msgAddConnectionBroker({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgAddConnectionBroker:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgAddConnectionBroker:Create Could not create message: ' + e.message)
 				}
 			}
 		},

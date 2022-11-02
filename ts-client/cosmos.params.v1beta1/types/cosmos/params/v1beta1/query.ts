@@ -1,6 +1,6 @@
 /* eslint-disable */
-import { Reader, Writer } from "protobufjs/minimal";
-import { ParamChange } from "../../../cosmos/params/v1beta1/params";
+import _m0 from "protobufjs/minimal";
+import { ParamChange } from "./params";
 
 export const protobufPackage = "cosmos.params.v1beta1";
 
@@ -18,13 +18,12 @@ export interface QueryParamsResponse {
   param: ParamChange | undefined;
 }
 
-const baseQueryParamsRequest: object = { subspace: "", key: "" };
+function createBaseQueryParamsRequest(): QueryParamsRequest {
+  return { subspace: "", key: "" };
+}
 
 export const QueryParamsRequest = {
-  encode(
-    message: QueryParamsRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryParamsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.subspace !== "") {
       writer.uint32(10).string(message.subspace);
     }
@@ -34,10 +33,10 @@ export const QueryParamsRequest = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryParamsRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryParamsRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
+    const message = createBaseQueryParamsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -56,18 +55,10 @@ export const QueryParamsRequest = {
   },
 
   fromJSON(object: any): QueryParamsRequest {
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
-    if (object.subspace !== undefined && object.subspace !== null) {
-      message.subspace = String(object.subspace);
-    } else {
-      message.subspace = "";
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = String(object.key);
-    } else {
-      message.key = "";
-    }
-    return message;
+    return {
+      subspace: isSet(object.subspace) ? String(object.subspace) : "",
+      key: isSet(object.key) ? String(object.key) : "",
+    };
   },
 
   toJSON(message: QueryParamsRequest): unknown {
@@ -77,39 +68,30 @@ export const QueryParamsRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryParamsRequest>): QueryParamsRequest {
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
-    if (object.subspace !== undefined && object.subspace !== null) {
-      message.subspace = object.subspace;
-    } else {
-      message.subspace = "";
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key;
-    } else {
-      message.key = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryParamsRequest>, I>>(object: I): QueryParamsRequest {
+    const message = createBaseQueryParamsRequest();
+    message.subspace = object.subspace ?? "";
+    message.key = object.key ?? "";
     return message;
   },
 };
 
-const baseQueryParamsResponse: object = {};
+function createBaseQueryParamsResponse(): QueryParamsResponse {
+  return { param: undefined };
+}
 
 export const QueryParamsResponse = {
-  encode(
-    message: QueryParamsResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.param !== undefined) {
       ParamChange.encode(message.param, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryParamsResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryParamsResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
+    const message = createBaseQueryParamsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -125,31 +107,20 @@ export const QueryParamsResponse = {
   },
 
   fromJSON(object: any): QueryParamsResponse {
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
-    if (object.param !== undefined && object.param !== null) {
-      message.param = ParamChange.fromJSON(object.param);
-    } else {
-      message.param = undefined;
-    }
-    return message;
+    return { param: isSet(object.param) ? ParamChange.fromJSON(object.param) : undefined };
   },
 
   toJSON(message: QueryParamsResponse): unknown {
     const obj: any = {};
-    message.param !== undefined &&
-      (obj.param = message.param
-        ? ParamChange.toJSON(message.param)
-        : undefined);
+    message.param !== undefined && (obj.param = message.param ? ParamChange.toJSON(message.param) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryParamsResponse>): QueryParamsResponse {
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
-    if (object.param !== undefined && object.param !== null) {
-      message.param = ParamChange.fromPartial(object.param);
-    } else {
-      message.param = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryParamsResponse>, I>>(object: I): QueryParamsResponse {
+    const message = createBaseQueryParamsResponse();
+    message.param = (object.param !== undefined && object.param !== null)
+      ? ParamChange.fromPartial(object.param)
+      : undefined;
     return message;
   },
 };
@@ -167,33 +138,30 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.Params = this.Params.bind(this);
   }
   Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.params.v1beta1.Query",
-      "Params",
-      data
-    );
-    return promise.then((data) => QueryParamsResponse.decode(new Reader(data)));
+    const promise = this.rpc.request("cosmos.params.v1beta1.Query", "Params", data);
+    return promise.then((data) => QueryParamsResponse.decode(new _m0.Reader(data)));
   }
 }
 
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

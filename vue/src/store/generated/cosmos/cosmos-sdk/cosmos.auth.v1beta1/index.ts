@@ -1,22 +1,14 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { BaseAccount } from "./module/types/cosmos/auth/v1beta1/auth"
-import { ModuleAccount } from "./module/types/cosmos/auth/v1beta1/auth"
-import { Params } from "./module/types/cosmos/auth/v1beta1/auth"
+import { BaseAccount } from "defund-labs-defund-client-ts/cosmos.auth.v1beta1/types"
+import { ModuleAccount } from "defund-labs-defund-client-ts/cosmos.auth.v1beta1/types"
+import { Params } from "defund-labs-defund-client-ts/cosmos.auth.v1beta1/types"
 
 
 export { BaseAccount, ModuleAccount, Params };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -30,17 +22,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Accounts: {},
@@ -139,12 +132,12 @@ export default {
 		async QueryAccounts({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAccounts(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosAuthV1Beta1.query.queryAccounts(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryAccounts({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosAuthV1Beta1.query.queryAccounts({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Accounts', key: { params: {...key}, query}, value })
@@ -165,8 +158,8 @@ export default {
 		async QueryAccount({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAccount( key.address)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosAuthV1Beta1.query.queryAccount( key.address)).data
 				
 					
 				commit('QUERY', { query: 'Account', key: { params: {...key}, query}, value })
@@ -187,8 +180,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosAuthV1Beta1.query.queryParams()).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })

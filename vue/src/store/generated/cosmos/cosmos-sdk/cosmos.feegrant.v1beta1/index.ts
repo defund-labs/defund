@@ -1,23 +1,15 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { BasicAllowance } from "./module/types/cosmos/feegrant/v1beta1/feegrant"
-import { PeriodicAllowance } from "./module/types/cosmos/feegrant/v1beta1/feegrant"
-import { AllowedMsgAllowance } from "./module/types/cosmos/feegrant/v1beta1/feegrant"
-import { Grant } from "./module/types/cosmos/feegrant/v1beta1/feegrant"
+import { BasicAllowance } from "defund-labs-defund-client-ts/cosmos.feegrant.v1beta1/types"
+import { PeriodicAllowance } from "defund-labs-defund-client-ts/cosmos.feegrant.v1beta1/types"
+import { AllowedMsgAllowance } from "defund-labs-defund-client-ts/cosmos.feegrant.v1beta1/types"
+import { Grant } from "defund-labs-defund-client-ts/cosmos.feegrant.v1beta1/types"
 
 
 export { BasicAllowance, PeriodicAllowance, AllowedMsgAllowance, Grant };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -31,17 +23,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Allowance: {},
@@ -141,8 +134,8 @@ export default {
 		async QueryAllowance({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAllowance( key.granter,  key.grantee)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosFeegrantV1Beta1.query.queryAllowance( key.granter,  key.grantee)).data
 				
 					
 				commit('QUERY', { query: 'Allowance', key: { params: {...key}, query}, value })
@@ -163,12 +156,12 @@ export default {
 		async QueryAllowances({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAllowances( key.grantee, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosFeegrantV1Beta1.query.queryAllowances( key.grantee, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryAllowances( key.grantee, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosFeegrantV1Beta1.query.queryAllowances( key.grantee, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Allowances', key: { params: {...key}, query}, value })
@@ -189,12 +182,12 @@ export default {
 		async QueryAllowancesByGranter({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAllowancesByGranter( key.granter, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosFeegrantV1Beta1.query.queryAllowancesByGranter( key.granter, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryAllowancesByGranter( key.granter, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosFeegrantV1Beta1.query.queryAllowancesByGranter( key.granter, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'AllowancesByGranter', key: { params: {...key}, query}, value })
@@ -207,27 +200,10 @@ export default {
 		},
 		
 		
-		async sendMsgRevokeAllowance({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgRevokeAllowance(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgRevokeAllowance:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgRevokeAllowance:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgGrantAllowance({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgGrantAllowance(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosFeegrantV1Beta1.tx.sendMsgGrantAllowance({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -237,30 +213,43 @@ export default {
 				}
 			}
 		},
-		
-		async MsgRevokeAllowance({ rootGetters }, { value }) {
+		async sendMsgRevokeAllowance({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgRevokeAllowance(value)
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosFeegrantV1Beta1.tx.sendMsgRevokeAllowance({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgRevokeAllowance:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgRevokeAllowance:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgRevokeAllowance:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgGrantAllowance({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgGrantAllowance(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosFeegrantV1Beta1.tx.msgGrantAllowance({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgGrantAllowance:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgGrantAllowance:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgRevokeAllowance({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosFeegrantV1Beta1.tx.msgRevokeAllowance({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgRevokeAllowance:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgRevokeAllowance:Create Could not create message: ' + e.message)
 				}
 			}
 		},

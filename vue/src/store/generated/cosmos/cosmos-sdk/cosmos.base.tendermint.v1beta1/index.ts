@@ -1,22 +1,14 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Validator } from "./module/types/cosmos/base/tendermint/v1beta1/query"
-import { VersionInfo } from "./module/types/cosmos/base/tendermint/v1beta1/query"
-import { Module } from "./module/types/cosmos/base/tendermint/v1beta1/query"
+import { Validator } from "defund-labs-defund-client-ts/cosmos.base.tendermint.v1beta1/types"
+import { VersionInfo } from "defund-labs-defund-client-ts/cosmos.base.tendermint.v1beta1/types"
+import { Module } from "defund-labs-defund-client-ts/cosmos.base.tendermint.v1beta1/types"
 
 
 export { Validator, VersionInfo, Module };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -30,17 +22,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				GetNodeInfo: {},
@@ -160,8 +153,8 @@ export default {
 		async ServiceGetNodeInfo({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetNodeInfo()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetNodeInfo()).data
 				
 					
 				commit('QUERY', { query: 'GetNodeInfo', key: { params: {...key}, query}, value })
@@ -182,8 +175,8 @@ export default {
 		async ServiceGetSyncing({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetSyncing()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetSyncing()).data
 				
 					
 				commit('QUERY', { query: 'GetSyncing', key: { params: {...key}, query}, value })
@@ -204,8 +197,8 @@ export default {
 		async ServiceGetLatestBlock({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetLatestBlock()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetLatestBlock()).data
 				
 					
 				commit('QUERY', { query: 'GetLatestBlock', key: { params: {...key}, query}, value })
@@ -226,8 +219,8 @@ export default {
 		async ServiceGetBlockByHeight({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetBlockByHeight( key.height)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetBlockByHeight( key.height)).data
 				
 					
 				commit('QUERY', { query: 'GetBlockByHeight', key: { params: {...key}, query}, value })
@@ -248,12 +241,12 @@ export default {
 		async ServiceGetLatestValidatorSet({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetLatestValidatorSet(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetLatestValidatorSet(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.serviceGetLatestValidatorSet({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBaseTendermintV1Beta1.query.serviceGetLatestValidatorSet({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'GetLatestValidatorSet', key: { params: {...key}, query}, value })
@@ -274,12 +267,12 @@ export default {
 		async ServiceGetValidatorSetByHeight({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetValidatorSetByHeight( key.height, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBaseTendermintV1Beta1.query.serviceGetValidatorSetByHeight( key.height, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.serviceGetValidatorSetByHeight( key.height, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBaseTendermintV1Beta1.query.serviceGetValidatorSetByHeight( key.height, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'GetValidatorSetByHeight', key: { params: {...key}, query}, value })

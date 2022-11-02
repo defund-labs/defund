@@ -1,26 +1,18 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { ConnectionEnd } from "./module/types/ibc/core/connection/v1/connection"
-import { IdentifiedConnection } from "./module/types/ibc/core/connection/v1/connection"
-import { Counterparty } from "./module/types/ibc/core/connection/v1/connection"
-import { ClientPaths } from "./module/types/ibc/core/connection/v1/connection"
-import { ConnectionPaths } from "./module/types/ibc/core/connection/v1/connection"
-import { Version } from "./module/types/ibc/core/connection/v1/connection"
-import { Params } from "./module/types/ibc/core/connection/v1/connection"
+import { ConnectionEnd } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { IdentifiedConnection } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { Counterparty } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { ClientPaths } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { ConnectionPaths } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { Version } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
+import { Params } from "defund-labs-defund-client-ts/ibc.core.connection.v1/types"
 
 
 export { ConnectionEnd, IdentifiedConnection, Counterparty, ClientPaths, ConnectionPaths, Version, Params };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -34,17 +26,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Connection: {},
@@ -161,8 +154,8 @@ export default {
 		async QueryConnection({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConnection( key.connection_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreConnectionV1.query.queryConnection( key.connection_id)).data
 				
 					
 				commit('QUERY', { query: 'Connection', key: { params: {...key}, query}, value })
@@ -183,12 +176,12 @@ export default {
 		async QueryConnections({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConnections(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreConnectionV1.query.queryConnections(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryConnections({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreConnectionV1.query.queryConnections({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Connections', key: { params: {...key}, query}, value })
@@ -209,8 +202,8 @@ export default {
 		async QueryClientConnections({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryClientConnections( key.client_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreConnectionV1.query.queryClientConnections( key.client_id)).data
 				
 					
 				commit('QUERY', { query: 'ClientConnections', key: { params: {...key}, query}, value })
@@ -231,8 +224,8 @@ export default {
 		async QueryConnectionClientState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConnectionClientState( key.connection_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreConnectionV1.query.queryConnectionClientState( key.connection_id)).data
 				
 					
 				commit('QUERY', { query: 'ConnectionClientState', key: { params: {...key}, query}, value })
@@ -253,8 +246,8 @@ export default {
 		async QueryConnectionConsensusState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConnectionConsensusState( key.connection_id,  key.revision_number,  key.revision_height)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreConnectionV1.query.queryConnectionConsensusState( key.connection_id,  key.revision_number,  key.revision_height)).data
 				
 					
 				commit('QUERY', { query: 'ConnectionConsensusState', key: { params: {...key}, query}, value })

@@ -1,29 +1,21 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Tx } from "./module/types/cosmos/tx/v1beta1/tx"
-import { TxRaw } from "./module/types/cosmos/tx/v1beta1/tx"
-import { SignDoc } from "./module/types/cosmos/tx/v1beta1/tx"
-import { TxBody } from "./module/types/cosmos/tx/v1beta1/tx"
-import { AuthInfo } from "./module/types/cosmos/tx/v1beta1/tx"
-import { SignerInfo } from "./module/types/cosmos/tx/v1beta1/tx"
-import { ModeInfo } from "./module/types/cosmos/tx/v1beta1/tx"
-import { ModeInfo_Single } from "./module/types/cosmos/tx/v1beta1/tx"
-import { ModeInfo_Multi } from "./module/types/cosmos/tx/v1beta1/tx"
-import { Fee } from "./module/types/cosmos/tx/v1beta1/tx"
+import { Tx } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { TxRaw } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { SignDoc } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { TxBody } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { AuthInfo } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { SignerInfo } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { ModeInfo } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { ModeInfo_Single } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { ModeInfo_Multi } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
+import { Fee } from "defund-labs-defund-client-ts/cosmos.tx.v1beta1/types"
 
 
 export { Tx, TxRaw, SignDoc, TxBody, AuthInfo, SignerInfo, ModeInfo, ModeInfo_Single, ModeInfo_Multi, Fee };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -37,17 +29,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Simulate: {},
@@ -167,8 +160,8 @@ export default {
 		async ServiceSimulate({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceSimulate({...key})).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosTxV1Beta1.query.serviceSimulate({...key})).data
 				
 					
 				commit('QUERY', { query: 'Simulate', key: { params: {...key}, query}, value })
@@ -189,8 +182,8 @@ export default {
 		async ServiceGetTx({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetTx( key.hash)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosTxV1Beta1.query.serviceGetTx( key.hash)).data
 				
 					
 				commit('QUERY', { query: 'GetTx', key: { params: {...key}, query}, value })
@@ -211,8 +204,8 @@ export default {
 		async ServiceBroadcastTx({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceBroadcastTx({...key})).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosTxV1Beta1.query.serviceBroadcastTx({...key})).data
 				
 					
 				commit('QUERY', { query: 'BroadcastTx', key: { params: {...key}, query}, value })
@@ -233,12 +226,12 @@ export default {
 		async ServiceGetTxsEvent({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetTxsEvent(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosTxV1Beta1.query.serviceGetTxsEvent(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.serviceGetTxsEvent({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosTxV1Beta1.query.serviceGetTxsEvent({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'GetTxsEvent', key: { params: {...key}, query}, value })
@@ -259,12 +252,12 @@ export default {
 		async ServiceGetBlockWithTxs({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.serviceGetBlockWithTxs( key.height, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosTxV1Beta1.query.serviceGetBlockWithTxs( key.height, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.serviceGetBlockWithTxs( key.height, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosTxV1Beta1.query.serviceGetBlockWithTxs( key.height, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'GetBlockWithTxs', key: { params: {...key}, query}, value })

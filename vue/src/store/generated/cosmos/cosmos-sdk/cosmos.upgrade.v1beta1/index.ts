@@ -1,23 +1,15 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Plan } from "./module/types/cosmos/upgrade/v1beta1/upgrade"
-import { SoftwareUpgradeProposal } from "./module/types/cosmos/upgrade/v1beta1/upgrade"
-import { CancelSoftwareUpgradeProposal } from "./module/types/cosmos/upgrade/v1beta1/upgrade"
-import { ModuleVersion } from "./module/types/cosmos/upgrade/v1beta1/upgrade"
+import { Plan } from "defund-labs-defund-client-ts/cosmos.upgrade.v1beta1/types"
+import { SoftwareUpgradeProposal } from "defund-labs-defund-client-ts/cosmos.upgrade.v1beta1/types"
+import { CancelSoftwareUpgradeProposal } from "defund-labs-defund-client-ts/cosmos.upgrade.v1beta1/types"
+import { ModuleVersion } from "defund-labs-defund-client-ts/cosmos.upgrade.v1beta1/types"
 
 
 export { Plan, SoftwareUpgradeProposal, CancelSoftwareUpgradeProposal, ModuleVersion };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -31,17 +23,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				CurrentPlan: {},
@@ -148,8 +141,8 @@ export default {
 		async QueryCurrentPlan({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryCurrentPlan()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosUpgradeV1Beta1.query.queryCurrentPlan()).data
 				
 					
 				commit('QUERY', { query: 'CurrentPlan', key: { params: {...key}, query}, value })
@@ -170,8 +163,8 @@ export default {
 		async QueryAppliedPlan({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAppliedPlan( key.name)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosUpgradeV1Beta1.query.queryAppliedPlan( key.name)).data
 				
 					
 				commit('QUERY', { query: 'AppliedPlan', key: { params: {...key}, query}, value })
@@ -192,8 +185,8 @@ export default {
 		async QueryUpgradedConsensusState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUpgradedConsensusState( key.last_height)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosUpgradeV1Beta1.query.queryUpgradedConsensusState( key.last_height)).data
 				
 					
 				commit('QUERY', { query: 'UpgradedConsensusState', key: { params: {...key}, query}, value })
@@ -214,12 +207,12 @@ export default {
 		async QueryModuleVersions({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryModuleVersions(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosUpgradeV1Beta1.query.queryModuleVersions(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryModuleVersions({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosUpgradeV1Beta1.query.queryModuleVersions({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ModuleVersions', key: { params: {...key}, query}, value })

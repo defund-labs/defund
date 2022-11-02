@@ -1,42 +1,34 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { StakeAuthorization } from "./module/types/cosmos/staking/v1beta1/authz"
-import { StakeAuthorization_Validators } from "./module/types/cosmos/staking/v1beta1/authz"
-import { LastValidatorPower } from "./module/types/cosmos/staking/v1beta1/genesis"
-import { HistoricalInfo } from "./module/types/cosmos/staking/v1beta1/staking"
-import { CommissionRates } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Commission } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Description } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Validator } from "./module/types/cosmos/staking/v1beta1/staking"
-import { ValAddresses } from "./module/types/cosmos/staking/v1beta1/staking"
-import { DVPair } from "./module/types/cosmos/staking/v1beta1/staking"
-import { DVPairs } from "./module/types/cosmos/staking/v1beta1/staking"
-import { DVVTriplet } from "./module/types/cosmos/staking/v1beta1/staking"
-import { DVVTriplets } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Delegation } from "./module/types/cosmos/staking/v1beta1/staking"
-import { UnbondingDelegation } from "./module/types/cosmos/staking/v1beta1/staking"
-import { UnbondingDelegationEntry } from "./module/types/cosmos/staking/v1beta1/staking"
-import { RedelegationEntry } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Redelegation } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Params } from "./module/types/cosmos/staking/v1beta1/staking"
-import { DelegationResponse } from "./module/types/cosmos/staking/v1beta1/staking"
-import { RedelegationEntryResponse } from "./module/types/cosmos/staking/v1beta1/staking"
-import { RedelegationResponse } from "./module/types/cosmos/staking/v1beta1/staking"
-import { Pool } from "./module/types/cosmos/staking/v1beta1/staking"
+import { StakeAuthorization } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { StakeAuthorization_Validators } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { LastValidatorPower } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { HistoricalInfo } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { CommissionRates } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Commission } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Description } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Validator } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { ValAddresses } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { DVPair } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { DVPairs } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { DVVTriplet } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { DVVTriplets } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Delegation } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { UnbondingDelegation } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { UnbondingDelegationEntry } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { RedelegationEntry } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Redelegation } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Params } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { DelegationResponse } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { RedelegationEntryResponse } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { RedelegationResponse } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
+import { Pool } from "defund-labs-defund-client-ts/cosmos.staking.v1beta1/types"
 
 
 export { StakeAuthorization, StakeAuthorization_Validators, LastValidatorPower, HistoricalInfo, CommissionRates, Commission, Description, Validator, ValAddresses, DVPair, DVPairs, DVVTriplet, DVVTriplets, Delegation, UnbondingDelegation, UnbondingDelegationEntry, RedelegationEntry, Redelegation, Params, DelegationResponse, RedelegationEntryResponse, RedelegationResponse, Pool };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -50,17 +42,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Validators: {},
@@ -256,12 +249,12 @@ export default {
 		async QueryValidators({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryValidators(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryValidators(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryValidators({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryValidators({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Validators', key: { params: {...key}, query}, value })
@@ -282,8 +275,8 @@ export default {
 		async QueryValidator({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryValidator( key.validator_addr)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryValidator( key.validator_addr)).data
 				
 					
 				commit('QUERY', { query: 'Validator', key: { params: {...key}, query}, value })
@@ -304,12 +297,12 @@ export default {
 		async QueryValidatorDelegations({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryValidatorDelegations( key.validator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryValidatorDelegations( key.validator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryValidatorDelegations( key.validator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryValidatorDelegations( key.validator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ValidatorDelegations', key: { params: {...key}, query}, value })
@@ -330,12 +323,12 @@ export default {
 		async QueryValidatorUnbondingDelegations({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryValidatorUnbondingDelegations( key.validator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryValidatorUnbondingDelegations( key.validator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryValidatorUnbondingDelegations( key.validator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryValidatorUnbondingDelegations( key.validator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ValidatorUnbondingDelegations', key: { params: {...key}, query}, value })
@@ -356,8 +349,8 @@ export default {
 		async QueryDelegation({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDelegation( key.validator_addr,  key.delegator_addr)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryDelegation( key.validator_addr,  key.delegator_addr)).data
 				
 					
 				commit('QUERY', { query: 'Delegation', key: { params: {...key}, query}, value })
@@ -378,8 +371,8 @@ export default {
 		async QueryUnbondingDelegation({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUnbondingDelegation( key.validator_addr,  key.delegator_addr)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryUnbondingDelegation( key.validator_addr,  key.delegator_addr)).data
 				
 					
 				commit('QUERY', { query: 'UnbondingDelegation', key: { params: {...key}, query}, value })
@@ -400,12 +393,12 @@ export default {
 		async QueryDelegatorDelegations({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDelegatorDelegations( key.delegator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryDelegatorDelegations( key.delegator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDelegatorDelegations( key.delegator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryDelegatorDelegations( key.delegator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'DelegatorDelegations', key: { params: {...key}, query}, value })
@@ -426,12 +419,12 @@ export default {
 		async QueryDelegatorUnbondingDelegations({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDelegatorUnbondingDelegations( key.delegator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryDelegatorUnbondingDelegations( key.delegator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDelegatorUnbondingDelegations( key.delegator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryDelegatorUnbondingDelegations( key.delegator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'DelegatorUnbondingDelegations', key: { params: {...key}, query}, value })
@@ -452,12 +445,12 @@ export default {
 		async QueryRedelegations({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryRedelegations( key.delegator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryRedelegations( key.delegator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryRedelegations( key.delegator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryRedelegations( key.delegator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Redelegations', key: { params: {...key}, query}, value })
@@ -478,12 +471,12 @@ export default {
 		async QueryDelegatorValidators({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDelegatorValidators( key.delegator_addr, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryDelegatorValidators( key.delegator_addr, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDelegatorValidators( key.delegator_addr, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosStakingV1Beta1.query.queryDelegatorValidators( key.delegator_addr, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'DelegatorValidators', key: { params: {...key}, query}, value })
@@ -504,8 +497,8 @@ export default {
 		async QueryDelegatorValidator({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDelegatorValidator( key.delegator_addr,  key.validator_addr)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryDelegatorValidator( key.delegator_addr,  key.validator_addr)).data
 				
 					
 				commit('QUERY', { query: 'DelegatorValidator', key: { params: {...key}, query}, value })
@@ -526,8 +519,8 @@ export default {
 		async QueryHistoricalInfo({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryHistoricalInfo( key.height)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryHistoricalInfo( key.height)).data
 				
 					
 				commit('QUERY', { query: 'HistoricalInfo', key: { params: {...key}, query}, value })
@@ -548,8 +541,8 @@ export default {
 		async QueryPool({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPool()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryPool()).data
 				
 					
 				commit('QUERY', { query: 'Pool', key: { params: {...key}, query}, value })
@@ -570,8 +563,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosStakingV1Beta1.query.queryParams()).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })
@@ -584,72 +577,10 @@ export default {
 		},
 		
 		
-		async sendMsgBeginRedelegate({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgBeginRedelegate(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgBeginRedelegate:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgBeginRedelegate:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
-		async sendMsgEditValidator({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgEditValidator(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgEditValidator:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgEditValidator:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
-		async sendMsgUndelegate({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgUndelegate(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgUndelegate:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgUndelegate:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
-		async sendMsgCreateValidator({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateValidator(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgCreateValidator:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgCreateValidator:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgDelegate({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgDelegate(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosStakingV1Beta1.tx.sendMsgDelegate({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -659,37 +590,76 @@ export default {
 				}
 			}
 		},
-		
-		async MsgBeginRedelegate({ rootGetters }, { value }) {
+		async sendMsgUndelegate({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgBeginRedelegate(value)
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosStakingV1Beta1.tx.sendMsgUndelegate({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgBeginRedelegate:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgBeginRedelegate:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgUndelegate:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgUndelegate:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
-		async MsgEditValidator({ rootGetters }, { value }) {
+		async sendMsgEditValidator({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgEditValidator(value)
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosStakingV1Beta1.tx.sendMsgEditValidator({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgEditValidator:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgEditValidator:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
+		async sendMsgBeginRedelegate({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosStakingV1Beta1.tx.sendMsgBeginRedelegate({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgBeginRedelegate:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgBeginRedelegate:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
+		async sendMsgCreateValidator({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosStakingV1Beta1.tx.sendMsgCreateValidator({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgCreateValidator:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgCreateValidator:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
+		
+		async MsgDelegate({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosStakingV1Beta1.tx.msgDelegate({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgDelegate:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgEditValidator:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgDelegate:Create Could not create message: ' + e.message)
 				}
 			}
 		},
 		async MsgUndelegate({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgUndelegate(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosStakingV1Beta1.tx.msgUndelegate({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -699,29 +669,42 @@ export default {
 				}
 			}
 		},
+		async MsgEditValidator({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosStakingV1Beta1.tx.msgEditValidator({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgEditValidator:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgEditValidator:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgBeginRedelegate({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosStakingV1Beta1.tx.msgBeginRedelegate({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgBeginRedelegate:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgBeginRedelegate:Create Could not create message: ' + e.message)
+				}
+			}
+		},
 		async MsgCreateValidator({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateValidator(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosStakingV1Beta1.tx.msgCreateValidator({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgCreateValidator:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgCreateValidator:Create Could not create message: ' + e.message)
-				}
-			}
-		},
-		async MsgDelegate({ rootGetters }, { value }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgDelegate(value)
-				return msg
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgDelegate:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgDelegate:Create Could not create message: ' + e.message)
 				}
 			}
 		},

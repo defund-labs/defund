@@ -1,28 +1,20 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { IdentifiedClientState } from "./module/types/ibc/core/client/v1/client"
-import { ConsensusStateWithHeight } from "./module/types/ibc/core/client/v1/client"
-import { ClientConsensusStates } from "./module/types/ibc/core/client/v1/client"
-import { ClientUpdateProposal } from "./module/types/ibc/core/client/v1/client"
-import { UpgradeProposal } from "./module/types/ibc/core/client/v1/client"
-import { Height } from "./module/types/ibc/core/client/v1/client"
-import { Params } from "./module/types/ibc/core/client/v1/client"
-import { GenesisMetadata } from "./module/types/ibc/core/client/v1/genesis"
-import { IdentifiedGenesisMetadata } from "./module/types/ibc/core/client/v1/genesis"
+import { IdentifiedClientState } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { ConsensusStateWithHeight } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { ClientConsensusStates } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { ClientUpdateProposal } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { UpgradeProposal } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { Height } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { Params } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { GenesisMetadata } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
+import { IdentifiedGenesisMetadata } from "defund-labs-defund-client-ts/ibc.core.client.v1/types"
 
 
 export { IdentifiedClientState, ConsensusStateWithHeight, ClientConsensusStates, ClientUpdateProposal, UpgradeProposal, Height, Params, GenesisMetadata, IdentifiedGenesisMetadata };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -36,17 +28,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				ClientState: {},
@@ -193,8 +186,8 @@ export default {
 		async QueryClientState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryClientState( key.client_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryClientState( key.client_id)).data
 				
 					
 				commit('QUERY', { query: 'ClientState', key: { params: {...key}, query}, value })
@@ -215,12 +208,12 @@ export default {
 		async QueryClientStates({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryClientStates(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryClientStates(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryClientStates({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreClientV1.query.queryClientStates({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ClientStates', key: { params: {...key}, query}, value })
@@ -241,12 +234,12 @@ export default {
 		async QueryConsensusState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConsensusState( key.client_id,  key.revision_number,  key.revision_height, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryConsensusState( key.client_id,  key.revision_number,  key.revision_height, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryConsensusState( key.client_id,  key.revision_number,  key.revision_height, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreClientV1.query.queryConsensusState( key.client_id,  key.revision_number,  key.revision_height, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ConsensusState', key: { params: {...key}, query}, value })
@@ -267,12 +260,12 @@ export default {
 		async QueryConsensusStates({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConsensusStates( key.client_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryConsensusStates( key.client_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryConsensusStates( key.client_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreClientV1.query.queryConsensusStates( key.client_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ConsensusStates', key: { params: {...key}, query}, value })
@@ -293,12 +286,12 @@ export default {
 		async QueryConsensusStateHeights({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConsensusStateHeights( key.client_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryConsensusStateHeights( key.client_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryConsensusStateHeights( key.client_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreClientV1.query.queryConsensusStateHeights( key.client_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ConsensusStateHeights', key: { params: {...key}, query}, value })
@@ -319,8 +312,8 @@ export default {
 		async QueryClientStatus({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryClientStatus( key.client_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryClientStatus( key.client_id)).data
 				
 					
 				commit('QUERY', { query: 'ClientStatus', key: { params: {...key}, query}, value })
@@ -341,8 +334,8 @@ export default {
 		async QueryClientParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryClientParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryClientParams()).data
 				
 					
 				commit('QUERY', { query: 'ClientParams', key: { params: {...key}, query}, value })
@@ -363,8 +356,8 @@ export default {
 		async QueryUpgradedClientState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUpgradedClientState()).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryUpgradedClientState()).data
 				
 					
 				commit('QUERY', { query: 'UpgradedClientState', key: { params: {...key}, query}, value })
@@ -385,8 +378,8 @@ export default {
 		async QueryUpgradedConsensusState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUpgradedConsensusState()).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreClientV1.query.queryUpgradedConsensusState()).data
 				
 					
 				commit('QUERY', { query: 'UpgradedConsensusState', key: { params: {...key}, query}, value })

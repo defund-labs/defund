@@ -1,19 +1,11 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
 
 
 export {  };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -27,17 +19,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				
@@ -106,10 +99,8 @@ export default {
 		
 		async sendMsgVerifyInvariant({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVerifyInvariant(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosCrisisV1Beta1.tx.sendMsgVerifyInvariant({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -122,8 +113,8 @@ export default {
 		
 		async MsgVerifyInvariant({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVerifyInvariant(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosCrisisV1Beta1.tx.msgVerifyInvariant({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
