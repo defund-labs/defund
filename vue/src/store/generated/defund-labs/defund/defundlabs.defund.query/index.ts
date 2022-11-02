@@ -1,22 +1,14 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Interquery } from "./module/types/query/interquery"
-import { InterqueryResult } from "./module/types/query/interquery"
-import { InterqueryTimeoutResult } from "./module/types/query/interquery"
+import { Interquery } from "defund-labs-defund-client-ts/defundlabs.defund.query/types"
+import { InterqueryResult } from "defund-labs-defund-client-ts/defundlabs.defund.query/types"
+import { InterqueryTimeoutResult } from "defund-labs-defund-client-ts/defundlabs.defund.query/types"
 
 
 export { Interquery, InterqueryResult, InterqueryTimeoutResult };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -30,17 +22,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Interquery: {},
@@ -160,8 +153,8 @@ export default {
 		async QueryInterquery({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterquery( key.storeid)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterquery( key.storeid)).data
 				
 					
 				commit('QUERY', { query: 'Interquery', key: { params: {...key}, query}, value })
@@ -182,12 +175,12 @@ export default {
 		async QueryInterqueryAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterqueryAll(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterqueryAll(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryInterqueryAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundQuery.query.queryInterqueryAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'InterqueryAll', key: { params: {...key}, query}, value })
@@ -208,8 +201,8 @@ export default {
 		async QueryInterqueryResult({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterqueryResult( key.storeid)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterqueryResult( key.storeid)).data
 				
 					
 				commit('QUERY', { query: 'InterqueryResult', key: { params: {...key}, query}, value })
@@ -230,12 +223,12 @@ export default {
 		async QueryInterqueryResultAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterqueryResultAll(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterqueryResultAll(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryInterqueryResultAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundQuery.query.queryInterqueryResultAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'InterqueryResultAll', key: { params: {...key}, query}, value })
@@ -256,8 +249,8 @@ export default {
 		async QueryInterqueryTimeoutResult({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterqueryTimeoutResult( key.storeid)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterqueryTimeoutResult( key.storeid)).data
 				
 					
 				commit('QUERY', { query: 'InterqueryTimeoutResult', key: { params: {...key}, query}, value })
@@ -278,12 +271,12 @@ export default {
 		async QueryInterqueryTimeoutResultAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryInterqueryTimeoutResultAll(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundQuery.query.queryInterqueryTimeoutResultAll(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryInterqueryTimeoutResultAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundQuery.query.queryInterqueryTimeoutResultAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'InterqueryTimeoutResultAll', key: { params: {...key}, query}, value })
@@ -296,27 +289,10 @@ export default {
 		},
 		
 		
-		async sendMsgCreateInterquery({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterquery(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgCreateInterquery:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgCreateInterquery:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgCreateInterqueryResult({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterqueryResult(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundQuery.tx.sendMsgCreateInterqueryResult({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -326,12 +302,23 @@ export default {
 				}
 			}
 		},
+		async sendMsgCreateInterquery({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundQuery.tx.sendMsgCreateInterquery({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgCreateInterquery:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgCreateInterquery:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
 		async sendMsgCreateInterqueryTimeout({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterqueryTimeout(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundQuery.tx.sendMsgCreateInterqueryTimeout({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -342,23 +329,10 @@ export default {
 			}
 		},
 		
-		async MsgCreateInterquery({ rootGetters }, { value }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterquery(value)
-				return msg
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgCreateInterquery:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgCreateInterquery:Create Could not create message: ' + e.message)
-				}
-			}
-		},
 		async MsgCreateInterqueryResult({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterqueryResult(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundQuery.tx.msgCreateInterqueryResult({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -368,10 +342,23 @@ export default {
 				}
 			}
 		},
+		async MsgCreateInterquery({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundQuery.tx.msgCreateInterquery({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgCreateInterquery:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgCreateInterquery:Create Could not create message: ' + e.message)
+				}
+			}
+		},
 		async MsgCreateInterqueryTimeout({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateInterqueryTimeout(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundQuery.tx.msgCreateInterqueryTimeout({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {

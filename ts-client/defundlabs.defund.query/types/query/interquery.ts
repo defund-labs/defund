@@ -1,6 +1,6 @@
 /* eslint-disable */
-import * as Long from "long";
-import { util, configure, Writer, Reader } from "protobufjs/minimal";
+import Long from "long";
+import _m0 from "protobufjs/minimal";
 import { Height } from "../ibc/core/client/v1/client";
 
 export const protobufPackage = "defundlabs.defund.query";
@@ -21,7 +21,9 @@ export interface InterqueryResult {
   chainid: string;
   data: Uint8Array;
   /** queried chain height on submission */
-  height: Height | undefined;
+  height:
+    | Height
+    | undefined;
   /** querying chain height on submission */
   localHeight: number;
   success: boolean;
@@ -33,17 +35,20 @@ export interface InterqueryTimeoutResult {
   timeoutHeight: number;
 }
 
-const baseInterquery: object = {
-  storeid: "",
-  chainid: "",
-  path: "",
-  timeoutHeight: 0,
-  connectionId: "",
-  clientId: "",
-};
+function createBaseInterquery(): Interquery {
+  return {
+    storeid: "",
+    chainid: "",
+    path: "",
+    key: new Uint8Array(),
+    timeoutHeight: 0,
+    connectionId: "",
+    clientId: "",
+  };
+}
 
 export const Interquery = {
-  encode(message: Interquery, writer: Writer = Writer.create()): Writer {
+  encode(message: Interquery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.storeid !== "") {
       writer.uint32(10).string(message.storeid);
     }
@@ -68,10 +73,10 @@ export const Interquery = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): Interquery {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): Interquery {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseInterquery } as Interquery;
+    const message = createBaseInterquery();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -105,41 +110,15 @@ export const Interquery = {
   },
 
   fromJSON(object: any): Interquery {
-    const message = { ...baseInterquery } as Interquery;
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = String(object.storeid);
-    } else {
-      message.storeid = "";
-    }
-    if (object.chainid !== undefined && object.chainid !== null) {
-      message.chainid = String(object.chainid);
-    } else {
-      message.chainid = "";
-    }
-    if (object.path !== undefined && object.path !== null) {
-      message.path = String(object.path);
-    } else {
-      message.path = "";
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = bytesFromBase64(object.key);
-    }
-    if (object.timeoutHeight !== undefined && object.timeoutHeight !== null) {
-      message.timeoutHeight = Number(object.timeoutHeight);
-    } else {
-      message.timeoutHeight = 0;
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = String(object.connectionId);
-    } else {
-      message.connectionId = "";
-    }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
-    return message;
+    return {
+      storeid: isSet(object.storeid) ? String(object.storeid) : "",
+      chainid: isSet(object.chainid) ? String(object.chainid) : "",
+      path: isSet(object.path) ? String(object.path) : "",
+      key: isSet(object.key) ? bytesFromBase64(object.key) : new Uint8Array(),
+      timeoutHeight: isSet(object.timeoutHeight) ? Number(object.timeoutHeight) : 0,
+      connectionId: isSet(object.connectionId) ? String(object.connectionId) : "",
+      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+    };
   },
 
   toJSON(message: Interquery): unknown {
@@ -147,70 +126,42 @@ export const Interquery = {
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.chainid !== undefined && (obj.chainid = message.chainid);
     message.path !== undefined && (obj.path = message.path);
-    message.key !== undefined &&
-      (obj.key = base64FromBytes(
-        message.key !== undefined ? message.key : new Uint8Array()
-      ));
-    message.timeoutHeight !== undefined &&
-      (obj.timeoutHeight = message.timeoutHeight);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.key !== undefined
+      && (obj.key = base64FromBytes(message.key !== undefined ? message.key : new Uint8Array()));
+    message.timeoutHeight !== undefined && (obj.timeoutHeight = Math.round(message.timeoutHeight));
+    message.connectionId !== undefined && (obj.connectionId = message.connectionId);
     message.clientId !== undefined && (obj.clientId = message.clientId);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Interquery>): Interquery {
-    const message = { ...baseInterquery } as Interquery;
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = object.storeid;
-    } else {
-      message.storeid = "";
-    }
-    if (object.chainid !== undefined && object.chainid !== null) {
-      message.chainid = object.chainid;
-    } else {
-      message.chainid = "";
-    }
-    if (object.path !== undefined && object.path !== null) {
-      message.path = object.path;
-    } else {
-      message.path = "";
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key;
-    } else {
-      message.key = new Uint8Array();
-    }
-    if (object.timeoutHeight !== undefined && object.timeoutHeight !== null) {
-      message.timeoutHeight = object.timeoutHeight;
-    } else {
-      message.timeoutHeight = 0;
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = object.connectionId;
-    } else {
-      message.connectionId = "";
-    }
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Interquery>, I>>(object: I): Interquery {
+    const message = createBaseInterquery();
+    message.storeid = object.storeid ?? "";
+    message.chainid = object.chainid ?? "";
+    message.path = object.path ?? "";
+    message.key = object.key ?? new Uint8Array();
+    message.timeoutHeight = object.timeoutHeight ?? 0;
+    message.connectionId = object.connectionId ?? "";
+    message.clientId = object.clientId ?? "";
     return message;
   },
 };
 
-const baseInterqueryResult: object = {
-  creator: "",
-  storeid: "",
-  chainid: "",
-  localHeight: 0,
-  success: false,
-  proved: false,
-};
+function createBaseInterqueryResult(): InterqueryResult {
+  return {
+    creator: "",
+    storeid: "",
+    chainid: "",
+    data: new Uint8Array(),
+    height: undefined,
+    localHeight: 0,
+    success: false,
+    proved: false,
+  };
+}
 
 export const InterqueryResult = {
-  encode(message: InterqueryResult, writer: Writer = Writer.create()): Writer {
+  encode(message: InterqueryResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -238,10 +189,10 @@ export const InterqueryResult = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): InterqueryResult {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): InterqueryResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseInterqueryResult } as InterqueryResult;
+    const message = createBaseInterqueryResult();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -278,46 +229,16 @@ export const InterqueryResult = {
   },
 
   fromJSON(object: any): InterqueryResult {
-    const message = { ...baseInterqueryResult } as InterqueryResult;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = String(object.storeid);
-    } else {
-      message.storeid = "";
-    }
-    if (object.chainid !== undefined && object.chainid !== null) {
-      message.chainid = String(object.chainid);
-    } else {
-      message.chainid = "";
-    }
-    if (object.data !== undefined && object.data !== null) {
-      message.data = bytesFromBase64(object.data);
-    }
-    if (object.height !== undefined && object.height !== null) {
-      message.height = Height.fromJSON(object.height);
-    } else {
-      message.height = undefined;
-    }
-    if (object.localHeight !== undefined && object.localHeight !== null) {
-      message.localHeight = Number(object.localHeight);
-    } else {
-      message.localHeight = 0;
-    }
-    if (object.success !== undefined && object.success !== null) {
-      message.success = Boolean(object.success);
-    } else {
-      message.success = false;
-    }
-    if (object.proved !== undefined && object.proved !== null) {
-      message.proved = Boolean(object.proved);
-    } else {
-      message.proved = false;
-    }
-    return message;
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      storeid: isSet(object.storeid) ? String(object.storeid) : "",
+      chainid: isSet(object.chainid) ? String(object.chainid) : "",
+      data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(),
+      height: isSet(object.height) ? Height.fromJSON(object.height) : undefined,
+      localHeight: isSet(object.localHeight) ? Number(object.localHeight) : 0,
+      success: isSet(object.success) ? Boolean(object.success) : false,
+      proved: isSet(object.proved) ? Boolean(object.proved) : false,
+    };
   },
 
   toJSON(message: InterqueryResult): unknown {
@@ -325,72 +246,37 @@ export const InterqueryResult = {
     message.creator !== undefined && (obj.creator = message.creator);
     message.storeid !== undefined && (obj.storeid = message.storeid);
     message.chainid !== undefined && (obj.chainid = message.chainid);
-    message.data !== undefined &&
-      (obj.data = base64FromBytes(
-        message.data !== undefined ? message.data : new Uint8Array()
-      ));
-    message.height !== undefined &&
-      (obj.height = message.height ? Height.toJSON(message.height) : undefined);
-    message.localHeight !== undefined &&
-      (obj.localHeight = message.localHeight);
+    message.data !== undefined
+      && (obj.data = base64FromBytes(message.data !== undefined ? message.data : new Uint8Array()));
+    message.height !== undefined && (obj.height = message.height ? Height.toJSON(message.height) : undefined);
+    message.localHeight !== undefined && (obj.localHeight = Math.round(message.localHeight));
     message.success !== undefined && (obj.success = message.success);
     message.proved !== undefined && (obj.proved = message.proved);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<InterqueryResult>): InterqueryResult {
-    const message = { ...baseInterqueryResult } as InterqueryResult;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = object.storeid;
-    } else {
-      message.storeid = "";
-    }
-    if (object.chainid !== undefined && object.chainid !== null) {
-      message.chainid = object.chainid;
-    } else {
-      message.chainid = "";
-    }
-    if (object.data !== undefined && object.data !== null) {
-      message.data = object.data;
-    } else {
-      message.data = new Uint8Array();
-    }
-    if (object.height !== undefined && object.height !== null) {
-      message.height = Height.fromPartial(object.height);
-    } else {
-      message.height = undefined;
-    }
-    if (object.localHeight !== undefined && object.localHeight !== null) {
-      message.localHeight = object.localHeight;
-    } else {
-      message.localHeight = 0;
-    }
-    if (object.success !== undefined && object.success !== null) {
-      message.success = object.success;
-    } else {
-      message.success = false;
-    }
-    if (object.proved !== undefined && object.proved !== null) {
-      message.proved = object.proved;
-    } else {
-      message.proved = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<InterqueryResult>, I>>(object: I): InterqueryResult {
+    const message = createBaseInterqueryResult();
+    message.creator = object.creator ?? "";
+    message.storeid = object.storeid ?? "";
+    message.chainid = object.chainid ?? "";
+    message.data = object.data ?? new Uint8Array();
+    message.height = (object.height !== undefined && object.height !== null)
+      ? Height.fromPartial(object.height)
+      : undefined;
+    message.localHeight = object.localHeight ?? 0;
+    message.success = object.success ?? false;
+    message.proved = object.proved ?? false;
     return message;
   },
 };
 
-const baseInterqueryTimeoutResult: object = { storeid: "", timeoutHeight: 0 };
+function createBaseInterqueryTimeoutResult(): InterqueryTimeoutResult {
+  return { storeid: "", timeoutHeight: 0 };
+}
 
 export const InterqueryTimeoutResult = {
-  encode(
-    message: InterqueryTimeoutResult,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: InterqueryTimeoutResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.storeid !== "") {
       writer.uint32(10).string(message.storeid);
     }
@@ -400,12 +286,10 @@ export const InterqueryTimeoutResult = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): InterqueryTimeoutResult {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): InterqueryTimeoutResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseInterqueryTimeoutResult,
-    } as InterqueryTimeoutResult;
+    const message = createBaseInterqueryTimeoutResult();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -424,93 +308,81 @@ export const InterqueryTimeoutResult = {
   },
 
   fromJSON(object: any): InterqueryTimeoutResult {
-    const message = {
-      ...baseInterqueryTimeoutResult,
-    } as InterqueryTimeoutResult;
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = String(object.storeid);
-    } else {
-      message.storeid = "";
-    }
-    if (object.timeoutHeight !== undefined && object.timeoutHeight !== null) {
-      message.timeoutHeight = Number(object.timeoutHeight);
-    } else {
-      message.timeoutHeight = 0;
-    }
-    return message;
+    return {
+      storeid: isSet(object.storeid) ? String(object.storeid) : "",
+      timeoutHeight: isSet(object.timeoutHeight) ? Number(object.timeoutHeight) : 0,
+    };
   },
 
   toJSON(message: InterqueryTimeoutResult): unknown {
     const obj: any = {};
     message.storeid !== undefined && (obj.storeid = message.storeid);
-    message.timeoutHeight !== undefined &&
-      (obj.timeoutHeight = message.timeoutHeight);
+    message.timeoutHeight !== undefined && (obj.timeoutHeight = Math.round(message.timeoutHeight));
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<InterqueryTimeoutResult>
-  ): InterqueryTimeoutResult {
-    const message = {
-      ...baseInterqueryTimeoutResult,
-    } as InterqueryTimeoutResult;
-    if (object.storeid !== undefined && object.storeid !== null) {
-      message.storeid = object.storeid;
-    } else {
-      message.storeid = "";
-    }
-    if (object.timeoutHeight !== undefined && object.timeoutHeight !== null) {
-      message.timeoutHeight = object.timeoutHeight;
-    } else {
-      message.timeoutHeight = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<InterqueryTimeoutResult>, I>>(object: I): InterqueryTimeoutResult {
+    const message = createBaseInterqueryTimeoutResult();
+    message.storeid = object.storeid ?? "";
+    message.timeoutHeight = object.timeoutHeight ?? 0;
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
   throw "Unable to locate global object";
 })();
 
-const atob: (b64: string) => string =
-  globalThis.atob ||
-  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
 function bytesFromBase64(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; ++i) {
-    arr[i] = bin.charCodeAt(i);
+  if (globalThis.Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
   }
-  return arr;
 }
 
-const btoa: (bin: string) => string =
-  globalThis.btoa ||
-  ((bin) => globalThis.Buffer.from(bin, "binary").toString("base64"));
 function base64FromBytes(arr: Uint8Array): string {
-  const bin: string[] = [];
-  for (let i = 0; i < arr.byteLength; ++i) {
-    bin.push(String.fromCharCode(arr[i]));
+  if (globalThis.Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
-  return btoa(bin.join(""));
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -519,7 +391,11 @@ function longToNumber(long: Long): number {
   return long.toNumber();
 }
 
-if (util.Long !== Long) {
-  util.Long = Long as any;
-  configure();
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

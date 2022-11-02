@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v4/modules/core/exported"
 	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	querytypes "github.com/defund-labs/defund/x/query/types"
-	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
 type AccountKeeper interface {
@@ -61,24 +60,24 @@ type BankKeeper interface {
 
 type BrokerKeeper interface {
 	GetBroker(ctx sdk.Context, id string) (val brokertypes.Broker, found bool)
-	GetBrokerAccount(ctx sdk.Context, ConnectionId string, portIDstring string) (string, bool)
-	RegisterBrokerAccount(ctx sdk.Context, connectionID, owner string) error
+	SetBroker(ctx sdk.Context, broker brokertypes.Broker)
 	SetTransfer(ctx sdk.Context, transfer brokertypes.Transfer)
 	GetAllTransfer(ctx sdk.Context) (list []brokertypes.Transfer)
 	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
 	RemoveTransfer(ctx sdk.Context, id string)
-	GetOsmosisPool(ctx sdk.Context, poolId uint64) (pool osmosisgammtypes.PoolI, err error)
-	CalculateOsmosisSpotPrice(ctx sdk.Context, poolId uint64, tokenInDenom string, tokenOutDenom string) (sdk.Dec, error)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
-	CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, account string, denom string) error
-	CreateOsmosisTrade(ctx sdk.Context, trader string, routes []osmosisgammtypes.SwapAmountInRoute, tokenin sdk.Coin, tokenoutminamount sdk.Int) (*osmosisgammtypes.MsgSwapExactAmountIn, error)
-	SendOsmosisTrades(ctx sdk.Context, msgs []*osmosisgammtypes.MsgSwapExactAmountIn, owner string, connectionID string) (sequence uint64, err error)
-	SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, channel string, err error)
 	GetParam(ctx sdk.Context, key []byte) *brokertypes.BaseDenoms
+	GetRebalance(ctx sdk.Context, index string) (val brokertypes.Rebalance, found bool)
+	RemoveRebalance(ctx sdk.Context, id string)
+	RemoveRedeem(ctx sdk.Context, id string)
+	GetRedeem(ctx sdk.Context, id string) (val brokertypes.Redeem, found bool)
+	SetRedeem(ctx sdk.Context, redeem brokertypes.Redeem)
+	SetRebalance(ctx sdk.Context, rebalance brokertypes.Rebalance)
 }
 
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetAllChannels(ctx sdk.Context) (channels []channeltypes.IdentifiedChannel)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 }
 
@@ -86,6 +85,7 @@ type InterqueryKeeper interface {
 	GetInterqueryResult(ctx sdk.Context, index string) (querytypes.InterqueryResult, bool)
 	GetAllInterqueryResult(ctx sdk.Context) (list []querytypes.InterqueryResult)
 	RemoveInterqueryResult(ctx sdk.Context, storeid string)
+	CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid string, path string, key []byte, timeoutheight uint64, connectionid string) error
 }
 
 type ConnectionKeeper interface {

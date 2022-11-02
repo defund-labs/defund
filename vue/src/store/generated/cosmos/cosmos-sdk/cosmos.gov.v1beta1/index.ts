@@ -1,28 +1,20 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { WeightedVoteOption } from "./module/types/cosmos/gov/v1beta1/gov"
-import { TextProposal } from "./module/types/cosmos/gov/v1beta1/gov"
-import { Deposit } from "./module/types/cosmos/gov/v1beta1/gov"
-import { Proposal } from "./module/types/cosmos/gov/v1beta1/gov"
-import { TallyResult } from "./module/types/cosmos/gov/v1beta1/gov"
-import { Vote } from "./module/types/cosmos/gov/v1beta1/gov"
-import { DepositParams } from "./module/types/cosmos/gov/v1beta1/gov"
-import { VotingParams } from "./module/types/cosmos/gov/v1beta1/gov"
-import { TallyParams } from "./module/types/cosmos/gov/v1beta1/gov"
+import { WeightedVoteOption } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { TextProposal } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { Deposit } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { Proposal } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { TallyResult } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { Vote } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { DepositParams } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { VotingParams } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
+import { TallyParams } from "defund-labs-defund-client-ts/cosmos.gov.v1beta1/types"
 
 
 export { WeightedVoteOption, TextProposal, Deposit, Proposal, TallyResult, Vote, DepositParams, VotingParams, TallyParams };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -36,17 +28,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Proposal: {},
@@ -186,8 +179,8 @@ export default {
 		async QueryProposal({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryProposal( key.proposal_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryProposal( key.proposal_id)).data
 				
 					
 				commit('QUERY', { query: 'Proposal', key: { params: {...key}, query}, value })
@@ -208,12 +201,12 @@ export default {
 		async QueryProposals({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryProposals(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryProposals(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryProposals({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosGovV1Beta1.query.queryProposals({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Proposals', key: { params: {...key}, query}, value })
@@ -234,8 +227,8 @@ export default {
 		async QueryVote({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryVote( key.proposal_id,  key.voter)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryVote( key.proposal_id,  key.voter)).data
 				
 					
 				commit('QUERY', { query: 'Vote', key: { params: {...key}, query}, value })
@@ -256,12 +249,12 @@ export default {
 		async QueryVotes({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryVotes( key.proposal_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryVotes( key.proposal_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryVotes( key.proposal_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosGovV1Beta1.query.queryVotes( key.proposal_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Votes', key: { params: {...key}, query}, value })
@@ -282,8 +275,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams( key.params_type)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryParams( key.params_type)).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })
@@ -304,8 +297,8 @@ export default {
 		async QueryDeposit({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDeposit( key.proposal_id,  key.depositor)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryDeposit( key.proposal_id,  key.depositor)).data
 				
 					
 				commit('QUERY', { query: 'Deposit', key: { params: {...key}, query}, value })
@@ -326,12 +319,12 @@ export default {
 		async QueryDeposits({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDeposits( key.proposal_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryDeposits( key.proposal_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDeposits( key.proposal_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosGovV1Beta1.query.queryDeposits( key.proposal_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Deposits', key: { params: {...key}, query}, value })
@@ -352,8 +345,8 @@ export default {
 		async QueryTallyResult({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryTallyResult( key.proposal_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosGovV1Beta1.query.queryTallyResult( key.proposal_id)).data
 				
 					
 				commit('QUERY', { query: 'TallyResult', key: { params: {...key}, query}, value })
@@ -366,27 +359,10 @@ export default {
 		},
 		
 		
-		async sendMsgSubmitProposal({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSubmitProposal(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgSubmitProposal:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgSubmitProposal:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgDeposit({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgDeposit(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosGovV1Beta1.tx.sendMsgDeposit({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -396,27 +372,10 @@ export default {
 				}
 			}
 		},
-		async sendMsgVoteWeighted({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVoteWeighted(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgVoteWeighted:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgVoteWeighted:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgVote({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVote(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosGovV1Beta1.tx.sendMsgVote({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -426,24 +385,37 @@ export default {
 				}
 			}
 		},
-		
-		async MsgSubmitProposal({ rootGetters }, { value }) {
+		async sendMsgVoteWeighted({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSubmitProposal(value)
-				return msg
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosGovV1Beta1.tx.sendMsgVoteWeighted({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgSubmitProposal:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgSubmitProposal:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgVoteWeighted:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgVoteWeighted:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		async sendMsgSubmitProposal({ rootGetters }, { value, fee = [], memo = '' }) {
+			try {
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosGovV1Beta1.tx.sendMsgSubmitProposal({ value, fee: {amount: fee, gas: "200000"}, memo })
+				return result
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgSubmitProposal:Init Could not initialize signing client. Wallet is required.')
+				}else{
+					throw new Error('TxClient:MsgSubmitProposal:Send Could not broadcast Tx: '+ e.message)
+				}
+			}
+		},
+		
 		async MsgDeposit({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgDeposit(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosGovV1Beta1.tx.msgDeposit({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -453,10 +425,23 @@ export default {
 				}
 			}
 		},
+		async MsgVote({ rootGetters }, { value }) {
+			try {
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosGovV1Beta1.tx.msgVote({value})
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgVote:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgVote:Create Could not create message: ' + e.message)
+				}
+			}
+		},
 		async MsgVoteWeighted({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVoteWeighted(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosGovV1Beta1.tx.msgVoteWeighted({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -466,16 +451,16 @@ export default {
 				}
 			}
 		},
-		async MsgVote({ rootGetters }, { value }) {
+		async MsgSubmitProposal({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgVote(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosGovV1Beta1.tx.msgSubmitProposal({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgVote:Init Could not initialize signing client. Wallet is required.')
+					throw new Error('TxClient:MsgSubmitProposal:Init Could not initialize signing client. Wallet is required.')
 				} else{
-					throw new Error('TxClient:MsgVote:Create Could not create message: ' + e.message)
+					throw new Error('TxClient:MsgSubmitProposal:Create Could not create message: ' + e.message)
 				}
 			}
 		},

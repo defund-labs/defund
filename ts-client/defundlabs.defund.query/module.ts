@@ -7,21 +7,21 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgCreateInterquery } from "./types/query/tx";
 import { MsgCreateInterqueryResult } from "./types/query/tx";
+import { MsgCreateInterquery } from "./types/query/tx";
 import { MsgCreateInterqueryTimeout } from "./types/query/tx";
 
 
-export { MsgCreateInterquery, MsgCreateInterqueryResult, MsgCreateInterqueryTimeout };
+export { MsgCreateInterqueryResult, MsgCreateInterquery, MsgCreateInterqueryTimeout };
 
-type sendMsgCreateInterqueryParams = {
-  value: MsgCreateInterquery,
+type sendMsgCreateInterqueryResultParams = {
+  value: MsgCreateInterqueryResult,
   fee?: StdFee,
   memo?: string
 };
 
-type sendMsgCreateInterqueryResultParams = {
-  value: MsgCreateInterqueryResult,
+type sendMsgCreateInterqueryParams = {
+  value: MsgCreateInterquery,
   fee?: StdFee,
   memo?: string
 };
@@ -33,12 +33,12 @@ type sendMsgCreateInterqueryTimeoutParams = {
 };
 
 
-type msgCreateInterqueryParams = {
-  value: MsgCreateInterquery,
-};
-
 type msgCreateInterqueryResultParams = {
   value: MsgCreateInterqueryResult,
+};
+
+type msgCreateInterqueryParams = {
+  value: MsgCreateInterquery,
 };
 
 type msgCreateInterqueryTimeoutParams = {
@@ -63,20 +63,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
-		async sendMsgCreateInterquery({ value, fee, memo }: sendMsgCreateInterqueryParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgCreateInterquery: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreateInterquery({ value: MsgCreateInterquery.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreateInterquery: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
 		async sendMsgCreateInterqueryResult({ value, fee, memo }: sendMsgCreateInterqueryResultParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgCreateInterqueryResult: Unable to sign Tx. Signer is not present.')
@@ -88,6 +74,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
 				throw new Error('TxClient:sendMsgCreateInterqueryResult: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		async sendMsgCreateInterquery({ value, fee, memo }: sendMsgCreateInterqueryParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgCreateInterquery: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgCreateInterquery({ value: MsgCreateInterquery.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgCreateInterquery: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -106,19 +106,19 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 		},
 		
 		
-		msgCreateInterquery({ value }: msgCreateInterqueryParams): EncodeObject {
-			try {
-				return { typeUrl: "/defundlabs.defund.query.MsgCreateInterquery", value: MsgCreateInterquery.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgCreateInterquery: Could not create message: ' + e.message)
-			}
-		},
-		
 		msgCreateInterqueryResult({ value }: msgCreateInterqueryResultParams): EncodeObject {
 			try {
 				return { typeUrl: "/defundlabs.defund.query.MsgCreateInterqueryResult", value: MsgCreateInterqueryResult.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgCreateInterqueryResult: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgCreateInterquery({ value }: msgCreateInterqueryParams): EncodeObject {
+			try {
+				return { typeUrl: "/defundlabs.defund.query.MsgCreateInterquery", value: MsgCreateInterquery.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgCreateInterquery: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -138,19 +138,34 @@ interface QueryClientOptions {
 }
 
 export const queryClient = ({ addr: addr }: QueryClientOptions = { addr: "http://localhost:1317" }) => {
-  return new Api({ baseUrl: addr });
+  return new Api({ baseURL: addr });
 };
 
 class SDKModule {
 	public query: ReturnType<typeof queryClient>;
 	public tx: ReturnType<typeof txClient>;
 	
-	public registry: Array<[string, GeneratedType]>;
+	public registry: Array<[string, GeneratedType]> = [];
 
 	constructor(client: IgniteClient) {		
 	
-		this.query = queryClient({ addr: client.env.apiURL });
-		this.tx = txClient({ signer: client.signer, addr: client.env.rpcURL, prefix: client.env.prefix ?? "cosmos" });
+		this.query = queryClient({ addr: client.env.apiURL });		
+		this.updateTX(client);
+		client.on('signer-changed',(signer) => {			
+		 this.updateTX(client);
+		})
+	}
+	updateTX(client: IgniteClient) {
+    const methods = txClient({
+        signer: client.signer,
+        addr: client.env.rpcURL,
+        prefix: client.env.prefix ?? "cosmos",
+    })
+	
+    this.tx = methods;
+    for (let m in methods) {
+        this.tx[m] = methods[m].bind(this.tx);
+    }
 	}
 };
 

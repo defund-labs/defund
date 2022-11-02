@@ -322,7 +322,7 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	broker := s.CreateOsmosisBroker()
 
 	// create the ica account
-	err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), broker.ConnectionId, acct.GetAddress().String())
+	err := s.GetDefundApp(s.chainA).EtfKeeper.RegisterBrokerAccount(s.chainA.GetContext(), broker.ConnectionId, acct.GetAddress().String())
 	s.Assert().NoError(err)
 
 	// generate new portId for ica account
@@ -381,6 +381,8 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		OnBroker: "uosmo",
 	}
 
+	s.GetDefundApp(s.chainA).TransferKeeper.SetDenomTrace(s.chainA.GetContext(), *basedenoms.OsmoTrace)
+
 	// create the test fund
 	TestFund := types.Fund{
 		Symbol:        testFundSymbol,
@@ -433,7 +435,7 @@ func (s *KeeperTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoin
 
 	channelSequence := s.GetDefundApp(s.chainA).IBCKeeper.ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext())
 
-	if err := s.GetDefundApp(s.chainA).BrokerKeeper.RegisterBrokerAccount(s.chainA.GetContext(), endpoint.ConnectionID, owner); err != nil {
+	if err := s.GetDefundApp(s.chainA).EtfKeeper.RegisterBrokerAccount(s.chainA.GetContext(), endpoint.ConnectionID, owner); err != nil {
 		return err
 	}
 
@@ -528,7 +530,11 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 	})
 
 	s.Run("Create", func() {
-		tokenIn := sdk.NewCoin(fund.BaseDenom.OnBroker, sdk.NewInt(44565793))
+		tokenIn := sdk.NewCoin(fund.BaseDenom.OnDefund, sdk.NewInt(44565793))
+		err := s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), "etf", sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
+		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
 		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		s.Assert().Equal(shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(1000000)))
@@ -566,6 +572,8 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 		msgs, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
 		s.Assert().NoError(err)
+
+		s.chainA.Log(msgs)
 
 		s.Assert().Equal(msgs.Osmosis[0].TokenIn, sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(27598242)))
 		s.Assert().Equal(msgs.Osmosis[0].TokenOutMinAmount, sdk.NewInt(88779146))

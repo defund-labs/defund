@@ -1,25 +1,17 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { FundPrice } from "./module/types/etf/fund"
-import { Holding } from "./module/types/etf/fund"
-import { Fund } from "./module/types/etf/fund"
-import { Redeem } from "./module/types/etf/fund"
-import { Rebalance } from "./module/types/etf/fund"
-import { AddressMap } from "./module/types/etf/tx"
+import { BaseDenom } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { FundPrice } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { Balances } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { Holding } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { Fund } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
+import { AddressMap } from "defund-labs-defund-client-ts/defundlabs.defund.etf/types"
 
 
-export { FundPrice, Holding, Fund, Redeem, Rebalance, AddressMap };
+export { BaseDenom, FundPrice, Balances, Holding, Fund, AddressMap };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -33,17 +25,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Fund: {},
@@ -51,11 +44,11 @@ const getDefaultState = () => {
 				FundPrice: {},
 				
 				_Structure: {
+						BaseDenom: getStructure(BaseDenom.fromPartial({})),
 						FundPrice: getStructure(FundPrice.fromPartial({})),
+						Balances: getStructure(Balances.fromPartial({})),
 						Holding: getStructure(Holding.fromPartial({})),
 						Fund: getStructure(Fund.fromPartial({})),
-						Redeem: getStructure(Redeem.fromPartial({})),
-						Rebalance: getStructure(Rebalance.fromPartial({})),
 						AddressMap: getStructure(AddressMap.fromPartial({})),
 						
 		},
@@ -145,8 +138,8 @@ export default {
 		async QueryFund({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryFund( key.symbol)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundEtf.query.queryFund( key.symbol)).data
 				
 					
 				commit('QUERY', { query: 'Fund', key: { params: {...key}, query}, value })
@@ -167,12 +160,12 @@ export default {
 		async QueryFundAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryFundAll(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundEtf.query.queryFundAll(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryFundAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundEtf.query.queryFundAll({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'FundAll', key: { params: {...key}, query}, value })
@@ -193,12 +186,12 @@ export default {
 		async QueryFundPrice({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryFundPrice(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.DefundlabsDefundEtf.query.queryFundPrice(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryFundPrice({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.DefundlabsDefundEtf.query.queryFundPrice({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'FundPrice', key: { params: {...key}, query}, value })
@@ -213,10 +206,8 @@ export default {
 		
 		async sendMsgRedeem({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgRedeem(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundEtf.tx.sendMsgRedeem({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -228,10 +219,8 @@ export default {
 		},
 		async sendMsgCreateFund({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateFund(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundEtf.tx.sendMsgCreateFund({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -243,10 +232,8 @@ export default {
 		},
 		async sendMsgCreate({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreate(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.DefundlabsDefundEtf.tx.sendMsgCreate({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -259,8 +246,8 @@ export default {
 		
 		async MsgRedeem({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgRedeem(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundEtf.tx.msgRedeem({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -272,8 +259,8 @@ export default {
 		},
 		async MsgCreateFund({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreateFund(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundEtf.tx.msgCreateFund({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -285,8 +272,8 @@ export default {
 		},
 		async MsgCreate({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgCreate(value)
+				const client=initClient(rootGetters)
+				const msg = await client.DefundlabsDefundEtf.tx.msgCreate({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {

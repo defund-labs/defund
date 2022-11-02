@@ -1,0 +1,1 @@
+hermes --config ./network/hermes/config.toml create channel --a-chain defund --a-connection connection-0 --a-port transfer --b-port transfer

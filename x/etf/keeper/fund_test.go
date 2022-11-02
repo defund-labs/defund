@@ -15,7 +15,7 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNFund(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Fund {
+func createNFund(keeper keeper.Keeper, ctx sdk.Context, n int) []types.Fund {
 	items := make([]types.Fund, n)
 	for i := range items {
 		items[i].Symbol = strconv.Itoa(i)

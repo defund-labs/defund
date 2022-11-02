@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -41,9 +42,9 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		moduleAccount := s.GetDefundApp(s.chainA).AccountKeeper.GetModuleAddress("etf")
 		balance := s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), moduleAccount)
 		s.Assert().Contains(balance, amount)
-		redeem := types.Redeem{
+		redeem := brokertypes.Redeem{
 			Creator: s.chainA.SenderAccount.GetAddress().String(),
-			Fund:    &fund,
+			Fund:    fund.Symbol,
 			Amount:  &amount,
 		}
 		err = s.GetDefundApp(s.chainA).EtfKeeper.OnRedeemFailure(s.chainA.GetContext(), packet, redeem)
@@ -65,9 +66,9 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		moduleAccount := s.GetDefundApp(s.chainA).AccountKeeper.GetModuleAddress("etf")
 		balance := s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), moduleAccount)
 		s.Assert().Contains(balance, amount)
-		redeem := types.Redeem{
+		redeem := brokertypes.Redeem{
 			Creator: s.chainA.SenderAccount.GetAddress().String(),
-			Fund:    &fund,
+			Fund:    fund.Symbol,
 			Amount:  &amount,
 		}
 		addr, err := sdk.AccAddressFromBech32(s.chainA.SenderAccount.GetAddress().String())
@@ -87,43 +88,43 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 	})
 
 	s.Run("OnRebalanceSuccess", func() {
-		rebalance := types.Rebalance{
+		rebalance := brokertypes.Rebalance{
 			Id:     "channel-1-1",
-			Fund:   &fund,
+			Fund:   fund.Symbol,
 			Height: 1,
 			Broker: "osmosis",
 		}
 		// set the rebalance
-		s.GetDefundApp(s.chainA).EtfKeeper.SetRebalance(s.chainA.GetContext(), rebalance)
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRebalance(s.chainA.GetContext(), rebalance)
 		fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), fund.Symbol)
 		s.Assert().True(found)
 		s.Assert().Equal(fund.LastRebalanceHeight, int64(0))
-		err := s.GetDefundApp(s.chainA).EtfKeeper.OnRebalanceSuccess(s.chainA.GetContext(), rebalance, &fund)
+		err := s.GetDefundApp(s.chainA).EtfKeeper.OnRebalanceSuccess(s.chainA.GetContext(), rebalance, fund.Symbol)
 		s.Assert().NoError(err)
 		fund, found = s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), fund.Symbol)
 		s.Assert().True(found)
 		// check to make sure fund last rebelance height was updated
 		s.Assert().Equal(fund.LastRebalanceHeight, int64(23))
 		// ensure the rebalance store was deleted
-		_, found = s.GetDefundApp(s.chainA).EtfKeeper.GetRebalance(s.chainA.GetContext(), rebalance.Id)
+		_, found = s.GetDefundApp(s.chainA).BrokerKeeper.GetRebalance(s.chainA.GetContext(), rebalance.Id)
 		s.Assert().False(found)
 	})
 
 	s.Run("OnRebalanceFailure", func() {
-		rebalance := types.Rebalance{
+		rebalance := brokertypes.Rebalance{
 			Id:     "channel-1-1",
-			Fund:   &fund,
+			Fund:   fund.Symbol,
 			Height: 1,
 			Broker: "osmosis",
 		}
 		// set the rebalance
-		s.GetDefundApp(s.chainA).EtfKeeper.SetRebalance(s.chainA.GetContext(), rebalance)
-		err := s.GetDefundApp(s.chainA).EtfKeeper.OnRebalanceFailure(s.chainA.GetContext(), rebalance, &fund)
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRebalance(s.chainA.GetContext(), rebalance)
+		err := s.GetDefundApp(s.chainA).EtfKeeper.OnRebalanceFailure(s.chainA.GetContext(), rebalance, fund.Symbol)
 		s.Assert().NoError(err)
 		// check to make sure fund last rebelance height was not updated
 		s.Assert().Equal(fund.LastRebalanceHeight, int64(0))
 		// ensure the rebalance store was deleted
-		_, found = s.GetDefundApp(s.chainA).EtfKeeper.GetRebalance(s.chainA.GetContext(), rebalance.Id)
+		_, found = s.GetDefundApp(s.chainA).BrokerKeeper.GetRebalance(s.chainA.GetContext(), rebalance.Id)
 		s.Assert().False(found)
 	})
 }

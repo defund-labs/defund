@@ -1,27 +1,19 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { Channel } from "./module/types/ibc/core/channel/v1/channel"
-import { IdentifiedChannel } from "./module/types/ibc/core/channel/v1/channel"
-import { Counterparty } from "./module/types/ibc/core/channel/v1/channel"
-import { Packet } from "./module/types/ibc/core/channel/v1/channel"
-import { PacketState } from "./module/types/ibc/core/channel/v1/channel"
-import { PacketId } from "./module/types/ibc/core/channel/v1/channel"
-import { Acknowledgement } from "./module/types/ibc/core/channel/v1/channel"
-import { PacketSequence } from "./module/types/ibc/core/channel/v1/genesis"
+import { Channel } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { IdentifiedChannel } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { Counterparty } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { Packet } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { PacketState } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { PacketId } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { Acknowledgement } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
+import { PacketSequence } from "defund-labs-defund-client-ts/ibc.core.channel.v1/types"
 
 
 export { Channel, IdentifiedChannel, Counterparty, Packet, PacketState, PacketId, Acknowledgement, PacketSequence };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -35,17 +27,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Channel: {},
@@ -219,8 +212,8 @@ export default {
 		async QueryChannel({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryChannel( key.channel_id,  key.port_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryChannel( key.channel_id,  key.port_id)).data
 				
 					
 				commit('QUERY', { query: 'Channel', key: { params: {...key}, query}, value })
@@ -241,12 +234,12 @@ export default {
 		async QueryChannels({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryChannels(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryChannels(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryChannels({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreChannelV1.query.queryChannels({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Channels', key: { params: {...key}, query}, value })
@@ -267,12 +260,12 @@ export default {
 		async QueryConnectionChannels({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryConnectionChannels( key.connection, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryConnectionChannels( key.connection, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryConnectionChannels( key.connection, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreChannelV1.query.queryConnectionChannels( key.connection, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'ConnectionChannels', key: { params: {...key}, query}, value })
@@ -293,8 +286,8 @@ export default {
 		async QueryChannelClientState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryChannelClientState( key.channel_id,  key.port_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryChannelClientState( key.channel_id,  key.port_id)).data
 				
 					
 				commit('QUERY', { query: 'ChannelClientState', key: { params: {...key}, query}, value })
@@ -315,8 +308,8 @@ export default {
 		async QueryChannelConsensusState({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryChannelConsensusState( key.channel_id,  key.port_id,  key.revision_number,  key.revision_height)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryChannelConsensusState( key.channel_id,  key.port_id,  key.revision_number,  key.revision_height)).data
 				
 					
 				commit('QUERY', { query: 'ChannelConsensusState', key: { params: {...key}, query}, value })
@@ -337,8 +330,8 @@ export default {
 		async QueryPacketCommitment({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPacketCommitment( key.channel_id,  key.port_id,  key.sequence)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryPacketCommitment( key.channel_id,  key.port_id,  key.sequence)).data
 				
 					
 				commit('QUERY', { query: 'PacketCommitment', key: { params: {...key}, query}, value })
@@ -359,12 +352,12 @@ export default {
 		async QueryPacketCommitments({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPacketCommitments( key.channel_id,  key.port_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryPacketCommitments( key.channel_id,  key.port_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryPacketCommitments( key.channel_id,  key.port_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreChannelV1.query.queryPacketCommitments( key.channel_id,  key.port_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'PacketCommitments', key: { params: {...key}, query}, value })
@@ -385,8 +378,8 @@ export default {
 		async QueryPacketReceipt({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPacketReceipt( key.channel_id,  key.port_id,  key.sequence)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryPacketReceipt( key.channel_id,  key.port_id,  key.sequence)).data
 				
 					
 				commit('QUERY', { query: 'PacketReceipt', key: { params: {...key}, query}, value })
@@ -407,8 +400,8 @@ export default {
 		async QueryPacketAcknowledgement({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPacketAcknowledgement( key.channel_id,  key.port_id,  key.sequence)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryPacketAcknowledgement( key.channel_id,  key.port_id,  key.sequence)).data
 				
 					
 				commit('QUERY', { query: 'PacketAcknowledgement', key: { params: {...key}, query}, value })
@@ -429,12 +422,12 @@ export default {
 		async QueryPacketAcknowledgements({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryPacketAcknowledgements( key.channel_id,  key.port_id, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryPacketAcknowledgements( key.channel_id,  key.port_id, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryPacketAcknowledgements( key.channel_id,  key.port_id, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcCoreChannelV1.query.queryPacketAcknowledgements( key.channel_id,  key.port_id, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'PacketAcknowledgements', key: { params: {...key}, query}, value })
@@ -455,8 +448,8 @@ export default {
 		async QueryUnreceivedPackets({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUnreceivedPackets( key.channel_id,  key.port_id,  key.packet_commitment_sequences)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryUnreceivedPackets( key.channel_id,  key.port_id,  key.packet_commitment_sequences)).data
 				
 					
 				commit('QUERY', { query: 'UnreceivedPackets', key: { params: {...key}, query}, value })
@@ -477,8 +470,8 @@ export default {
 		async QueryUnreceivedAcks({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryUnreceivedAcks( key.channel_id,  key.port_id,  key.packet_ack_sequences)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryUnreceivedAcks( key.channel_id,  key.port_id,  key.packet_ack_sequences)).data
 				
 					
 				commit('QUERY', { query: 'UnreceivedAcks', key: { params: {...key}, query}, value })
@@ -499,8 +492,8 @@ export default {
 		async QueryNextSequenceReceive({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryNextSequenceReceive( key.channel_id,  key.port_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcCoreChannelV1.query.queryNextSequenceReceive( key.channel_id,  key.port_id)).data
 				
 					
 				commit('QUERY', { query: 'NextSequenceReceive', key: { params: {...key}, query}, value })

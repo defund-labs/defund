@@ -1,21 +1,13 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { ParameterChangeProposal } from "./module/types/cosmos/params/v1beta1/params"
-import { ParamChange } from "./module/types/cosmos/params/v1beta1/params"
+import { ParameterChangeProposal } from "defund-labs-defund-client-ts/cosmos.params.v1beta1/types"
+import { ParamChange } from "defund-labs-defund-client-ts/cosmos.params.v1beta1/types"
 
 
 export { ParameterChangeProposal, ParamChange };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -29,17 +21,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Params: {},
@@ -123,12 +116,12 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosParamsV1Beta1.query.queryParams(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryParams({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosParamsV1Beta1.query.queryParams({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })

@@ -25,8 +25,8 @@ func TestGenesis(t *testing.T) {
 
 	db := dbm.NewMemDB()
 	k, ctx := keepertest.EtfKeeper(db, t)
-	etf.InitGenesis(ctx, *k, genesisState)
-	got := etf.ExportGenesis(ctx, *k)
+	etf.InitGenesis(ctx, k, genesisState)
+	got := etf.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 
 	require.Len(t, got.FundList, len(genesisState.FundList))

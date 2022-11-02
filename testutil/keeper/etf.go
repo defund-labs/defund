@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/keeper"
@@ -29,7 +30,7 @@ func GetSubspace(keeper paramskeeper.Keeper, moduleName string) paramstypes.Subs
 	return subspace
 }
 
-func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
+func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 	storeKeyAcc := sdk.NewKVStoreKey(authtypes.StoreKey)
@@ -62,10 +63,15 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 		a.ScopedICAControllerKeeper, a.MsgServiceRouter(),
 	)
 
+	capKeeper := *capabilitykeeper.NewKeeper(codec.NewProtoCodec(registry), storeKey, memStoreKey)
+
+	scopedEtfKeeper := capKeeper.ScopeToModule("etf")
+
 	k := keeper.NewKeeper(
 		codec.NewProtoCodec(registry),
 		storeKey,
 		memStoreKey,
+		scopedEtfKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,

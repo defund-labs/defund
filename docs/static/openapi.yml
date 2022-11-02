@@ -19094,6 +19094,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/defund-labs/defund/broker/broker/{broker}':
@@ -19384,7 +19394,12 @@ paths:
                       type: string
                       format: int64
                     baseDenom:
-                      type: string
+                      type: object
+                      properties:
+                        onDefund:
+                          type: string
+                        onBroker:
+                          type: string
                     startingPrice:
                       type: object
                       properties:
@@ -19405,6 +19420,29 @@ paths:
                     lastRebalanceHeight:
                       type: string
                       format: int64
+                    balances:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          balances:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                denom:
+                                  type: string
+                                amount:
+                                  type: string
+                              description: >-
+                                Coin defines a token with a denomination and an
+                                amount.
+
+
+                                NOTE: The amount field is an Int which
+                                implements the custom method
+
+                                signatures required by gogoproto.
               pagination:
                 type: object
                 properties:
@@ -19559,7 +19597,12 @@ paths:
                     type: string
                     format: int64
                   baseDenom:
-                    type: string
+                    type: object
+                    properties:
+                      onDefund:
+                        type: string
+                      onBroker:
+                        type: string
                   startingPrice:
                     type: object
                     properties:
@@ -19580,6 +19623,29 @@ paths:
                   lastRebalanceHeight:
                     type: string
                     format: int64
+                  balances:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        balances:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
         default:
           description: An unexpected error response.
           schema:
@@ -19666,6 +19732,42 @@ paths:
           in: query
           required: false
           type: string
+      tags:
+        - Query
+  /defund-labs/defund/icabroker/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: DefundlabsDefundIcabrokerParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                description: Params defines the parameters for the module.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
       tags:
         - Query
   /defund-labs/defund/query/interquery:
@@ -47909,6 +48011,30 @@ definitions:
     properties:
       osmosisAddress:
         type: string
+  defundlabs.defund.etf.Balances:
+    type: object
+    properties:
+      balances:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+  defundlabs.defund.etf.BaseDenom:
+    type: object
+    properties:
+      onDefund:
+        type: string
+      onBroker:
+        type: string
   defundlabs.defund.etf.Fund:
     type: object
     properties:
@@ -47956,7 +48082,12 @@ definitions:
         type: string
         format: int64
       baseDenom:
-        type: string
+        type: object
+        properties:
+          onDefund:
+            type: string
+          onBroker:
+            type: string
       startingPrice:
         type: object
         properties:
@@ -47974,6 +48105,28 @@ definitions:
       lastRebalanceHeight:
         type: string
         format: int64
+      balances:
+        type: object
+        additionalProperties:
+          type: object
+          properties:
+            balances:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
   defundlabs.defund.etf.FundPrice:
     type: object
     properties:
@@ -48078,7 +48231,12 @@ definitions:
               type: string
               format: int64
             baseDenom:
-              type: string
+              type: object
+              properties:
+                onDefund:
+                  type: string
+                onBroker:
+                  type: string
             startingPrice:
               type: object
               properties:
@@ -48099,6 +48257,28 @@ definitions:
             lastRebalanceHeight:
               type: string
               format: int64
+            balances:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  balances:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
       pagination:
         type: object
         properties:
@@ -48208,7 +48388,12 @@ definitions:
             type: string
             format: int64
           baseDenom:
-            type: string
+            type: object
+            properties:
+              onDefund:
+                type: string
+              onBroker:
+                type: string
           startingPrice:
             type: object
             properties:
@@ -48229,6 +48414,38 @@ definitions:
           lastRebalanceHeight:
             type: string
             format: int64
+          balances:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                balances:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+  defundlabs.defund.icabroker.Params:
+    type: object
+    description: Params defines the parameters for the module.
+  defundlabs.defund.icabroker.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        description: Params defines the parameters for the module.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   defundlabs.defund.query.Interquery:
     type: object
     properties:

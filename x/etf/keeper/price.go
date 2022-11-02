@@ -35,6 +35,11 @@ func (k Keeper) GetBalanceForFundByAddress(ctx sdk.Context, symbol string, addre
 		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 
+	// check to ensure that we have a balance for this address
+	if _, ok := fund.Balances[address]; !ok {
+		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidBalance, "fund with symbol %s account balance %s does not exist", symbol, address)
+	}
+
 	for i := range fund.Balances[address].Balances {
 		coins = append(coins, *fund.Balances[address].Balances[i])
 	}
@@ -69,7 +74,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		if err != nil {
 			return price, err
 		}
-		fundBrokerAddress, found := k.brokerKeeper.GetBrokerAccount(ctx, broker.ConnectionId, portID)
+		fundBrokerAddress, found := k.GetBrokerAccount(ctx, broker.ConnectionId, portID)
 		if !found {
 			return price, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
@@ -88,7 +93,7 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 				return price, err
 			}
 			// Calculate spot price for 1 holding token in base denom
-			priceInBaseDenom, err = k.brokerKeeper.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
+			priceInBaseDenom, err = k.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
 			if err != nil {
 				return price, err
 			}

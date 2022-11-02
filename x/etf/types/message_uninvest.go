@@ -7,12 +7,11 @@ import (
 
 var _ sdk.Msg = &MsgRedeem{}
 
-func NewMsgRedeem(creator string, fund string, amount *sdk.Coin, channel string, timeoutheight string, timeouttimestamp uint64, addresses AddressMap) *MsgRedeem {
+func NewMsgRedeem(creator string, fund string, amount *sdk.Coin, timeoutheight string, timeouttimestamp uint64, addresses AddressMap) *MsgRedeem {
 	return &MsgRedeem{
 		Creator:   creator,
 		Fund:      fund,
 		Amount:    amount,
-		Channel:   channel,
 		Addresses: &addresses,
 	}
 }

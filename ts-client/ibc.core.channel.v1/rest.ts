@@ -106,7 +106,6 @@ export interface ProtobufAny {
    * expect it to use in the context of Any. However, for URLs which use the
    * scheme `http`, `https`, or no scheme, one can optionally set up a type
    * server that maps type URLs to message definitions as follows:
-   *
    * * If no scheme is provided, `https` is assumed.
    * * An HTTP GET on the URL must yield a [google.protobuf.Type][]
    *   value in binary format, or produce an error.
@@ -115,11 +114,9 @@ export interface ProtobufAny {
    *   lookup. Therefore, binary compatibility needs to be preserved
    *   on changes to types. (Use versioned type names to manage
    *   breaking changes.)
-   *
    * Note: this functionality is not currently available in the official
    * protobuf release, and it is not used for type URLs beginning with
    * type.googleapis.com.
-   *
    * Schemes other than `http`, `https` (or the empty scheme) might be
    * used with implementation specific semantics.
    */
@@ -161,13 +158,22 @@ export interface V1Channel {
    */
   ordering?: V1Order;
   counterparty?: V1Counterparty;
+
+  /**
+   * list of connection identifiers, in order, along which packets sent on
+   * this channel will travel
+   */
   connection_hops?: string[];
+
+  /** opaque channel version, which is agreed upon during the handshake */
   version?: string;
 }
 
 export interface V1Counterparty {
   /** port on the counterparty chain which owns the other end of the channel. */
   port_id?: string;
+
+  /** channel end on the counterparty chain */
   channel_id?: string;
 }
 
@@ -180,10 +186,16 @@ height continues to be monitonically increasing even as the RevisionHeight
 gets reset
 */
 export interface V1Height {
-  /** @format uint64 */
+  /**
+   * the revision that the client is currently on
+   * @format uint64
+   */
   revision_number?: string;
 
-  /** @format uint64 */
+  /**
+   * the height within the given revision
+   * @format uint64
+   */
   revision_height?: string;
 }
 
@@ -214,9 +226,20 @@ export interface V1IdentifiedChannel {
    */
   ordering?: V1Order;
   counterparty?: V1Counterparty;
+
+  /**
+   * list of connection identifiers, in order, along which packets sent on
+   * this channel will travel
+   */
   connection_hops?: string[];
+
+  /** opaque channel version, which is agreed upon during the handshake */
   version?: string;
+
+  /** port identifier */
   port_id?: string;
+
+  /** channel identifier */
   channel_id?: string;
 }
 
@@ -225,6 +248,7 @@ export interface V1IdentifiedChannel {
 identifier field.
 */
 export interface V1IdentifiedClientState {
+  /** client identifier */
   client_id?: string;
 
   /**
@@ -233,9 +257,7 @@ export interface V1IdentifiedClientState {
    *
    * Protobuf library provides support to pack/unpack Any values in the form
    * of utility functions or additional generated methods of the Any type.
-   *
    * Example 1: Pack and unpack a message in C++.
-   *
    *     Foo foo = ...;
    *     Any any;
    *     any.PackFrom(foo);
@@ -243,28 +265,17 @@ export interface V1IdentifiedClientState {
    *     if (any.UnpackTo(&foo)) {
    *       ...
    *     }
-   *
    * Example 2: Pack and unpack a message in Java.
-   *
-   *     Foo foo = ...;
    *     Any any = Any.pack(foo);
-   *     ...
    *     if (any.is(Foo.class)) {
    *       foo = any.unpack(Foo.class);
-   *     }
-   *
    *  Example 3: Pack and unpack a message in Python.
-   *
    *     foo = Foo(...)
    *     any = Any()
    *     any.Pack(foo)
-   *     ...
    *     if any.Is(Foo.DESCRIPTOR):
    *       any.Unpack(foo)
-   *       ...
-   *
    *  Example 4: Pack and unpack a message in Go
-   *
    *      foo := &pb.Foo{...}
    *      any, err := anypb.New(foo)
    *      if err != nil {
@@ -273,43 +284,30 @@ export interface V1IdentifiedClientState {
    *      ...
    *      foo := &pb.Foo{}
    *      if err := any.UnmarshalTo(foo); err != nil {
-   *        ...
-   *      }
-   *
    * The pack methods provided by protobuf library will by default use
    * 'type.googleapis.com/full.type.name' as the type URL and the unpack
    * methods only use the fully qualified type name after the last '/'
    * in the type URL, for example "foo.bar.com/x/y.z" will yield type
    * name "y.z".
-   *
-   *
    * JSON
    * ====
    * The JSON representation of an `Any` value uses the regular
    * representation of the deserialized, embedded message, with an
    * additional field `@type` which contains the type URL. Example:
-   *
    *     package google.profile;
    *     message Person {
    *       string first_name = 1;
    *       string last_name = 2;
-   *     }
-   *
    *     {
    *       "@type": "type.googleapis.com/google.profile.Person",
    *       "firstName": <string>,
    *       "lastName": <string>
-   *     }
-   *
    * If the embedded message type is well-known and has a custom JSON
    * representation, that representation will be embedded adding a field
    * `value` which holds the custom JSON in addition to the `@type`
    * field. Example (for message [google.protobuf.Duration][]):
-   *
-   *     {
    *       "@type": "type.googleapis.com/google.protobuf.Duration",
    *       "value": "1.212s"
-   *     }
    */
   client_state?: ProtobufAny;
 }
@@ -432,7 +430,10 @@ export interface V1Packet {
   /** identifies the channel end on the receiving chain. */
   destination_channel?: string;
 
-  /** @format byte */
+  /**
+   * actual opaque bytes transferred directly to the application module
+   * @format byte
+   */
   data?: string;
 
   /**
@@ -445,7 +446,10 @@ export interface V1Packet {
    */
   timeout_height?: V1Height;
 
-  /** @format uint64 */
+  /**
+   * block timestamp (in nanoseconds) after which the packet times out
+   * @format uint64
+   */
   timeout_timestamp?: string;
 }
 
@@ -482,7 +486,10 @@ export interface V1QueryChannelClientStateResponse {
    */
   identified_client_state?: V1IdentifiedClientState;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -503,9 +510,7 @@ export interface V1QueryChannelConsensusStateResponse {
    *
    * Protobuf library provides support to pack/unpack Any values in the form
    * of utility functions or additional generated methods of the Any type.
-   *
    * Example 1: Pack and unpack a message in C++.
-   *
    *     Foo foo = ...;
    *     Any any;
    *     any.PackFrom(foo);
@@ -513,28 +518,17 @@ export interface V1QueryChannelConsensusStateResponse {
    *     if (any.UnpackTo(&foo)) {
    *       ...
    *     }
-   *
    * Example 2: Pack and unpack a message in Java.
-   *
-   *     Foo foo = ...;
    *     Any any = Any.pack(foo);
-   *     ...
    *     if (any.is(Foo.class)) {
    *       foo = any.unpack(Foo.class);
-   *     }
-   *
    *  Example 3: Pack and unpack a message in Python.
-   *
    *     foo = Foo(...)
    *     any = Any()
    *     any.Pack(foo)
-   *     ...
    *     if any.Is(Foo.DESCRIPTOR):
    *       any.Unpack(foo)
-   *       ...
-   *
    *  Example 4: Pack and unpack a message in Go
-   *
    *      foo := &pb.Foo{...}
    *      any, err := anypb.New(foo)
    *      if err != nil {
@@ -543,48 +537,40 @@ export interface V1QueryChannelConsensusStateResponse {
    *      ...
    *      foo := &pb.Foo{}
    *      if err := any.UnmarshalTo(foo); err != nil {
-   *        ...
-   *      }
-   *
    * The pack methods provided by protobuf library will by default use
    * 'type.googleapis.com/full.type.name' as the type URL and the unpack
    * methods only use the fully qualified type name after the last '/'
    * in the type URL, for example "foo.bar.com/x/y.z" will yield type
    * name "y.z".
-   *
-   *
    * JSON
    * ====
    * The JSON representation of an `Any` value uses the regular
    * representation of the deserialized, embedded message, with an
    * additional field `@type` which contains the type URL. Example:
-   *
    *     package google.profile;
    *     message Person {
    *       string first_name = 1;
    *       string last_name = 2;
-   *     }
-   *
    *     {
    *       "@type": "type.googleapis.com/google.profile.Person",
    *       "firstName": <string>,
    *       "lastName": <string>
-   *     }
-   *
    * If the embedded message type is well-known and has a custom JSON
    * representation, that representation will be embedded adding a field
    * `value` which holds the custom JSON in addition to the `@type`
    * field. Example (for message [google.protobuf.Duration][]):
-   *
-   *     {
    *       "@type": "type.googleapis.com/google.protobuf.Duration",
    *       "value": "1.212s"
-   *     }
    */
   consensus_state?: ProtobufAny;
+
+  /** client ID associated with the consensus state */
   client_id?: string;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -611,7 +597,10 @@ export interface V1QueryChannelResponse {
    */
   channel?: V1Channel;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -681,10 +670,16 @@ export interface V1QueryConnectionChannelsResponse {
 }
 
 export interface V1QueryNextSequenceReceiveResponse {
-  /** @format uint64 */
+  /**
+   * next sequence receive number
+   * @format uint64
+   */
   next_sequence_receive?: string;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -699,10 +694,16 @@ export interface V1QueryNextSequenceReceiveResponse {
 }
 
 export interface V1QueryPacketAcknowledgementResponse {
-  /** @format byte */
+  /**
+   * packet associated with the request fields
+   * @format byte
+   */
   acknowledgement?: string;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -742,10 +743,16 @@ export interface V1QueryPacketAcknowledgementsResponse {
 }
 
 export interface V1QueryPacketCommitmentResponse {
-  /** @format byte */
+  /**
+   * packet associated with the request fields
+   * @format byte
+   */
   commitment?: string;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -785,9 +792,13 @@ export interface V1QueryPacketCommitmentsResponse {
 }
 
 export interface V1QueryPacketReceiptResponse {
+  /** success flag for if receipt exists */
   received?: boolean;
 
-  /** @format byte */
+  /**
+   * merkle proof of existence
+   * @format byte
+   */
   proof?: string;
 
   /**
@@ -802,6 +813,7 @@ export interface V1QueryPacketReceiptResponse {
 }
 
 export interface V1QueryUnreceivedAcksResponse {
+  /** list of unreceived acknowledgement sequences */
   sequences?: string[];
 
   /**
@@ -816,6 +828,7 @@ export interface V1QueryUnreceivedAcksResponse {
 }
 
 export interface V1QueryUnreceivedPacketsResponse {
+  /** list of unreceived packet sequences */
   sequences?: string[];
 
   /**
@@ -909,17 +922,26 @@ corresponding request message has used PageRequest.
  }
 */
 export interface V1Beta1PageResponse {
-  /** @format byte */
+  /**
+   * next_key is the key to be passed to PageRequest.key to
+   * query the next page most efficiently
+   * @format byte
+   */
   next_key?: string;
 
-  /** @format uint64 */
+  /**
+   * total is total number of results available if PageRequest.count_total
+   * was set, its value is undefined otherwise
+   * @format uint64
+   */
   total?: string;
 }
 
-export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
 
-export interface FullRequestParams extends Omit<RequestInit, "body"> {
+export type QueryParamsType = Record<string | number, any>;
+
+export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -929,29 +951,20 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** query params */
   query?: QueryParamsType;
   /** format of response (i.e. response.json() -> format: "json") */
-  format?: keyof Omit<Body, "body" | "bodyUsed">;
+  format?: ResponseType;
   /** request body */
   body?: unknown;
-  /** base url */
-  baseUrl?: string;
-  /** request cancellation token */
-  cancelToken?: CancelToken;
 }
 
 export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
 
-export interface ApiConfig<SecurityDataType = unknown> {
-  baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType) => RequestParams | void;
+export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+  securityWorker?: (
+    securityData: SecurityDataType | null,
+  ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
+  secure?: boolean;
+  format?: ResponseType;
 }
-
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
-  data: D;
-  error: E;
-}
-
-type CancelToken = Symbol | string | number;
 
 export enum ContentType {
   Json = "application/json",
@@ -960,149 +973,86 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "";
-  private securityData: SecurityDataType = null as any;
-  private securityWorker: null | ApiConfig<SecurityDataType>["securityWorker"] = null;
-  private abortControllers = new Map<CancelToken, AbortController>();
+  public instance: AxiosInstance;
+  private securityData: SecurityDataType | null = null;
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private secure?: boolean;
+  private format?: ResponseType;
 
-  private baseApiParams: RequestParams = {
-    credentials: "same-origin",
-    headers: {},
-    redirect: "follow",
-    referrerPolicy: "no-referrer",
-  };
-
-  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
-    Object.assign(this, apiConfig);
+  constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "" });
+    this.secure = secure;
+    this.format = format;
+    this.securityWorker = securityWorker;
   }
 
-  public setSecurityData = (data: SecurityDataType) => {
+  public setSecurityData = (data: SecurityDataType | null) => {
     this.securityData = data;
   };
 
-  private addQueryParam(query: QueryParamsType, key: string) {
-    const value = query[key];
-
-    return (
-      encodeURIComponent(key) +
-      "=" +
-      encodeURIComponent(Array.isArray(value) ? value.join(",") : typeof value === "number" ? value : `${value}`)
-    );
-  }
-
-  protected toQueryString(rawQuery?: QueryParamsType): string {
-    const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
-    return keys
-      .map((key) =>
-        typeof query[key] === "object" && !Array.isArray(query[key])
-          ? this.toQueryString(query[key] as QueryParamsType)
-          : this.addQueryParam(query, key),
-      )
-      .join("&");
-  }
-
-  protected addQueryParams(rawQuery?: QueryParamsType): string {
-    const queryString = this.toQueryString(rawQuery);
-    return queryString ? `?${queryString}` : "";
-  }
-
-  private contentFormatters: Record<ContentType, (input: any) => any> = {
-    [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((data, key) => {
-        data.append(key, input[key]);
-        return data;
-      }, new FormData()),
-    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
-  };
-
-  private mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  private mergeRequestParams(params1: AxiosRequestConfig, params2?: AxiosRequestConfig): AxiosRequestConfig {
     return {
-      ...this.baseApiParams,
+      ...this.instance.defaults,
       ...params1,
       ...(params2 || {}),
       headers: {
-        ...(this.baseApiParams.headers || {}),
+        ...(this.instance.defaults.headers || {}),
         ...(params1.headers || {}),
         ...((params2 && params2.headers) || {}),
       },
     };
   }
 
-  private createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
-    if (this.abortControllers.has(cancelToken)) {
-      const abortController = this.abortControllers.get(cancelToken);
-      if (abortController) {
-        return abortController.signal;
-      }
-      return void 0;
-    }
+  private createFormData(input: Record<string, unknown>): FormData {
+    return Object.keys(input || {}).reduce((formData, key) => {
+      const property = input[key];
+      formData.append(
+        key,
+        property instanceof Blob
+          ? property
+          : typeof property === "object" && property !== null
+          ? JSON.stringify(property)
+          : `${property}`,
+      );
+      return formData;
+    }, new FormData());
+  }
 
-    const abortController = new AbortController();
-    this.abortControllers.set(cancelToken, abortController);
-    return abortController.signal;
-  };
-
-  public abortRequest = (cancelToken: CancelToken) => {
-    const abortController = this.abortControllers.get(cancelToken);
-
-    if (abortController) {
-      abortController.abort();
-      this.abortControllers.delete(cancelToken);
-    }
-  };
-
-  public request = <T = any, E = any>({
-    body,
+  public request = async <T = any, _E = any>({
     secure,
     path,
     type,
     query,
-    format = "json",
-    baseUrl,
-    cancelToken,
+    format,
+    body,
     ...params
-  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
-    const secureParams = (secure && this.securityWorker && this.securityWorker(this.securityData)) || {};
+  }: FullRequestParams): Promise<AxiosResponse<T>> => {
+    const secureParams =
+      ((typeof secure === "boolean" ? secure : this.secure) &&
+        this.securityWorker &&
+        (await this.securityWorker(this.securityData))) ||
+      {};
     const requestParams = this.mergeRequestParams(params, secureParams);
-    const queryString = query && this.toQueryString(query);
-    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
+    const responseFormat = (format && this.format) || void 0;
 
-    return fetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
+    if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
+      requestParams.headers.common = { Accept: "*/*" };
+      requestParams.headers.post = {};
+      requestParams.headers.put = {};
+
+      body = this.createFormData(body as Record<string, unknown>);
+    }
+
+    return this.instance.request({
       ...requestParams,
       headers: {
         ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
         ...(requestParams.headers || {}),
       },
-      signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
-      const r = response as HttpResponse<T, E>;
-      r.data = (null as unknown) as T;
-      r.error = (null as unknown) as E;
-
-      const data = await response[format]()
-        .then((data) => {
-          if (r.ok) {
-            r.data = data;
-          } else {
-            r.error = data;
-          }
-          return r;
-        })
-        .catch((e) => {
-          r.error = e;
-          return r;
-        });
-
-      if (cancelToken) {
-        this.abortControllers.delete(cancelToken);
-      }
-
-      if (!response.ok) throw data;
-      return data;
+      params: query,
+      responseType: responseFormat,
+      data: body,
+      url: path,
     });
   };
 }
@@ -1145,9 +1095,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @summary Channel queries an IBC Channel.
    * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}
    */
-  queryChannel = (channel_id: string, port_id: string, params: RequestParams = {}) =>
+  queryChannel = (channelId: string, portId: string, params: RequestParams = {}) =>
     this.request<V1QueryChannelResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}`,
       method: "GET",
       format: "json",
       ...params,
@@ -1162,9 +1112,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 with the provided channel identifiers.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state
  */
-  queryChannelClientState = (channel_id: string, port_id: string, params: RequestParams = {}) =>
+  queryChannelClientState = (channelId: string, portId: string, params: RequestParams = {}) =>
     this.request<V1QueryChannelClientStateResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/client_state`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/client_state`,
       method: "GET",
       format: "json",
       ...params,
@@ -1180,14 +1130,14 @@ associated with the provided channel identifiers.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}
  */
   queryChannelConsensusState = (
-    channel_id: string,
-    port_id: string,
-    revision_number: string,
-    revision_height: string,
+    channelId: string,
+    portId: string,
+    revisionNumber: string,
+    revisionHeight: string,
     params: RequestParams = {},
   ) =>
     this.request<V1QueryChannelConsensusStateResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/consensus_state/revision/${revision_number}/height/${revision_height}`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/consensus_state/revision/${revisionNumber}/height/${revisionHeight}`,
       method: "GET",
       format: "json",
       ...params,
@@ -1201,9 +1151,9 @@ associated with the provided channel identifiers.
    * @summary NextSequenceReceive returns the next receive sequence for a given channel.
    * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence
    */
-  queryNextSequenceReceive = (channel_id: string, port_id: string, params: RequestParams = {}) =>
+  queryNextSequenceReceive = (channelId: string, portId: string, params: RequestParams = {}) =>
     this.request<V1QueryNextSequenceReceiveResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/next_sequence`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/next_sequence`,
       method: "GET",
       format: "json",
       ...params,
@@ -1219,8 +1169,8 @@ with a channel.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements
  */
   queryPacketAcknowledgements = (
-    channel_id: string,
-    port_id: string,
+    channelId: string,
+    portId: string,
     query?: {
       "pagination.key"?: string;
       "pagination.offset"?: string;
@@ -1231,7 +1181,7 @@ with a channel.
     params: RequestParams = {},
   ) =>
     this.request<V1QueryPacketAcknowledgementsResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_acknowledgements`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_acknowledgements`,
       method: "GET",
       query: query,
       format: "json",
@@ -1246,9 +1196,9 @@ with a channel.
    * @summary PacketAcknowledgement queries a stored packet acknowledgement hash.
    * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}
    */
-  queryPacketAcknowledgement = (channel_id: string, port_id: string, sequence: string, params: RequestParams = {}) =>
+  queryPacketAcknowledgement = (channelId: string, portId: string, sequence: string, params: RequestParams = {}) =>
     this.request<V1QueryPacketAcknowledgementResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_acks/${sequence}`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_acks/${sequence}`,
       method: "GET",
       format: "json",
       ...params,
@@ -1264,8 +1214,8 @@ with a channel.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments
  */
   queryPacketCommitments = (
-    channel_id: string,
-    port_id: string,
+    channelId: string,
+    portId: string,
     query?: {
       "pagination.key"?: string;
       "pagination.offset"?: string;
@@ -1275,7 +1225,7 @@ with a channel.
     params: RequestParams = {},
   ) =>
     this.request<V1QueryPacketCommitmentsResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_commitments`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_commitments`,
       method: "GET",
       query: query,
       format: "json",
@@ -1291,14 +1241,9 @@ with a channel.
 with a channel and sequences.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks
  */
-  queryUnreceivedAcks = (
-    channel_id: string,
-    port_id: string,
-    packet_ack_sequences: string[],
-    params: RequestParams = {},
-  ) =>
+  queryUnreceivedAcks = (channelId: string, portId: string, packetAckSequences: string[], params: RequestParams = {}) =>
     this.request<V1QueryUnreceivedAcksResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_commitments/${packet_ack_sequences}/unreceived_acks`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_commitments/${packetAckSequences}/unreceived_acks`,
       method: "GET",
       format: "json",
       ...params,
@@ -1314,13 +1259,13 @@ channel and sequences.
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets
  */
   queryUnreceivedPackets = (
-    channel_id: string,
-    port_id: string,
-    packet_commitment_sequences: string[],
+    channelId: string,
+    portId: string,
+    packetCommitmentSequences: string[],
     params: RequestParams = {},
   ) =>
     this.request<V1QueryUnreceivedPacketsResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_commitments/${packet_commitment_sequences}/unreceived_packets`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_commitments/${packetCommitmentSequences}/unreceived_packets`,
       method: "GET",
       format: "json",
       ...params,
@@ -1334,9 +1279,9 @@ channel and sequences.
    * @summary PacketCommitment queries a stored packet commitment hash.
    * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}
    */
-  queryPacketCommitment = (channel_id: string, port_id: string, sequence: string, params: RequestParams = {}) =>
+  queryPacketCommitment = (channelId: string, portId: string, sequence: string, params: RequestParams = {}) =>
     this.request<V1QueryPacketCommitmentResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_commitments/${sequence}`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_commitments/${sequence}`,
       method: "GET",
       format: "json",
       ...params,
@@ -1351,9 +1296,9 @@ channel and sequences.
 queried chain
  * @request GET:/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}
  */
-  queryPacketReceipt = (channel_id: string, port_id: string, sequence: string, params: RequestParams = {}) =>
+  queryPacketReceipt = (channelId: string, portId: string, sequence: string, params: RequestParams = {}) =>
     this.request<V1QueryPacketReceiptResponse, RpcStatus>({
-      path: `/ibc/core/channel/v1/channels/${channel_id}/ports/${port_id}/packet_receipts/${sequence}`,
+      path: `/ibc/core/channel/v1/channels/${channelId}/ports/${portId}/packet_receipts/${sequence}`,
       method: "GET",
       format: "json",
       ...params,

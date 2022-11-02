@@ -58,8 +58,7 @@ message MsgRedeem {
 
   string fund = 2;
   cosmos.base.v1beta1.Coin amount = 3;
-  string channel = 4;
-  AddressMap addresses = 5;
+  AddressMap addresses = 4;
 }
 
 message MsgRedeemResponse {

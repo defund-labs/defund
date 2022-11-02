@@ -1,24 +1,16 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { SigningInfo } from "./module/types/cosmos/slashing/v1beta1/genesis"
-import { ValidatorMissedBlocks } from "./module/types/cosmos/slashing/v1beta1/genesis"
-import { MissedBlock } from "./module/types/cosmos/slashing/v1beta1/genesis"
-import { ValidatorSigningInfo } from "./module/types/cosmos/slashing/v1beta1/slashing"
-import { Params } from "./module/types/cosmos/slashing/v1beta1/slashing"
+import { SigningInfo } from "defund-labs-defund-client-ts/cosmos.slashing.v1beta1/types"
+import { ValidatorMissedBlocks } from "defund-labs-defund-client-ts/cosmos.slashing.v1beta1/types"
+import { MissedBlock } from "defund-labs-defund-client-ts/cosmos.slashing.v1beta1/types"
+import { ValidatorSigningInfo } from "defund-labs-defund-client-ts/cosmos.slashing.v1beta1/types"
+import { Params } from "defund-labs-defund-client-ts/cosmos.slashing.v1beta1/types"
 
 
 export { SigningInfo, ValidatorMissedBlocks, MissedBlock, ValidatorSigningInfo, Params };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -32,17 +24,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Params: {},
@@ -143,8 +136,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosSlashingV1Beta1.query.queryParams()).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })
@@ -165,8 +158,8 @@ export default {
 		async QuerySigningInfo({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.querySigningInfo( key.cons_address)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosSlashingV1Beta1.query.querySigningInfo( key.cons_address)).data
 				
 					
 				commit('QUERY', { query: 'SigningInfo', key: { params: {...key}, query}, value })
@@ -187,12 +180,12 @@ export default {
 		async QuerySigningInfos({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.querySigningInfos(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosSlashingV1Beta1.query.querySigningInfos(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.querySigningInfos({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosSlashingV1Beta1.query.querySigningInfos({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'SigningInfos', key: { params: {...key}, query}, value })
@@ -207,10 +200,8 @@ export default {
 		
 		async sendMsgUnjail({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgUnjail(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosSlashingV1Beta1.tx.sendMsgUnjail({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -223,8 +214,8 @@ export default {
 		
 		async MsgUnjail({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgUnjail(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosSlashingV1Beta1.tx.msgUnjail({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {

@@ -2,7 +2,6 @@ syntax = "proto3";
 package defundlabs.defund.etf;
 
 import "gogoproto/gogo.proto";
-import "broker/broker.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -60,26 +59,8 @@ message Fund {
     (gogoproto.nullable) = true
   ];
   string creator = 10;
-  int64  lastRebalanceHeight = 11;
-  map<string, Balances> balances = 12;
-}
-
-message Redeem {
-  string id = 1;
-  string creator = 2;
-  Fund fund = 3;
-  cosmos.base.v1beta1.Coin amount = 4;
-  string status = 5;
-  string type = 6;
-  // if the type is staked, we need a timestamp for when it will be unstaked
-  string unstakeTimestamp = 7;
-}
-
-message Rebalance {
-  string id = 1;
-  Fund fund = 2;
-  // the height the rebalance was created
-  int64 height = 3;
-  string broker = 4;
+  bool rebalancing = 11;
+  int64  lastRebalanceHeight = 12;
+  map<string, Balances> balances = 13;
 }
 

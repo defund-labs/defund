@@ -1,10 +1,7 @@
 /* eslint-disable */
-import { Reader, Writer } from "protobufjs/minimal";
-import { Fund, FundPrice } from "../etf/fund";
-import {
-  PageRequest,
-  PageResponse,
-} from "../cosmos/base/query/v1beta1/pagination";
+import _m0 from "protobufjs/minimal";
+import { PageRequest, PageResponse } from "../cosmos/base/query/v1beta1/pagination";
+import { Fund, FundPrice } from "./fund";
 
 export const protobufPackage = "defundlabs.defund.etf";
 
@@ -33,23 +30,22 @@ export interface QueryFundPriceResponse {
   price: FundPrice | undefined;
 }
 
-const baseQueryGetFundRequest: object = { symbol: "" };
+function createBaseQueryGetFundRequest(): QueryGetFundRequest {
+  return { symbol: "" };
+}
 
 export const QueryGetFundRequest = {
-  encode(
-    message: QueryGetFundRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryGetFundRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.symbol !== "") {
       writer.uint32(10).string(message.symbol);
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryGetFundRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryGetFundRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryGetFundRequest } as QueryGetFundRequest;
+    const message = createBaseQueryGetFundRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -65,13 +61,7 @@ export const QueryGetFundRequest = {
   },
 
   fromJSON(object: any): QueryGetFundRequest {
-    const message = { ...baseQueryGetFundRequest } as QueryGetFundRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = String(object.symbol);
-    } else {
-      message.symbol = "";
-    }
-    return message;
+    return { symbol: isSet(object.symbol) ? String(object.symbol) : "" };
   },
 
   toJSON(message: QueryGetFundRequest): unknown {
@@ -80,34 +70,29 @@ export const QueryGetFundRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryGetFundRequest>): QueryGetFundRequest {
-    const message = { ...baseQueryGetFundRequest } as QueryGetFundRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = object.symbol;
-    } else {
-      message.symbol = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryGetFundRequest>, I>>(object: I): QueryGetFundRequest {
+    const message = createBaseQueryGetFundRequest();
+    message.symbol = object.symbol ?? "";
     return message;
   },
 };
 
-const baseQueryGetFundResponse: object = {};
+function createBaseQueryGetFundResponse(): QueryGetFundResponse {
+  return { fund: undefined };
+}
 
 export const QueryGetFundResponse = {
-  encode(
-    message: QueryGetFundResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryGetFundResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.fund !== undefined) {
       Fund.encode(message.fund, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryGetFundResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryGetFundResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryGetFundResponse } as QueryGetFundResponse;
+    const message = createBaseQueryGetFundResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -123,50 +108,38 @@ export const QueryGetFundResponse = {
   },
 
   fromJSON(object: any): QueryGetFundResponse {
-    const message = { ...baseQueryGetFundResponse } as QueryGetFundResponse;
-    if (object.fund !== undefined && object.fund !== null) {
-      message.fund = Fund.fromJSON(object.fund);
-    } else {
-      message.fund = undefined;
-    }
-    return message;
+    return { fund: isSet(object.fund) ? Fund.fromJSON(object.fund) : undefined };
   },
 
   toJSON(message: QueryGetFundResponse): unknown {
     const obj: any = {};
-    message.fund !== undefined &&
-      (obj.fund = message.fund ? Fund.toJSON(message.fund) : undefined);
+    message.fund !== undefined && (obj.fund = message.fund ? Fund.toJSON(message.fund) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryGetFundResponse>): QueryGetFundResponse {
-    const message = { ...baseQueryGetFundResponse } as QueryGetFundResponse;
-    if (object.fund !== undefined && object.fund !== null) {
-      message.fund = Fund.fromPartial(object.fund);
-    } else {
-      message.fund = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryGetFundResponse>, I>>(object: I): QueryGetFundResponse {
+    const message = createBaseQueryGetFundResponse();
+    message.fund = (object.fund !== undefined && object.fund !== null) ? Fund.fromPartial(object.fund) : undefined;
     return message;
   },
 };
 
-const baseQueryAllFundRequest: object = {};
+function createBaseQueryAllFundRequest(): QueryAllFundRequest {
+  return { pagination: undefined };
+}
 
 export const QueryAllFundRequest = {
-  encode(
-    message: QueryAllFundRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryAllFundRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryAllFundRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAllFundRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryAllFundRequest } as QueryAllFundRequest;
+    const message = createBaseQueryAllFundRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -182,59 +155,44 @@ export const QueryAllFundRequest = {
   },
 
   fromJSON(object: any): QueryAllFundRequest {
-    const message = { ...baseQueryAllFundRequest } as QueryAllFundRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
   },
 
   toJSON(message: QueryAllFundRequest): unknown {
     const obj: any = {};
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageRequest.toJSON(message.pagination)
-        : undefined);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryAllFundRequest>): QueryAllFundRequest {
-    const message = { ...baseQueryAllFundRequest } as QueryAllFundRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryAllFundRequest>, I>>(object: I): QueryAllFundRequest {
+    const message = createBaseQueryAllFundRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
-const baseQueryAllFundResponse: object = {};
+function createBaseQueryAllFundResponse(): QueryAllFundResponse {
+  return { fund: [], pagination: undefined };
+}
 
 export const QueryAllFundResponse = {
-  encode(
-    message: QueryAllFundResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryAllFundResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.fund) {
       Fund.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.pagination !== undefined) {
-      PageResponse.encode(
-        message.pagination,
-        writer.uint32(18).fork()
-      ).ldelim();
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryAllFundResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAllFundResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryAllFundResponse } as QueryAllFundResponse;
-    message.fund = [];
+    const message = createBaseQueryAllFundResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -253,69 +211,50 @@ export const QueryAllFundResponse = {
   },
 
   fromJSON(object: any): QueryAllFundResponse {
-    const message = { ...baseQueryAllFundResponse } as QueryAllFundResponse;
-    message.fund = [];
-    if (object.fund !== undefined && object.fund !== null) {
-      for (const e of object.fund) {
-        message.fund.push(Fund.fromJSON(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return {
+      fund: Array.isArray(object?.fund) ? object.fund.map((e: any) => Fund.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryAllFundResponse): unknown {
     const obj: any = {};
     if (message.fund) {
-      obj.fund = message.fund.map((e) => (e ? Fund.toJSON(e) : undefined));
+      obj.fund = message.fund.map((e) => e ? Fund.toJSON(e) : undefined);
     } else {
       obj.fund = [];
     }
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageResponse.toJSON(message.pagination)
-        : undefined);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryAllFundResponse>): QueryAllFundResponse {
-    const message = { ...baseQueryAllFundResponse } as QueryAllFundResponse;
-    message.fund = [];
-    if (object.fund !== undefined && object.fund !== null) {
-      for (const e of object.fund) {
-        message.fund.push(Fund.fromPartial(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryAllFundResponse>, I>>(object: I): QueryAllFundResponse {
+    const message = createBaseQueryAllFundResponse();
+    message.fund = object.fund?.map((e) => Fund.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
-const baseQueryFundPriceRequest: object = { symbol: "" };
+function createBaseQueryFundPriceRequest(): QueryFundPriceRequest {
+  return { symbol: "" };
+}
 
 export const QueryFundPriceRequest = {
-  encode(
-    message: QueryFundPriceRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryFundPriceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.symbol !== "") {
       writer.uint32(10).string(message.symbol);
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryFundPriceRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFundPriceRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
+    const message = createBaseQueryFundPriceRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -331,13 +270,7 @@ export const QueryFundPriceRequest = {
   },
 
   fromJSON(object: any): QueryFundPriceRequest {
-    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = String(object.symbol);
-    } else {
-      message.symbol = "";
-    }
-    return message;
+    return { symbol: isSet(object.symbol) ? String(object.symbol) : "" };
   },
 
   toJSON(message: QueryFundPriceRequest): unknown {
@@ -346,36 +279,29 @@ export const QueryFundPriceRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<QueryFundPriceRequest>
-  ): QueryFundPriceRequest {
-    const message = { ...baseQueryFundPriceRequest } as QueryFundPriceRequest;
-    if (object.symbol !== undefined && object.symbol !== null) {
-      message.symbol = object.symbol;
-    } else {
-      message.symbol = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryFundPriceRequest>, I>>(object: I): QueryFundPriceRequest {
+    const message = createBaseQueryFundPriceRequest();
+    message.symbol = object.symbol ?? "";
     return message;
   },
 };
 
-const baseQueryFundPriceResponse: object = {};
+function createBaseQueryFundPriceResponse(): QueryFundPriceResponse {
+  return { price: undefined };
+}
 
 export const QueryFundPriceResponse = {
-  encode(
-    message: QueryFundPriceResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryFundPriceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.price !== undefined) {
       FundPrice.encode(message.price, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryFundPriceResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFundPriceResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
+    const message = createBaseQueryFundPriceResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -391,31 +317,20 @@ export const QueryFundPriceResponse = {
   },
 
   fromJSON(object: any): QueryFundPriceResponse {
-    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
-    if (object.price !== undefined && object.price !== null) {
-      message.price = FundPrice.fromJSON(object.price);
-    } else {
-      message.price = undefined;
-    }
-    return message;
+    return { price: isSet(object.price) ? FundPrice.fromJSON(object.price) : undefined };
   },
 
   toJSON(message: QueryFundPriceResponse): unknown {
     const obj: any = {};
-    message.price !== undefined &&
-      (obj.price = message.price ? FundPrice.toJSON(message.price) : undefined);
+    message.price !== undefined && (obj.price = message.price ? FundPrice.toJSON(message.price) : undefined);
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<QueryFundPriceResponse>
-  ): QueryFundPriceResponse {
-    const message = { ...baseQueryFundPriceResponse } as QueryFundPriceResponse;
-    if (object.price !== undefined && object.price !== null) {
-      message.price = FundPrice.fromPartial(object.price);
-    } else {
-      message.price = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryFundPriceResponse>, I>>(object: I): QueryFundPriceResponse {
+    const message = createBaseQueryFundPriceResponse();
+    message.price = (object.price !== undefined && object.price !== null)
+      ? FundPrice.fromPartial(object.price)
+      : undefined;
     return message;
   },
 };
@@ -434,59 +349,44 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.Fund = this.Fund.bind(this);
+    this.FundAll = this.FundAll.bind(this);
+    this.FundPrice = this.FundPrice.bind(this);
   }
   Fund(request: QueryGetFundRequest): Promise<QueryGetFundResponse> {
     const data = QueryGetFundRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.etf.Query",
-      "Fund",
-      data
-    );
-    return promise.then((data) =>
-      QueryGetFundResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.etf.Query", "Fund", data);
+    return promise.then((data) => QueryGetFundResponse.decode(new _m0.Reader(data)));
   }
 
   FundAll(request: QueryAllFundRequest): Promise<QueryAllFundResponse> {
     const data = QueryAllFundRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.etf.Query",
-      "FundAll",
-      data
-    );
-    return promise.then((data) =>
-      QueryAllFundResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.etf.Query", "FundAll", data);
+    return promise.then((data) => QueryAllFundResponse.decode(new _m0.Reader(data)));
   }
 
   FundPrice(request: QueryFundPriceRequest): Promise<QueryFundPriceResponse> {
     const data = QueryFundPriceRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.etf.Query",
-      "FundPrice",
-      data
-    );
-    return promise.then((data) =>
-      QueryFundPriceResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.etf.Query", "FundPrice", data);
+    return promise.then((data) => QueryFundPriceResponse.decode(new _m0.Reader(data)));
   }
 }
 
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

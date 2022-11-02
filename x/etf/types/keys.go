@@ -24,12 +24,6 @@ const (
 
 	// CreateKeyPrefix is the prefix to retrieve all Create stores
 	CreateKeyPrefix = "Create/value/"
-
-	// RedeemKeyPrefix is the prefix to retrieve all Redeem stores
-	RedeemKeyPrefix = "Redeem/value/"
-
-	// RebalanceKeyPrefix is the prefix to retrieve all Redeem stores
-	RebalanceKeyPrefix = "Rebalance/value/"
 )
 
 func KeyPrefix(p string) []byte {
@@ -64,32 +58,6 @@ func FundPriceKey(
 
 // CreateKey returns the store key to retrieve a Create from the index fields
 func CreateKey(
-	id string,
-) []byte {
-	var key []byte
-
-	idBytes := []byte(id)
-	key = append(key, idBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}
-
-// RedeemKey returns the store key to retrieve a Redeem from the index fields
-func RedeemKey(
-	id string,
-) []byte {
-	var key []byte
-
-	idBytes := []byte(id)
-	key = append(key, idBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}
-
-// FundKey returns the store key to retrieve a Fund from the index fields
-func RebalanceKey(
 	id string,
 ) []byte {
 	var key []byte

@@ -1,21 +1,13 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { DenomTrace } from "./module/types/ibc/applications/transfer/v1/transfer"
-import { Params } from "./module/types/ibc/applications/transfer/v1/transfer"
+import { DenomTrace } from "defund-labs-defund-client-ts/ibc.applications.transfer.v1/types"
+import { Params } from "defund-labs-defund-client-ts/ibc.applications.transfer.v1/types"
 
 
 export { DenomTrace, Params };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -29,17 +21,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				DenomTrace: {},
@@ -151,8 +144,8 @@ export default {
 		async QueryDenomTrace({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDenomTrace( key.hash)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcApplicationsTransferV1.query.queryDenomTrace( key.hash)).data
 				
 					
 				commit('QUERY', { query: 'DenomTrace', key: { params: {...key}, query}, value })
@@ -173,12 +166,12 @@ export default {
 		async QueryDenomTraces({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDenomTraces(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcApplicationsTransferV1.query.queryDenomTraces(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDenomTraces({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.IbcApplicationsTransferV1.query.queryDenomTraces({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'DenomTraces', key: { params: {...key}, query}, value })
@@ -199,8 +192,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcApplicationsTransferV1.query.queryParams()).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })
@@ -221,8 +214,8 @@ export default {
 		async QueryDenomHash({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDenomHash( key.trace)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcApplicationsTransferV1.query.queryDenomHash( key.trace)).data
 				
 					
 				commit('QUERY', { query: 'DenomHash', key: { params: {...key}, query}, value })
@@ -243,8 +236,8 @@ export default {
 		async QueryEscrowAddress({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryEscrowAddress( key.channel_id,  key.port_id)).data
+				const client = initClient(rootGetters);
+				let value= (await client.IbcApplicationsTransferV1.query.queryEscrowAddress( key.channel_id,  key.port_id)).data
 				
 					
 				commit('QUERY', { query: 'EscrowAddress', key: { params: {...key}, query}, value })
@@ -259,10 +252,8 @@ export default {
 		
 		async sendMsgTransfer({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgTransfer(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.IbcApplicationsTransferV1.tx.sendMsgTransfer({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -275,8 +266,8 @@ export default {
 		
 		async MsgTransfer({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgTransfer(value)
+				const client=initClient(rootGetters)
+				const msg = await client.IbcApplicationsTransferV1.tx.msgTransfer({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {

@@ -220,6 +220,8 @@ init:
 	./testnet/private/update_configs.sh
 	@echo "Starting up network"
 	./network/start.sh
+	@echo "Starting up hermes"
+	./network/hermes/start.sh
 
 init-rly:
 	@echo "Initializing relayer..." 
@@ -258,6 +260,14 @@ kill-dev:
 ###############################################################################
 ###                                  Test                                   ###
 ###############################################################################
+
+send-osmo:
+	@echo "Sending osmo to test account..."
+	./tests/send-osmo.sh
+
+create-channel:
+	@echo "Creating channel for transfer port..."
+	./tests/create-channel.sh
 
 test-all:
 	@echo "Running all bash tests......."

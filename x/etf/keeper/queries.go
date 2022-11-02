@@ -32,12 +32,22 @@ func (k Keeper) CreateBalances(ctx sdk.Context, fund types.Fund) error {
 				return status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
 			}
 
-			err = k.brokerKeeper.CreateQueryOsmosisBalance(ctx, fund.Symbol, addr, holding.Token)
+			err = k.CreateQueryOsmosisBalance(ctx, fund.Symbol, addr, holding.Token)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
+	return nil
+}
+
+// CreateDefundQueries creates all the repeated interqueries for broker chains
+func (k Keeper) CreateDefundQueries(ctx sdk.Context) error {
+	// Run every 10th block (1 minute)
+	if ctx.BlockHeight()%10 == 0 {
+		// Add Osmosis broker interquery for all pools
+		k.CreateQueryOsmosisPools(ctx)
+	}
 	return nil
 }

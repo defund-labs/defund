@@ -50,18 +50,6 @@ clear_interval = 100
 # Whether or not to clear packets on start. [Default: false]
 clear_on_start = true
 
-# Enable or disable the filtering mechanism.
-# Valid options are 'true', 'false'.
-# Currently Hermes supports two filters:
-# 1. Packet filtering on a per-chain basis; see the chain-specific
-#   filter specification below in [chains.packet_filter].
-# 2. Filter for all activities based on client state trust threshold; this filter
-#   is parametrized with (numerator = 1, denominator = 3), so that clients with
-#   thresholds different than this will be ignored.
-# If set to 'true', both of the above filters will be enabled.
-# [Default: false]
-#filter = false
-
 # Toggle the transaction confirmation mechanism.
 # The tx confirmation mechanism periodically queries the `/tx_search` RPC
 # endpoint to check that previously-submitted transactions
@@ -108,15 +96,15 @@ grpc_addr = 'http://0.0.0.0:9090'
 websocket_addr = 'ws://0.0.0.0:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
-key_name = 'testkey'
+key_name = 'defund'
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
 gas_price = { price = 0.001, denom = 'ufetf' }
 max_msg_num = 30
 max_tx_size = 2097152
-clock_drift = '5s'
-max_block_time = '10s'
+clock_drift = '1000s'
+max_block_time = '200ms'
 trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
@@ -128,15 +116,24 @@ grpc_addr = 'http://162.55.134.55:9090'
 websocket_addr = 'ws://162.55.134.55:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'osmo'
-key_name = 'testkey'
+key_name = 'osmo-test-4'
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 3000000
 gas_price = { price = 0.001, denom = 'uosmo' }
 max_msg_num = 30
 max_tx_size = 2097152
-clock_drift = '5s'
+clock_drift = '1000s'
 max_block_time = '10s'
 trusting_period = '1days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
+
+[chains.packet_filter]
+policy = 'allow'
+list = [
+    ['transfer', 'channel-1367'],
+    ['icahost', 'channel-1368'],
+    ['icahost', 'channel-1369'],
+    ['icahost', 'channel-1370'],
+]

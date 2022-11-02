@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/defund-labs/defund/app"
 	"github.com/defund-labs/defund/x/broker/keeper"
 	"github.com/defund-labs/defund/x/broker/types"
@@ -31,10 +30,6 @@ func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	encoding := app.MakeEncodingConfig(app.ModuleBasics)
 
-	capKeeper := *capabilitykeeper.NewKeeper(codec.NewProtoCodec(registry), storeKey, memStoreKey)
-
-	scopedBrokerKeeper := capKeeper.ScopeToModule("broker")
-
 	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding,
 		simapp.EmptyAppOptions{})
 
@@ -43,7 +38,6 @@ func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		a.GetSubspace(types.ModuleName),
 		a.ICAControllerKeeper,
-		scopedBrokerKeeper,
 		a.TransferKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ConnectionKeeper,

@@ -1,10 +1,7 @@
 /* eslint-disable */
-import { Reader, Writer } from "protobufjs/minimal";
-import { Broker } from "../broker/broker";
-import {
-  PageRequest,
-  PageResponse,
-} from "../cosmos/base/query/v1beta1/pagination";
+import _m0 from "protobufjs/minimal";
+import { PageRequest, PageResponse } from "../cosmos/base/query/v1beta1/pagination";
+import { Broker } from "./broker";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
@@ -40,16 +37,12 @@ export interface QueryBrokersResponse {
   pagination: PageResponse | undefined;
 }
 
-const baseQueryInterchainAccountFromAddressRequest: object = {
-  owner: "",
-  connectionId: "",
-};
+function createBaseQueryInterchainAccountFromAddressRequest(): QueryInterchainAccountFromAddressRequest {
+  return { owner: "", connectionId: "" };
+}
 
 export const QueryInterchainAccountFromAddressRequest = {
-  encode(
-    message: QueryInterchainAccountFromAddressRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryInterchainAccountFromAddressRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.owner !== "") {
       writer.uint32(10).string(message.owner);
     }
@@ -59,15 +52,10 @@ export const QueryInterchainAccountFromAddressRequest = {
     return writer;
   },
 
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): QueryInterchainAccountFromAddressRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryInterchainAccountFromAddressRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryInterchainAccountFromAddressRequest,
-    } as QueryInterchainAccountFromAddressRequest;
+    const message = createBaseQueryInterchainAccountFromAddressRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -86,74 +74,45 @@ export const QueryInterchainAccountFromAddressRequest = {
   },
 
   fromJSON(object: any): QueryInterchainAccountFromAddressRequest {
-    const message = {
-      ...baseQueryInterchainAccountFromAddressRequest,
-    } as QueryInterchainAccountFromAddressRequest;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = String(object.owner);
-    } else {
-      message.owner = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = String(object.connectionId);
-    } else {
-      message.connectionId = "";
-    }
-    return message;
+    return {
+      owner: isSet(object.owner) ? String(object.owner) : "",
+      connectionId: isSet(object.connectionId) ? String(object.connectionId) : "",
+    };
   },
 
   toJSON(message: QueryInterchainAccountFromAddressRequest): unknown {
     const obj: any = {};
     message.owner !== undefined && (obj.owner = message.owner);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.connectionId !== undefined && (obj.connectionId = message.connectionId);
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<QueryInterchainAccountFromAddressRequest>
+  fromPartial<I extends Exact<DeepPartial<QueryInterchainAccountFromAddressRequest>, I>>(
+    object: I,
   ): QueryInterchainAccountFromAddressRequest {
-    const message = {
-      ...baseQueryInterchainAccountFromAddressRequest,
-    } as QueryInterchainAccountFromAddressRequest;
-    if (object.owner !== undefined && object.owner !== null) {
-      message.owner = object.owner;
-    } else {
-      message.owner = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = object.connectionId;
-    } else {
-      message.connectionId = "";
-    }
+    const message = createBaseQueryInterchainAccountFromAddressRequest();
+    message.owner = object.owner ?? "";
+    message.connectionId = object.connectionId ?? "";
     return message;
   },
 };
 
-const baseQueryInterchainAccountFromAddressResponse: object = {
-  interchainAccountAddress: "",
-};
+function createBaseQueryInterchainAccountFromAddressResponse(): QueryInterchainAccountFromAddressResponse {
+  return { interchainAccountAddress: "" };
+}
 
 export const QueryInterchainAccountFromAddressResponse = {
-  encode(
-    message: QueryInterchainAccountFromAddressResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryInterchainAccountFromAddressResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.interchainAccountAddress !== "") {
       writer.uint32(10).string(message.interchainAccountAddress);
     }
     return writer;
   },
 
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): QueryInterchainAccountFromAddressResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryInterchainAccountFromAddressResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryInterchainAccountFromAddressResponse,
-    } as QueryInterchainAccountFromAddressResponse;
+    const message = createBaseQueryInterchainAccountFromAddressResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -169,64 +128,42 @@ export const QueryInterchainAccountFromAddressResponse = {
   },
 
   fromJSON(object: any): QueryInterchainAccountFromAddressResponse {
-    const message = {
-      ...baseQueryInterchainAccountFromAddressResponse,
-    } as QueryInterchainAccountFromAddressResponse;
-    if (
-      object.interchainAccountAddress !== undefined &&
-      object.interchainAccountAddress !== null
-    ) {
-      message.interchainAccountAddress = String(
-        object.interchainAccountAddress
-      );
-    } else {
-      message.interchainAccountAddress = "";
-    }
-    return message;
+    return {
+      interchainAccountAddress: isSet(object.interchainAccountAddress) ? String(object.interchainAccountAddress) : "",
+    };
   },
 
   toJSON(message: QueryInterchainAccountFromAddressResponse): unknown {
     const obj: any = {};
-    message.interchainAccountAddress !== undefined &&
-      (obj.interchainAccountAddress = message.interchainAccountAddress);
+    message.interchainAccountAddress !== undefined && (obj.interchainAccountAddress = message.interchainAccountAddress);
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<QueryInterchainAccountFromAddressResponse>
+  fromPartial<I extends Exact<DeepPartial<QueryInterchainAccountFromAddressResponse>, I>>(
+    object: I,
   ): QueryInterchainAccountFromAddressResponse {
-    const message = {
-      ...baseQueryInterchainAccountFromAddressResponse,
-    } as QueryInterchainAccountFromAddressResponse;
-    if (
-      object.interchainAccountAddress !== undefined &&
-      object.interchainAccountAddress !== null
-    ) {
-      message.interchainAccountAddress = object.interchainAccountAddress;
-    } else {
-      message.interchainAccountAddress = "";
-    }
+    const message = createBaseQueryInterchainAccountFromAddressResponse();
+    message.interchainAccountAddress = object.interchainAccountAddress ?? "";
     return message;
   },
 };
 
-const baseQueryBrokerRequest: object = { broker: "" };
+function createBaseQueryBrokerRequest(): QueryBrokerRequest {
+  return { broker: "" };
+}
 
 export const QueryBrokerRequest = {
-  encode(
-    message: QueryBrokerRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryBrokerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.broker !== "") {
       writer.uint32(10).string(message.broker);
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryBrokerRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryBrokerRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
+    const message = createBaseQueryBrokerRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -242,13 +179,7 @@ export const QueryBrokerRequest = {
   },
 
   fromJSON(object: any): QueryBrokerRequest {
-    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = String(object.broker);
-    } else {
-      message.broker = "";
-    }
-    return message;
+    return { broker: isSet(object.broker) ? String(object.broker) : "" };
   },
 
   toJSON(message: QueryBrokerRequest): unknown {
@@ -257,34 +188,29 @@ export const QueryBrokerRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryBrokerRequest>): QueryBrokerRequest {
-    const message = { ...baseQueryBrokerRequest } as QueryBrokerRequest;
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = object.broker;
-    } else {
-      message.broker = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryBrokerRequest>, I>>(object: I): QueryBrokerRequest {
+    const message = createBaseQueryBrokerRequest();
+    message.broker = object.broker ?? "";
     return message;
   },
 };
 
-const baseQueryBrokerResponse: object = {};
+function createBaseQueryBrokerResponse(): QueryBrokerResponse {
+  return { broker: undefined };
+}
 
 export const QueryBrokerResponse = {
-  encode(
-    message: QueryBrokerResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryBrokerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.broker !== undefined) {
       Broker.encode(message.broker, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryBrokerResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryBrokerResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
+    const message = createBaseQueryBrokerResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -300,50 +226,40 @@ export const QueryBrokerResponse = {
   },
 
   fromJSON(object: any): QueryBrokerResponse {
-    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = Broker.fromJSON(object.broker);
-    } else {
-      message.broker = undefined;
-    }
-    return message;
+    return { broker: isSet(object.broker) ? Broker.fromJSON(object.broker) : undefined };
   },
 
   toJSON(message: QueryBrokerResponse): unknown {
     const obj: any = {};
-    message.broker !== undefined &&
-      (obj.broker = message.broker ? Broker.toJSON(message.broker) : undefined);
+    message.broker !== undefined && (obj.broker = message.broker ? Broker.toJSON(message.broker) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryBrokerResponse>): QueryBrokerResponse {
-    const message = { ...baseQueryBrokerResponse } as QueryBrokerResponse;
-    if (object.broker !== undefined && object.broker !== null) {
-      message.broker = Broker.fromPartial(object.broker);
-    } else {
-      message.broker = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryBrokerResponse>, I>>(object: I): QueryBrokerResponse {
+    const message = createBaseQueryBrokerResponse();
+    message.broker = (object.broker !== undefined && object.broker !== null)
+      ? Broker.fromPartial(object.broker)
+      : undefined;
     return message;
   },
 };
 
-const baseQueryBrokersRequest: object = {};
+function createBaseQueryBrokersRequest(): QueryBrokersRequest {
+  return { pagination: undefined };
+}
 
 export const QueryBrokersRequest = {
-  encode(
-    message: QueryBrokersRequest,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryBrokersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryBrokersRequest {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryBrokersRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryBrokersRequest } as QueryBrokersRequest;
+    const message = createBaseQueryBrokersRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -359,59 +275,44 @@ export const QueryBrokersRequest = {
   },
 
   fromJSON(object: any): QueryBrokersRequest {
-    const message = { ...baseQueryBrokersRequest } as QueryBrokersRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
   },
 
   toJSON(message: QueryBrokersRequest): unknown {
     const obj: any = {};
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageRequest.toJSON(message.pagination)
-        : undefined);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryBrokersRequest>): QueryBrokersRequest {
-    const message = { ...baseQueryBrokersRequest } as QueryBrokersRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryBrokersRequest>, I>>(object: I): QueryBrokersRequest {
+    const message = createBaseQueryBrokersRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
-const baseQueryBrokersResponse: object = {};
+function createBaseQueryBrokersResponse(): QueryBrokersResponse {
+  return { brokers: [], pagination: undefined };
+}
 
 export const QueryBrokersResponse = {
-  encode(
-    message: QueryBrokersResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: QueryBrokersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.brokers) {
       Broker.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.pagination !== undefined) {
-      PageResponse.encode(
-        message.pagination,
-        writer.uint32(18).fork()
-      ).ldelim();
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): QueryBrokersResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryBrokersResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryBrokersResponse } as QueryBrokersResponse;
-    message.brokers = [];
+    const message = createBaseQueryBrokersResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -430,50 +331,30 @@ export const QueryBrokersResponse = {
   },
 
   fromJSON(object: any): QueryBrokersResponse {
-    const message = { ...baseQueryBrokersResponse } as QueryBrokersResponse;
-    message.brokers = [];
-    if (object.brokers !== undefined && object.brokers !== null) {
-      for (const e of object.brokers) {
-        message.brokers.push(Broker.fromJSON(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return {
+      brokers: Array.isArray(object?.brokers) ? object.brokers.map((e: any) => Broker.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryBrokersResponse): unknown {
     const obj: any = {};
     if (message.brokers) {
-      obj.brokers = message.brokers.map((e) =>
-        e ? Broker.toJSON(e) : undefined
-      );
+      obj.brokers = message.brokers.map((e) => e ? Broker.toJSON(e) : undefined);
     } else {
       obj.brokers = [];
     }
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageResponse.toJSON(message.pagination)
-        : undefined);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryBrokersResponse>): QueryBrokersResponse {
-    const message = { ...baseQueryBrokersResponse } as QueryBrokersResponse;
-    message.brokers = [];
-    if (object.brokers !== undefined && object.brokers !== null) {
-      for (const e of object.brokers) {
-        message.brokers.push(Broker.fromPartial(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryBrokersResponse>, I>>(object: I): QueryBrokersResponse {
+    const message = createBaseQueryBrokersResponse();
+    message.brokers = object.brokers?.map((e) => Broker.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -482,7 +363,7 @@ export const QueryBrokersResponse = {
 export interface Query {
   /** QueryInterchainAccountFromAddress returns the interchain account for given owner address on a given connection pair */
   InterchainAccountFromAddress(
-    request: QueryInterchainAccountFromAddressRequest
+    request: QueryInterchainAccountFromAddressRequest,
   ): Promise<QueryInterchainAccountFromAddressResponse>;
   /** QueryBrokerRequest returns the broker based on the broker id requested */
   Broker(request: QueryBrokerRequest): Promise<QueryBrokerResponse>;
@@ -494,61 +375,46 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.InterchainAccountFromAddress = this.InterchainAccountFromAddress.bind(this);
+    this.Broker = this.Broker.bind(this);
+    this.Brokers = this.Brokers.bind(this);
   }
   InterchainAccountFromAddress(
-    request: QueryInterchainAccountFromAddressRequest
+    request: QueryInterchainAccountFromAddressRequest,
   ): Promise<QueryInterchainAccountFromAddressResponse> {
-    const data = QueryInterchainAccountFromAddressRequest.encode(
-      request
-    ).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.broker.Query",
-      "InterchainAccountFromAddress",
-      data
-    );
-    return promise.then((data) =>
-      QueryInterchainAccountFromAddressResponse.decode(new Reader(data))
-    );
+    const data = QueryInterchainAccountFromAddressRequest.encode(request).finish();
+    const promise = this.rpc.request("defundlabs.defund.broker.Query", "InterchainAccountFromAddress", data);
+    return promise.then((data) => QueryInterchainAccountFromAddressResponse.decode(new _m0.Reader(data)));
   }
 
   Broker(request: QueryBrokerRequest): Promise<QueryBrokerResponse> {
     const data = QueryBrokerRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.broker.Query",
-      "Broker",
-      data
-    );
-    return promise.then((data) => QueryBrokerResponse.decode(new Reader(data)));
+    const promise = this.rpc.request("defundlabs.defund.broker.Query", "Broker", data);
+    return promise.then((data) => QueryBrokerResponse.decode(new _m0.Reader(data)));
   }
 
   Brokers(request: QueryBrokersRequest): Promise<QueryBrokersResponse> {
     const data = QueryBrokersRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.broker.Query",
-      "Brokers",
-      data
-    );
-    return promise.then((data) =>
-      QueryBrokersResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.broker.Query", "Brokers", data);
+    return promise.then((data) => QueryBrokersResponse.decode(new _m0.Reader(data)));
   }
 }
 
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}

@@ -1,6 +1,6 @@
 /* eslint-disable */
-import { Reader, util, configure, Writer } from "protobufjs/minimal";
-import * as Long from "long";
+import Long from "long";
+import _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "defundlabs.defund.broker";
 
@@ -10,7 +10,8 @@ export interface MsgAddLiquiditySource {
   poolId: number;
 }
 
-export interface MsgAddLiquiditySourceResponse {}
+export interface MsgAddLiquiditySourceResponse {
+}
 
 export interface MsgAddConnectionBroker {
   creator: string;
@@ -18,19 +19,15 @@ export interface MsgAddConnectionBroker {
   connectionId: string;
 }
 
-export interface MsgAddConnectionBrokerResponse {}
+export interface MsgAddConnectionBrokerResponse {
+}
 
-const baseMsgAddLiquiditySource: object = {
-  creator: "",
-  brokerId: "",
-  poolId: 0,
-};
+function createBaseMsgAddLiquiditySource(): MsgAddLiquiditySource {
+  return { creator: "", brokerId: "", poolId: 0 };
+}
 
 export const MsgAddLiquiditySource = {
-  encode(
-    message: MsgAddLiquiditySource,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: MsgAddLiquiditySource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -43,10 +40,10 @@ export const MsgAddLiquiditySource = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgAddLiquiditySource {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgAddLiquiditySource {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
+    const message = createBaseMsgAddLiquiditySource();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -68,75 +65,43 @@ export const MsgAddLiquiditySource = {
   },
 
   fromJSON(object: any): MsgAddLiquiditySource {
-    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
-    if (object.brokerId !== undefined && object.brokerId !== null) {
-      message.brokerId = String(object.brokerId);
-    } else {
-      message.brokerId = "";
-    }
-    if (object.poolId !== undefined && object.poolId !== null) {
-      message.poolId = Number(object.poolId);
-    } else {
-      message.poolId = 0;
-    }
-    return message;
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      brokerId: isSet(object.brokerId) ? String(object.brokerId) : "",
+      poolId: isSet(object.poolId) ? Number(object.poolId) : 0,
+    };
   },
 
   toJSON(message: MsgAddLiquiditySource): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.brokerId !== undefined && (obj.brokerId = message.brokerId);
-    message.poolId !== undefined && (obj.poolId = message.poolId);
+    message.poolId !== undefined && (obj.poolId = Math.round(message.poolId));
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<MsgAddLiquiditySource>
-  ): MsgAddLiquiditySource {
-    const message = { ...baseMsgAddLiquiditySource } as MsgAddLiquiditySource;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
-    if (object.brokerId !== undefined && object.brokerId !== null) {
-      message.brokerId = object.brokerId;
-    } else {
-      message.brokerId = "";
-    }
-    if (object.poolId !== undefined && object.poolId !== null) {
-      message.poolId = object.poolId;
-    } else {
-      message.poolId = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgAddLiquiditySource>, I>>(object: I): MsgAddLiquiditySource {
+    const message = createBaseMsgAddLiquiditySource();
+    message.creator = object.creator ?? "";
+    message.brokerId = object.brokerId ?? "";
+    message.poolId = object.poolId ?? 0;
     return message;
   },
 };
 
-const baseMsgAddLiquiditySourceResponse: object = {};
+function createBaseMsgAddLiquiditySourceResponse(): MsgAddLiquiditySourceResponse {
+  return {};
+}
 
 export const MsgAddLiquiditySourceResponse = {
-  encode(
-    _: MsgAddLiquiditySourceResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(_: MsgAddLiquiditySourceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): MsgAddLiquiditySourceResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgAddLiquiditySourceResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgAddLiquiditySourceResponse,
-    } as MsgAddLiquiditySourceResponse;
+    const message = createBaseMsgAddLiquiditySourceResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -149,10 +114,7 @@ export const MsgAddLiquiditySourceResponse = {
   },
 
   fromJSON(_: any): MsgAddLiquiditySourceResponse {
-    const message = {
-      ...baseMsgAddLiquiditySourceResponse,
-    } as MsgAddLiquiditySourceResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgAddLiquiditySourceResponse): unknown {
@@ -160,27 +122,18 @@ export const MsgAddLiquiditySourceResponse = {
     return obj;
   },
 
-  fromPartial(
-    _: DeepPartial<MsgAddLiquiditySourceResponse>
-  ): MsgAddLiquiditySourceResponse {
-    const message = {
-      ...baseMsgAddLiquiditySourceResponse,
-    } as MsgAddLiquiditySourceResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgAddLiquiditySourceResponse>, I>>(_: I): MsgAddLiquiditySourceResponse {
+    const message = createBaseMsgAddLiquiditySourceResponse();
     return message;
   },
 };
 
-const baseMsgAddConnectionBroker: object = {
-  creator: "",
-  brokerId: "",
-  connectionId: "",
-};
+function createBaseMsgAddConnectionBroker(): MsgAddConnectionBroker {
+  return { creator: "", brokerId: "", connectionId: "" };
+}
 
 export const MsgAddConnectionBroker = {
-  encode(
-    message: MsgAddConnectionBroker,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(message: MsgAddConnectionBroker, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -193,10 +146,10 @@ export const MsgAddConnectionBroker = {
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgAddConnectionBroker {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgAddConnectionBroker {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
+    const message = createBaseMsgAddConnectionBroker();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -218,76 +171,43 @@ export const MsgAddConnectionBroker = {
   },
 
   fromJSON(object: any): MsgAddConnectionBroker {
-    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = String(object.creator);
-    } else {
-      message.creator = "";
-    }
-    if (object.brokerId !== undefined && object.brokerId !== null) {
-      message.brokerId = String(object.brokerId);
-    } else {
-      message.brokerId = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = String(object.connectionId);
-    } else {
-      message.connectionId = "";
-    }
-    return message;
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      brokerId: isSet(object.brokerId) ? String(object.brokerId) : "",
+      connectionId: isSet(object.connectionId) ? String(object.connectionId) : "",
+    };
   },
 
   toJSON(message: MsgAddConnectionBroker): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.brokerId !== undefined && (obj.brokerId = message.brokerId);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.connectionId !== undefined && (obj.connectionId = message.connectionId);
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<MsgAddConnectionBroker>
-  ): MsgAddConnectionBroker {
-    const message = { ...baseMsgAddConnectionBroker } as MsgAddConnectionBroker;
-    if (object.creator !== undefined && object.creator !== null) {
-      message.creator = object.creator;
-    } else {
-      message.creator = "";
-    }
-    if (object.brokerId !== undefined && object.brokerId !== null) {
-      message.brokerId = object.brokerId;
-    } else {
-      message.brokerId = "";
-    }
-    if (object.connectionId !== undefined && object.connectionId !== null) {
-      message.connectionId = object.connectionId;
-    } else {
-      message.connectionId = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgAddConnectionBroker>, I>>(object: I): MsgAddConnectionBroker {
+    const message = createBaseMsgAddConnectionBroker();
+    message.creator = object.creator ?? "";
+    message.brokerId = object.brokerId ?? "";
+    message.connectionId = object.connectionId ?? "";
     return message;
   },
 };
 
-const baseMsgAddConnectionBrokerResponse: object = {};
+function createBaseMsgAddConnectionBrokerResponse(): MsgAddConnectionBrokerResponse {
+  return {};
+}
 
 export const MsgAddConnectionBrokerResponse = {
-  encode(
-    _: MsgAddConnectionBrokerResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
+  encode(_: MsgAddConnectionBrokerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): MsgAddConnectionBrokerResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgAddConnectionBrokerResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgAddConnectionBrokerResponse,
-    } as MsgAddConnectionBrokerResponse;
+    const message = createBaseMsgAddConnectionBrokerResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -300,10 +220,7 @@ export const MsgAddConnectionBrokerResponse = {
   },
 
   fromJSON(_: any): MsgAddConnectionBrokerResponse {
-    const message = {
-      ...baseMsgAddConnectionBrokerResponse,
-    } as MsgAddConnectionBrokerResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgAddConnectionBrokerResponse): unknown {
@@ -311,12 +228,8 @@ export const MsgAddConnectionBrokerResponse = {
     return obj;
   },
 
-  fromPartial(
-    _: DeepPartial<MsgAddConnectionBrokerResponse>
-  ): MsgAddConnectionBrokerResponse {
-    const message = {
-      ...baseMsgAddConnectionBrokerResponse,
-    } as MsgAddConnectionBrokerResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgAddConnectionBrokerResponse>, I>>(_: I): MsgAddConnectionBrokerResponse {
+    const message = createBaseMsgAddConnectionBrokerResponse();
     return message;
   },
 };
@@ -324,77 +237,64 @@ export const MsgAddConnectionBrokerResponse = {
 /** Msg defines the Msg service. */
 export interface Msg {
   /** Register defines a rpc handler for MsgAddLiquiditySource */
-  AddLiquiditySource(
-    request: MsgAddLiquiditySource
-  ): Promise<MsgAddLiquiditySourceResponse>;
+  AddLiquiditySource(request: MsgAddLiquiditySource): Promise<MsgAddLiquiditySourceResponse>;
   /** this line is used by starport scaffolding # proto/tx/rpc */
-  AddConnectionBroker(
-    request: MsgAddConnectionBroker
-  ): Promise<MsgAddConnectionBrokerResponse>;
+  AddConnectionBroker(request: MsgAddConnectionBroker): Promise<MsgAddConnectionBrokerResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.AddLiquiditySource = this.AddLiquiditySource.bind(this);
+    this.AddConnectionBroker = this.AddConnectionBroker.bind(this);
   }
-  AddLiquiditySource(
-    request: MsgAddLiquiditySource
-  ): Promise<MsgAddLiquiditySourceResponse> {
+  AddLiquiditySource(request: MsgAddLiquiditySource): Promise<MsgAddLiquiditySourceResponse> {
     const data = MsgAddLiquiditySource.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.broker.Msg",
-      "AddLiquiditySource",
-      data
-    );
-    return promise.then((data) =>
-      MsgAddLiquiditySourceResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.broker.Msg", "AddLiquiditySource", data);
+    return promise.then((data) => MsgAddLiquiditySourceResponse.decode(new _m0.Reader(data)));
   }
 
-  AddConnectionBroker(
-    request: MsgAddConnectionBroker
-  ): Promise<MsgAddConnectionBrokerResponse> {
+  AddConnectionBroker(request: MsgAddConnectionBroker): Promise<MsgAddConnectionBrokerResponse> {
     const data = MsgAddConnectionBroker.encode(request).finish();
-    const promise = this.rpc.request(
-      "defundlabs.defund.broker.Msg",
-      "AddConnectionBroker",
-      data
-    );
-    return promise.then((data) =>
-      MsgAddConnectionBrokerResponse.decode(new Reader(data))
-    );
+    const promise = this.rpc.request("defundlabs.defund.broker.Msg", "AddConnectionBroker", data);
+    return promise.then((data) => MsgAddConnectionBrokerResponse.decode(new _m0.Reader(data)));
   }
 }
 
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
   throw "Unable to locate global object";
 })();
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -403,7 +303,11 @@ function longToNumber(long: Long): number {
   return long.toNumber();
 }
 
-if (util.Long !== Long) {
-  util.Long = Long as any;
-  configure();
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

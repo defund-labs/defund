@@ -7,15 +7,15 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgCreate } from "./types/etf/tx";
-import { MsgCreateFund } from "./types/etf/tx";
 import { MsgRedeem } from "./types/etf/tx";
+import { MsgCreateFund } from "./types/etf/tx";
+import { MsgCreate } from "./types/etf/tx";
 
 
-export { MsgCreate, MsgCreateFund, MsgRedeem };
+export { MsgRedeem, MsgCreateFund, MsgCreate };
 
-type sendMsgCreateParams = {
-  value: MsgCreate,
+type sendMsgRedeemParams = {
+  value: MsgRedeem,
   fee?: StdFee,
   memo?: string
 };
@@ -26,23 +26,23 @@ type sendMsgCreateFundParams = {
   memo?: string
 };
 
-type sendMsgRedeemParams = {
-  value: MsgRedeem,
+type sendMsgCreateParams = {
+  value: MsgCreate,
   fee?: StdFee,
   memo?: string
 };
 
 
-type msgCreateParams = {
-  value: MsgCreate,
+type msgRedeemParams = {
+  value: MsgRedeem,
 };
 
 type msgCreateFundParams = {
   value: MsgCreateFund,
 };
 
-type msgRedeemParams = {
-  value: MsgRedeem,
+type msgCreateParams = {
+  value: MsgCreate,
 };
 
 
@@ -63,17 +63,17 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
-		async sendMsgCreate({ value, fee, memo }: sendMsgCreateParams): Promise<DeliverTxResponse> {
+		async sendMsgRedeem({ value, fee, memo }: sendMsgRedeemParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgCreate: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgRedeem: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreate({ value: MsgCreate.fromPartial(value) })
+				let msg = this.msgRedeem({ value: MsgRedeem.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreate: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgRedeem: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -91,26 +91,26 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgRedeem({ value, fee, memo }: sendMsgRedeemParams): Promise<DeliverTxResponse> {
+		async sendMsgCreate({ value, fee, memo }: sendMsgCreateParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgRedeem: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgCreate: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgRedeem({ value: MsgRedeem.fromPartial(value) })
+				let msg = this.msgCreate({ value: MsgCreate.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgRedeem: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgCreate: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
 		
-		msgCreate({ value }: msgCreateParams): EncodeObject {
+		msgRedeem({ value }: msgRedeemParams): EncodeObject {
 			try {
-				return { typeUrl: "/defundlabs.defund.etf.MsgCreate", value: MsgCreate.fromPartial( value ) }  
+				return { typeUrl: "/defundlabs.defund.etf.MsgRedeem", value: MsgRedeem.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgCreate: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgRedeem: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -122,11 +122,11 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgRedeem({ value }: msgRedeemParams): EncodeObject {
+		msgCreate({ value }: msgCreateParams): EncodeObject {
 			try {
-				return { typeUrl: "/defundlabs.defund.etf.MsgRedeem", value: MsgRedeem.fromPartial( value ) }  
+				return { typeUrl: "/defundlabs.defund.etf.MsgCreate", value: MsgCreate.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgRedeem: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgCreate: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -138,19 +138,34 @@ interface QueryClientOptions {
 }
 
 export const queryClient = ({ addr: addr }: QueryClientOptions = { addr: "http://localhost:1317" }) => {
-  return new Api({ baseUrl: addr });
+  return new Api({ baseURL: addr });
 };
 
 class SDKModule {
 	public query: ReturnType<typeof queryClient>;
 	public tx: ReturnType<typeof txClient>;
 	
-	public registry: Array<[string, GeneratedType]>;
+	public registry: Array<[string, GeneratedType]> = [];
 
 	constructor(client: IgniteClient) {		
 	
-		this.query = queryClient({ addr: client.env.apiURL });
-		this.tx = txClient({ signer: client.signer, addr: client.env.rpcURL, prefix: client.env.prefix ?? "cosmos" });
+		this.query = queryClient({ addr: client.env.apiURL });		
+		this.updateTX(client);
+		client.on('signer-changed',(signer) => {			
+		 this.updateTX(client);
+		})
+	}
+	updateTX(client: IgniteClient) {
+    const methods = txClient({
+        signer: client.signer,
+        addr: client.env.rpcURL,
+        prefix: client.env.prefix ?? "cosmos",
+    })
+	
+    this.tx = methods;
+    for (let m in methods) {
+        this.tx[m] = methods[m].bind(this.tx);
+    }
 	}
 };
 

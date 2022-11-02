@@ -1,28 +1,20 @@
-import { txClient, queryClient, MissingWalletError , registry} from './module'
+import { Client, registry, MissingWalletError } from 'defund-labs-defund-client-ts'
 
-import { SendAuthorization } from "./module/types/cosmos/bank/v1beta1/authz"
-import { Params } from "./module/types/cosmos/bank/v1beta1/bank"
-import { SendEnabled } from "./module/types/cosmos/bank/v1beta1/bank"
-import { Input } from "./module/types/cosmos/bank/v1beta1/bank"
-import { Output } from "./module/types/cosmos/bank/v1beta1/bank"
-import { Supply } from "./module/types/cosmos/bank/v1beta1/bank"
-import { DenomUnit } from "./module/types/cosmos/bank/v1beta1/bank"
-import { Metadata } from "./module/types/cosmos/bank/v1beta1/bank"
-import { Balance } from "./module/types/cosmos/bank/v1beta1/genesis"
+import { SendAuthorization } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Params } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { SendEnabled } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Input } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Output } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Supply } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { DenomUnit } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Metadata } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
+import { Balance } from "defund-labs-defund-client-ts/cosmos.bank.v1beta1/types"
 
 
 export { SendAuthorization, Params, SendEnabled, Input, Output, Supply, DenomUnit, Metadata, Balance };
 
-async function initTxClient(vuexGetters) {
-	return await txClient(vuexGetters['common/wallet/signer'], {
-		addr: vuexGetters['common/env/apiTendermint']
-	})
-}
-
-async function initQueryClient(vuexGetters) {
-	return await queryClient({
-		addr: vuexGetters['common/env/apiCosmos']
-	})
+function initClient(vuexGetters) {
+	return new Client(vuexGetters['common/env/getEnv'], vuexGetters['common/wallet/signer'])
 }
 
 function mergeResults(value, next_values) {
@@ -36,17 +28,18 @@ function mergeResults(value, next_values) {
 	return value
 }
 
+type Field = {
+	name: string;
+	type: unknown;
+}
 function getStructure(template) {
-	let structure = { fields: [] }
+	let structure: {fields: Field[]} = { fields: [] }
 	for (const [key, value] of Object.entries(template)) {
-		let field: any = {}
-		field.name = key
-		field.type = typeof value
+		let field = { name: key, type: typeof value }
 		structure.fields.push(field)
 	}
 	return structure
 }
-
 const getDefaultState = () => {
 	return {
 				Balance: {},
@@ -186,12 +179,12 @@ export default {
 		async QueryBalance({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryBalance( key.address, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryBalance( key.address, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryBalance( key.address, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBankV1Beta1.query.queryBalance( key.address, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'Balance', key: { params: {...key}, query}, value })
@@ -212,12 +205,12 @@ export default {
 		async QueryAllBalances({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryAllBalances( key.address, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryAllBalances( key.address, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryAllBalances( key.address, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBankV1Beta1.query.queryAllBalances( key.address, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'AllBalances', key: { params: {...key}, query}, value })
@@ -238,12 +231,12 @@ export default {
 		async QuerySpendableBalances({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.querySpendableBalances( key.address, query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.querySpendableBalances( key.address, query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.querySpendableBalances( key.address, {...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBankV1Beta1.query.querySpendableBalances( key.address, {...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'SpendableBalances', key: { params: {...key}, query}, value })
@@ -264,12 +257,12 @@ export default {
 		async QueryTotalSupply({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryTotalSupply(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryTotalSupply(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryTotalSupply({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBankV1Beta1.query.queryTotalSupply({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'TotalSupply', key: { params: {...key}, query}, value })
@@ -290,8 +283,8 @@ export default {
 		async QuerySupplyOf({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.querySupplyOf( key.denom)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.querySupplyOf( key.denom)).data
 				
 					
 				commit('QUERY', { query: 'SupplyOf', key: { params: {...key}, query}, value })
@@ -312,8 +305,8 @@ export default {
 		async QueryParams({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryParams()).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryParams()).data
 				
 					
 				commit('QUERY', { query: 'Params', key: { params: {...key}, query}, value })
@@ -334,8 +327,8 @@ export default {
 		async QueryDenomMetadata({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDenomMetadata( key.denom)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryDenomMetadata( key.denom)).data
 				
 					
 				commit('QUERY', { query: 'DenomMetadata', key: { params: {...key}, query}, value })
@@ -356,12 +349,12 @@ export default {
 		async QueryDenomsMetadata({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
-				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryDenomsMetadata(query)).data
+				const client = initClient(rootGetters);
+				let value= (await client.CosmosBankV1Beta1.query.queryDenomsMetadata(query ?? undefined)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryDenomsMetadata({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await client.CosmosBankV1Beta1.query.queryDenomsMetadata({...query ?? {}, 'pagination.key':(<any> value).pagination.next_key} as any)).data
 					value = mergeResults(value, next_values);
 				}
 				commit('QUERY', { query: 'DenomsMetadata', key: { params: {...key}, query}, value })
@@ -376,10 +369,8 @@ export default {
 		
 		async sendMsgMultiSend({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgMultiSend(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosBankV1Beta1.tx.sendMsgMultiSend({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -391,10 +382,8 @@ export default {
 		},
 		async sendMsgSend({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSend(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
+				const client=await initClient(rootGetters)
+				const result = await client.CosmosBankV1Beta1.tx.sendMsgSend({ value, fee: {amount: fee, gas: "200000"}, memo })
 				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -407,8 +396,8 @@ export default {
 		
 		async MsgMultiSend({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgMultiSend(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosBankV1Beta1.tx.msgMultiSend({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {
@@ -420,8 +409,8 @@ export default {
 		},
 		async MsgSend({ rootGetters }, { value }) {
 			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgSend(value)
+				const client=initClient(rootGetters)
+				const msg = await client.CosmosBankV1Beta1.tx.msgSend({value})
 				return msg
 			} catch (e) {
 				if (e == MissingWalletError) {

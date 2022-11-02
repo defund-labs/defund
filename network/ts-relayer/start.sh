@@ -10,7 +10,7 @@ MNEMONIC="alley afraid soup fall idea toss can goose become valve initial strong
 
 # create connections
 echo "Creating connections..."
-ibc-setup connect --interactive --log-level debug
+ibc-setup connect --interactive --home $RELAY_DIR/.ibc-setup --log-level debug
 
 echo "What is the source connection to relay?"
 read srcconnection
@@ -19,4 +19,4 @@ read destconnection
 
 # start up relayer polling every 6 seconds
 echo "Starting Defund ts-relayer for src:$srcconnection dest:$destconnection..."
-ibc-relayer start --src-connection $srcconnection --dest-connection $destconnection --poll 6 --log-level debug --interactive > ./relayer.log 2>&1 &
+ibc-relayer start --home $RELAY_DIR/.ibc-setup --src-connection $srcconnection --dest-connection $destconnection --poll 6 --log-level debug --interactive > ./relayer.log 2>&1 &
