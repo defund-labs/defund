@@ -528,16 +528,20 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 			needToSwapTokenInHoldingDenom := amtInHoldingDenom.Sub(amountWeShouldHaveInBaseDenom).Mul(priceInBaseDenom).RoundInt()
 			needToSwapTokenInBaseDenomDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
-			tokenIn := sdk.NewCoin(holding.Token, needToSwapTokenInHoldingDenom)
+			tokenIn := sdk.NewCoin(holding.Token, needToSwapTokenInHoldingDenom.Abs())
 			// create the min amount out by using the current holding amount in base denom and then
 			// NOTE: creating a 2% slippage on it (potentially add this as fund param?)
-			tokenOut := needToSwapTokenInBaseDenomDenom.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100))
+			tokenOut := needToSwapTokenInBaseDenomDenom.Mul(sdk.NewInt(98)).Quo(sdk.NewInt(100)).Abs()
 			// create holder for msg in switch statement
 			var msg *osmosisgammtypes.MsgSwapExactAmountIn
 			switch holding.BrokerId {
 			case "osmosis":
 				// if the current denom is the need denom, we can just skip
 				if holding.Token == fund.BaseDenom.OnBroker {
+					continue
+				}
+				// if the token in amount or token out amount is negative continue
+				if !tokenIn.Amount.IsPositive() || !tokenOut.IsPositive() {
 					continue
 				}
 				// get the routes needed to swap for from this current denom to base denom
@@ -586,14 +590,14 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 			overUnderCompPerc = overUnderCompPerc.Abs()
 			needToSwapTokenInBaseDenom := overUnderCompPerc.Mul(totalOverInBaseDenom).RoundInt()
 			// create the tokenIn coin
-			tokenIn := sdk.NewCoin(fund.BaseDenom.OnBroker, needToSwapTokenInBaseDenom)
+			tokenIn := sdk.NewCoin(fund.BaseDenom.OnBroker, needToSwapTokenInBaseDenom.Abs())
 			tokenPriceInHoldingDenom, err := k.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom.OnBroker)
 			if err != nil {
 				return msgs, err
 			}
 			// create the min amount out by using the current holding amount in base denom and then
 			// NOTE: creating a 2% slippage on it (potentially add this as fund param?)
-			tokenOut := needToSwapTokenInBaseDenom.ToDec().Mul(tokenPriceInHoldingDenom).Mul(sdk.NewDec(98)).Quo(sdk.NewDec(100)).RoundInt()
+			tokenOut := needToSwapTokenInBaseDenom.ToDec().Mul(tokenPriceInHoldingDenom).Mul(sdk.NewDec(98)).Quo(sdk.NewDec(100)).RoundInt().Abs()
 
 			// create holder for msg in switch statement
 			var msg *osmosisgammtypes.MsgSwapExactAmountIn
@@ -601,6 +605,10 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 			case "osmosis":
 				// if the current denom is the need denom, we can just skip
 				if holding.Token == fund.BaseDenom.OnBroker {
+					continue
+				}
+				// if the token in amount or token out amount is negative continue
+				if !tokenIn.Amount.IsPositive() || !tokenOut.IsPositive() {
 					continue
 				}
 				// get the routes needed to swap for from this current denom to base denom
@@ -653,13 +661,15 @@ func (k Keeper) SendRebalanceTx(ctx sdk.Context, fund types.Fund) error {
 		k.brokerKeeper.SetRebalance(ctx, rebal)
 	}
 
-	// change the fund rebalancing status to true
-	fund, found := k.GetFund(ctx, fund.Symbol)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", fund.Symbol)
+	if len(msgs.Osmosis) > 0 {
+		// change the fund rebalancing status to true
+		fund, found := k.GetFund(ctx, fund.Symbol)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", fund.Symbol)
+		}
+		fund.Rebalancing = true
+		k.SetFund(ctx, fund)
 	}
-	fund.Rebalancing = true
-	k.SetFund(ctx, fund)
 
 	return nil
 }

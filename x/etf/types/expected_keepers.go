@@ -77,6 +77,7 @@ type BrokerKeeper interface {
 
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetAllChannels(ctx sdk.Context) (channels []channeltypes.IdentifiedChannel)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 }
 

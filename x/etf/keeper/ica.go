@@ -68,7 +68,8 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
+				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
+				k.Logger(ctx).Error("Failed running redeem success logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
 			}
 			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
 			// Run redeem success logic
@@ -84,7 +85,8 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			}
 			msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+				k.Logger(ctx).Error("Failed running rebalance success logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
 			}
 			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.", "response", msgResponse.String())
 			// Run rebalance success logic
@@ -111,7 +113,8 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			}
 			msgResponse := &transfertypes.MsgTransferResponse{}
 			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
+				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
+				k.Logger(ctx).Error("Failed running redeem failure logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
 			}
 			k.Logger(ctx).Error("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response: ", msgResponse.String())
 
@@ -131,7 +134,8 @@ func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channelty
 			case "osmosis":
 				msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
 				if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-					return sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+					err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
+					k.Logger(ctx).Error("Failed running rebalance failure logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
 				}
 				k.Logger(ctx).Error("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response: ", msgResponse.String())
 			}
