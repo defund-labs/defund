@@ -540,10 +540,6 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 				if holding.Token == fund.BaseDenom.OnBroker {
 					continue
 				}
-				// if the token in amount or token out amount is negative continue
-				if !tokenIn.Amount.IsPositive() || !tokenOut.IsPositive() {
-					continue
-				}
 				// get the routes needed to swap for from this current denom to base denom
 				routes, err := k.getOsmosisRoutes(ctx, holding.Token, fund.BaseDenom.OnBroker)
 				if err != nil {
@@ -553,9 +549,13 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 				if err != nil {
 					return msgs, err
 				}
+				// if the token in amount or token out amount is negative skip
+				if !msg.TokenIn.Amount.IsPositive() || !msg.TokenOutMinAmount.IsPositive() {
+					continue
+				}
+				// append the new message for the broker
+				msgs.Osmosis = append(msgs.Osmosis, msg)
 			}
-			// append the new message for the broker
-			msgs.Osmosis = append(msgs.Osmosis, msg)
 		}
 	}
 
@@ -607,10 +607,6 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 				if holding.Token == fund.BaseDenom.OnBroker {
 					continue
 				}
-				// if the token in amount or token out amount is negative continue
-				if !tokenIn.Amount.IsPositive() || !tokenOut.IsPositive() {
-					continue
-				}
 				// get the routes needed to swap for from this current denom to base denom
 				routes, err := k.getOsmosisRoutes(ctx, fund.BaseDenom.OnBroker, holding.Token)
 				if err != nil {
@@ -620,9 +616,13 @@ func (k Keeper) CreateRebalanceMsgs(ctx sdk.Context, fund types.Fund) (types.Reb
 				if err != nil {
 					return msgs, err
 				}
+				// if the token in amount or token out amount is negative skip
+				if !msg.TokenIn.Amount.IsPositive() || !msg.TokenOutMinAmount.IsPositive() {
+					continue
+				}
+				// append the new message for the broker
+				msgs.Osmosis = append(msgs.Osmosis, msg)
 			}
-			// append the new message for the broker
-			msgs.Osmosis = append(msgs.Osmosis, msg)
 		}
 	}
 

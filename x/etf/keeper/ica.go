@@ -4,14 +4,11 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	proto "github.com/gogo/protobuf/proto"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	connectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
@@ -55,7 +52,7 @@ func (k Keeper) GetChannel(ctx sdk.Context, portID string, channelID string) (ch
 //
 // If the ICA message is an ICA Swap Message, we know it is a rebalance workflow, and we mark the rebalance
 // from pending to complete.
-func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
+func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) {
 	// loop through each ICA msg in the tx (one ack respresents one tx)
 	for _, msgData := range txMsgData.Data {
 		switch msgData.MsgType {
@@ -64,102 +61,75 @@ func (k Keeper) OnAcknowledgementPacketSuccess(ctx sdk.Context, packet channelty
 			redeem, found := k.brokerKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				k.Logger(ctx).Error(fmt.Sprintf("Redeem %s not found. Skipping redeem success logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
-				return nil
+				return
 			}
-			msgResponse := &transfertypes.MsgTransferResponse{}
-			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
-				k.Logger(ctx).Error("Failed running redeem success logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
-			}
-			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.", "response", msgResponse.String())
+			k.Logger(ctx).Info("Redeem shares ICA transfer msg ran successfully. Running redeem success logic.")
 			// Run redeem success logic
-			k.OnRedeemSuccess(ctx, packet, redeem)
+			err := k.OnRedeemSuccess(ctx, packet, redeem)
+			if err != nil {
+				k.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRedeemSuccess", "error", err.Error())
+			}
 
-			return nil
+			return
 		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
 			// get the rebalance from the store. If not found return nil and do not run logic
 			rebalance, found := k.brokerKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
 			if !found {
 				k.Logger(ctx).Error(fmt.Sprintf("Fund rebalance %s not found. Skipping rebalance success logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
-				return nil
+				return
 			}
-			msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
-			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
-				k.Logger(ctx).Error("Failed running rebalance success logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
-			}
-			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.", "response", msgResponse.String())
+			k.Logger(ctx).Info("Fund rebalance ICA msg ran successfully. Running rebalance success logic.")
 			// Run rebalance success logic
-			k.OnRebalanceSuccess(ctx, rebalance, rebalance.Fund)
+			err := k.OnRebalanceSuccess(ctx, rebalance, rebalance.Fund)
+			if err != nil {
+				k.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRebalanceSuccess", "error", err.Error())
+			}
 
-			return nil
+			return
 		default:
-			return nil
+			k.Logger(ctx).Error("Received ICA failure msg type we do not recognize.", "typeUrl", msgData.MsgType)
+
+			return
 		}
 	}
-	return nil
 }
 
-func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
-	// loop through each ICA msg in the tx (one ack respresents one tx)
-	for _, msgData := range txMsgData.Data {
-		switch msgData.MsgType {
-		case sdk.MsgTypeURL(&banktypes.MsgSend{}):
-			// get the redeem from the store. If not found return nil and do not run logic
-			redeem, found := k.brokerKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
-			if !found {
-				k.Logger(ctx).Error(fmt.Sprintf("Redeem %s not found. Skipping redeem failure logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
-				return nil
-			}
-			msgResponse := &transfertypes.MsgTransferResponse{}
-			if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-				err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal ica transfer response message: %s", err.Error())
-				k.Logger(ctx).Error("Failed running redeem failure logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
-			}
-			k.Logger(ctx).Error("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.", "response: ", msgResponse.String())
-
-			// Run redeem failure logic
-			k.OnRedeemFailure(ctx, packet, redeem)
-
-			return nil
-		case sdk.MsgTypeURL(&osmosisgammtypes.MsgSwapExactAmountIn{}):
-			// get the rebalance from the store. If not found return nil and do not run logic
-			rebalance, found := k.brokerKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
-			if !found {
-				k.Logger(ctx).Error(fmt.Sprintf("Fund rebalance %s not found. Skipping rebalance failure logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
-				return nil
-			}
-			fund := rebalance.Fund
-			switch rebalance.Broker {
-			case "osmosis":
-				msgResponse := &osmosisgammtypes.MsgSwapExactAmountInResponse{}
-				if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
-					err = sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal Osmosis swap in response message: %s", err.Error())
-					k.Logger(ctx).Error("Failed running rebalance failure logic during msgResponse unmarshalling. ===>>> Error: %s", err.Error())
-				}
-				k.Logger(ctx).Error("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.", "response: ", msgResponse.String())
-			}
-
-			// Run rebalance failure logic
-			k.OnRebalanceFailure(ctx, rebalance, fund)
-
-			return nil
-		default:
-			return nil
+func (k Keeper) OnAcknowledgementPacketFailure(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) {
+	// get the redeem from the store. If not found skip redeem logic
+	redeem, found := k.brokerKeeper.GetRedeem(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+	if !found {
+		k.Logger(ctx).Debug(fmt.Sprintf("Redeem %s not found. Skipping redeem failure logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
+	} else {
+		k.Logger(ctx).Error("Redeem shares ICA transfer msg ran unsuccessfully. Running redeem failure logic.")
+		// Run redeem failure logic
+		err := k.OnRedeemFailure(ctx, packet, redeem)
+		if err != nil {
+			k.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRedeemFailure", "error", err.Error())
 		}
 	}
-	return nil
+	// get the rebalance from the store. If not found skip rebalance logic
+	rebalance, found := k.brokerKeeper.GetRebalance(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+	if !found {
+		k.Logger(ctx).Debug(fmt.Sprintf("Fund rebalance %s not found. Skipping rebalance failure logic.", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence)))
+	} else {
+		k.Logger(ctx).Error("Fund rebalance ICA msg ran unsuccessfully. Running rebalance failure logic.")
+		// Run rebalance failure logic
+		err := k.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+		if err != nil {
+			k.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRebalanceFailure", "error", err.Error())
+		}
+	}
 }
 
-func (k Keeper) OnAcknowledgementPacketICA(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) error {
+func (k Keeper) OnAcknowledgementPacketICA(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement, txMsgData *sdk.TxMsgData) {
 	switch ack.Response.(type) {
 	// on successful ack
 	case *channeltypes.Acknowledgement_Result:
-		return k.OnAcknowledgementPacketSuccess(ctx, packet, ack, txMsgData)
-	// on failure ack
-	case *channeltypes.Acknowledgement_Error:
-		return k.OnAcknowledgementPacketFailure(ctx, packet, ack, txMsgData)
+		ctx.Logger().Info("received successful ICA acknowledgement. running ICA successful acknowledgement logic.", "channel", packet.SourceChannel, "sequence", packet.Sequence, "ack", ack.GetResponse())
+		k.OnAcknowledgementPacketSuccess(ctx, packet, ack, txMsgData)
+	// on failure ack. defaults to failure in switch statement
 	default:
-		return nil
+		ctx.Logger().Info("received error ICA acknowledgement. running ICA failure acknowledgement logic.", "channel", packet.SourceChannel, "sequence", packet.Sequence, "ack", ack.GetError())
+		k.OnAcknowledgementPacketFailure(ctx, packet, ack, txMsgData)
 	}
 }

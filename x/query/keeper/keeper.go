@@ -79,7 +79,7 @@ func (k Keeper) CreateInterqueryRequest(ctx sdk.Context, chainid string, storeid
 	}
 	k.SetInterquery(ctx, interquery)
 
-	k.Logger(ctx).Info(fmt.Sprintf("Interquery request for path %s on connection %s has been initiated", path, connectionid))
+	k.Logger(ctx).Debug(fmt.Sprintf("Interquery request for path %s on connection %s has been initiated", path, connectionid))
 
 	return nil
 }

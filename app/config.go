@@ -15,8 +15,8 @@ func SetTendermintConfigs(config *tmcfg.Config) {
 	config.P2P.MaxPacketMsgPayloadSize = 10240
 	config.P2P.FlushThrottleTimeout = 10 * time.Millisecond
 	// Consensus Configs
-	config.Consensus.TimeoutPrevote = 200 * time.Millisecond
-	config.Consensus.TimeoutPrecommit = 200 * time.Millisecond
-	config.Consensus.TimeoutCommit = 200 * time.Millisecond
+	config.Consensus.TimeoutPrevote = 250 * time.Millisecond
+	config.Consensus.TimeoutPrecommit = 250 * time.Millisecond
+	config.Consensus.TimeoutCommit = 250 * time.Millisecond
 	config.Consensus.SkipTimeoutCommit = true
 }
