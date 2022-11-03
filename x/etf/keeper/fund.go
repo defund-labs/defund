@@ -72,6 +72,23 @@ func (k Keeper) GetFundBySymbol(ctx sdk.Context, symbol string) (types.Fund, err
 	return types.Fund{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund with the symbol %s does not exist", symbol)
 }
 
+// GetFundByDefundAddr returns a fund by the funds defund address
+func (k Keeper) GetFundByDefundAddr(ctx sdk.Context, address string) (types.Fund, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Fund
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Address == address {
+			return val, nil
+		}
+	}
+	return types.Fund{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund with the address %s does not exist", address)
+}
+
 // GetNextID gets the count of all funds and then adds 1 for the next fund id
 func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))

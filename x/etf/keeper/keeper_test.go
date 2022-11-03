@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -553,7 +554,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.Assert().True(found)
 		tokenInRedeem := sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(89753))
 		addrMap := types.AddressMap{
-			OsmosisAddress: s.chainA.SenderAccount.GetAddress().String(),
+			OsmosisAddress: "osmo" + strings.Split(s.chainA.SenderAccount.GetAddress().String(), "defund")[1],
 		}
 
 		// mint and then send the etf coins to the redeemer
@@ -562,7 +563,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), "etf", s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenInRedeem))
 
 		// redeem the created shares from above
-		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), "osmo"+strings.Split(s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), "defund")[1], fund, tokenInRedeem, addrMap)
 		s.Assert().NoError(err)
 	})
 
