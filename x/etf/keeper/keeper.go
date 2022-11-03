@@ -280,37 +280,29 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 		if err != nil {
 			ctx.Logger().Debug(err.Error())
 		}
-		addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, broker.ConnectionId, portID)
+		addr, found := k.GetBrokerAccount(ctx, broker.ConnectionId, portID)
 		if !found {
 			err := status.Errorf(codes.NotFound, "no account found for portID %s on connection %s", portID, broker.ConnectionId)
 			return err
 		}
-		fundICAAddress, err := sdk.AccAddressFromBech32(addr)
-		if err != nil {
-			return err
+
+		msg := banktypes.MsgSend{
+			FromAddress: addr,
+			ToAddress:   addressMap.OsmosisAddress,
+			Amount:      sdk.NewCoins(currentCoin),
 		}
 
-		receiveAddress, err := AccAddressFromBech32Osmo(addressMap.OsmosisAddress)
-		if err != nil {
-			return err
-		}
-
-		msg := banktypes.NewMsgSend(fundICAAddress, receiveAddress, sdk.NewCoins(currentCoin))
-		if err != nil {
-			return err
-		}
-
-		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], msg)
+		msgs[holding.BrokerId] = append(msgs[holding.BrokerId], &msg)
 	}
 
 	// take the fund etf shares and escrow them in the module account. in the ack callback, on success
-	// of sequence we will burn proportionally. If unsuccessful the transfer is reattempted until successful.
+	// of sequence we will burn proportionally. If unsuccessful the escrow etf shares are returned.
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creatorAcc, types.ModuleName, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}
 
-	// send each ICA message and add it to the redeem which will be used in end blocker
+	// send each ICA message and add it to the redeem which will be used in callbacks
 	// to check status of ICA message
 	for brokerId, msg := range msgs {
 		// get the broker

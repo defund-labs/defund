@@ -3,6 +3,7 @@ package etf
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -95,6 +96,16 @@ func (im IBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
+	// on a ICA channel close we must ensure the fund rebalance is set to false
+	addr := strings.Split(portID, "icacontroller-")[1]
+	if len(addr) > 0 {
+		fund, err := im.keeper.GetFundByDefundAddr(ctx, addr)
+		if err != nil {
+			return err
+		}
+		fund.Rebalancing = false
+		im.keeper.SetFund(ctx, fund)
+	}
 	return nil
 }
 
@@ -150,16 +161,32 @@ func (im IBCModule) OnTimeoutPacket(
 	// get the redeem from the store. If not found return nil and do not run logic if found run the redeem timeout logic
 	redeem, redeemExists := im.brokerKeeper.GetRedeem(ctx, id)
 	if redeemExists {
+		// on a timeout, ICA channel closes so automatically set the fund as not autorebalancing
+		fund, _ := im.keeper.GetFund(ctx, redeem.Fund)
+		fund.Rebalancing = false
+		im.keeper.SetFund(ctx, fund)
+
 		im.keeper.Logger(ctx).Error("redeem %s timed out. Running the redeem timeout logic.", id)
-		im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+		err := im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+		if err != nil {
+			im.keeper.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRedeemFailure", "error", err.Error())
+		}
 	} else {
 		im.keeper.Logger(ctx).Debug(fmt.Sprintf("Redeem %s not found. Skipping redeem timeout logic.", id))
 	}
 	// get the rebalance from the store. If not found return nil and do not run logic if found run the redeem timeout logic
 	rebalance, rebalanceExists := im.brokerKeeper.GetRebalance(ctx, id)
 	if rebalanceExists {
+		// on a timeout, ICA channel closes so automatically set the fund as not autorebalancing
+		fund, _ := im.keeper.GetFund(ctx, redeem.Fund)
+		fund.Rebalancing = false
+		im.keeper.SetFund(ctx, fund)
+
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("rebalance %s timed out. Running the rebalance timeout logic.", id))
-		im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+		err := im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+		if err != nil {
+			im.keeper.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRebalanceFailure", "error", err.Error())
+		}
 	} else {
 		im.keeper.Logger(ctx).Debug(fmt.Sprintf("Rebalance %s not found. Skipping rebalance timeout logic.", id))
 	}

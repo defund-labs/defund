@@ -57,7 +57,6 @@ func (k Keeper) CreateMultiSendMsg(ctx sdk.Context, fromAddress string, toAddres
 func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner string, connectionID string) (sequence uint64, channel string, err error) {
 	seralizeMsgs := []sdk.Msg{}
 	for _, msg := range msgs {
-		msg.ValidateBasic()
 		seralizeMsgs = append(seralizeMsgs, msg)
 	}
 
@@ -88,7 +87,7 @@ func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner st
 
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
 		return sequence, channel, err
@@ -132,7 +131,7 @@ func (k Keeper) SendIBCTransferICA(ctx sdk.Context, msgs []*ibctransfertypes.Msg
 
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := uint64(time.Now().Add(time.Minute).UnixNano())
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
 		return sequence, "", err
