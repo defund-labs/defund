@@ -290,7 +290,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 			return err
 		}
 
-		receiveAddress, err := sdk.AccAddressFromBech32(addressMap.OsmosisAddress)
+		receiveAddress, err := AccAddressFromBech32Osmo(addressMap.OsmosisAddress)
 		if err != nil {
 			return err
 		}
