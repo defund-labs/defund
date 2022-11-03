@@ -187,7 +187,7 @@ func initRootCmd(
 	options rootOptions,
 ) {
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(moduleBasics, defaultNodeHome),
+		InitCmd(moduleBasics, defaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.MigrateGenesisCmd(),
 		genutilcli.GenTxCmd(
