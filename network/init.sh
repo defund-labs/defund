@@ -52,6 +52,9 @@ sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $CHAIN_DIR/$
 sed -i 's/enable-unsafe-cors = false/enable-unsafe-cors = true/g' $CHAIN_DIR/$CHAINID_1/config/app.toml
 
 echo "Changing Genesis File"
+# Change time_iota_ms
+contents="$(jq '.consensus_params.block.time_iota_ms = "1"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
 # Change crisis fee denom to fake detf
 contents="$(jq '.app_state.crisis.constant_fee.denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json
