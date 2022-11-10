@@ -12,3 +12,4 @@ osmosisdefund.log
 relayer/keys/
 relayer/config/
 relayer.log
+env.list
