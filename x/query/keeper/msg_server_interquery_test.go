@@ -26,6 +26,10 @@ func (s *KeeperTestSuite) setup(ctx sdk.Context) (outctx sdk.Context, fund etfty
 	// Commit new block to store info
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
+	path.EndpointA.UpdateClient()
+	path.EndpointB.UpdateClient()
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+
 	outctx = ctx
 
 	return outctx, fund, connectionId, portId
@@ -36,6 +40,7 @@ func (s *KeeperTestSuite) TestInterqueryMsgServerResult() {
 
 	k := s.GetDefundApp(s.chainA).QueryKeeper
 	ctx := s.chainA.GetContext()
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
 	ctx, _, _, _ = s.setup(ctx)
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
 	srv := keeper.NewMsgServerImpl(k)
@@ -50,19 +55,12 @@ func (s *KeeperTestSuite) TestInterqueryMsgServerResult() {
 		request *types.MsgCreateInterqueryResult
 		err     error
 	}{
-		{
-			desc: "Completed",
-			request: &types.MsgCreateInterqueryResult{Creator: creator,
-				Storeid: strconv.Itoa(0),
-				Proof:   &crypto.ProofOps{},
-				Height:  &h,
-			},
-		},
+		// NOTE: Need to add completed MsgCreateInterqueryRequest once we can get some fake
+		// data from the chain. (Needs correct proofs and value + key). Manually tested for now.
 		{
 			desc: "Invalid proof",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(0),
-				Proof:   &crypto.ProofOps{},
 				Height:  &h,
 			},
 			err: sdkerrors.Wrapf(types.ErInvalidProof, "no proof provided"),
@@ -83,7 +81,7 @@ func (s *KeeperTestSuite) TestInterqueryMsgServerResult() {
 			}
 
 			iq := types.Interquery{
-				Storeid:      tc.request.Storeid,
+				Storeid:      strconv.Itoa(0),
 				ConnectionId: "connection-0",
 			}
 			k.SetInterquery(ctx, iq)

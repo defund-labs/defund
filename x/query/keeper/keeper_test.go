@@ -16,7 +16,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	"github.com/defund-labs/defund/app"
 	ibctesting "github.com/defund-labs/defund/testing"
-	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -36,18 +35,6 @@ type KeeperTestSuite struct {
 }
 
 type GenesisState map[string]json.RawMessage
-
-var (
-	setupAccountCounter = sdk.ZeroInt()
-	testFundSymbol      = "test"
-	testFundDesc        = "test"
-	testFundName        = "test"
-	baseDenom           = "uosmo"
-
-	poolsOsmosis = []uint64{
-		1, 3,
-	}
-)
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
@@ -144,38 +131,19 @@ func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
 	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.EndpointA.ChannelID = "channel-0"
 	path.EndpointB.ChannelID = "channel-0"
+	path.EndpointA.ConnectionID = "connection-0"
+	path.EndpointB.ConnectionID = "connection-0"
+	path.EndpointA.ClientID = "07-tendermint-0"
+	path.EndpointB.ClientID = "07-tendermint-0"
 	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointA.ChannelConfig.Version = "ics20-1"
 	path.EndpointB.ChannelConfig.Version = "ics20-1"
 
-	s.coordinator.Setup(path)
+	s.coordinator.SetupClients(path)
+	s.coordinator.SetupConnections(path)
 
 	return path
-}
-
-func (s *KeeperTestSuite) CreateOsmosisBroker() brokertypes.Broker {
-	var pools []*brokertypes.Source
-
-	for i := range poolsOsmosis {
-		addPool := brokertypes.Source{
-			PoolId:       poolsOsmosis[i],
-			InterqueryId: fmt.Sprintf("%s-%d", "osmosis", poolsOsmosis[i]),
-			Status:       "active",
-		}
-		pools = append(pools, &addPool)
-	}
-
-	broker := brokertypes.Broker{
-		Id:           "osmosis",
-		ConnectionId: "connection-0",
-		Pools:        pools,
-		Status:       "active",
-	}
-
-	s.GetDefundApp(s.chainA).BrokerKeeper.SetBroker(s.chainA.GetContext(), broker)
-
-	return broker
 }
 
 // RegisterInterchainAccount is a helper function for starting the channel handshake
