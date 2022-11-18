@@ -90,10 +90,10 @@ host = '0.0.0.0'
 port = 3001
 
 [[chains]]
-id = 'defund'
-rpc_addr = 'http://0.0.0.0:26657'
-grpc_addr = 'http://0.0.0.0:9090'
-websocket_addr = 'ws://0.0.0.0:26657/websocket'
+id = 'defund-private-3'
+rpc_addr = 'https://rpc-defund.archive.bitszn.com:443'
+grpc_addr = 'https://grpc-defund.archive.bitszn.com:443'
+websocket_addr = 'wss://rpc-defund.archive.bitszn.com:443/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
 key_name = 'defund'
@@ -104,7 +104,7 @@ gas_price = { price = 0.001, denom = 'ufetf' }
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '1000s'
-max_block_time = '200ms'
+max_block_time = '1s'
 trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }

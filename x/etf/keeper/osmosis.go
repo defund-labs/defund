@@ -87,24 +87,36 @@ func CreatePrefixedAccountStoreKey(addr []byte, denom []byte) []byte {
 
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
+	broker, found := k.brokerKeeper.GetBroker(ctx, "osmosis")
+	if !found {
+		err := sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
+		k.Logger(ctx).Error(err.Error())
+	}
 	path := "/store/gamm/key"
-	connectionid := "connection-0"
+	connectionid := broker.ConnectionId
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
 	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)
 	chainid := "osmo-test-4"
 
-	err := k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
-	if err != nil {
-		return err
+	if broker.Status == "active" {
+		err := k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 // CreateQueryOsmosisBalance sets an interquery request in store for a Osmosis account balance to be run by relayers
 func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, account string, denom string) error {
+	broker, found := k.brokerKeeper.GetBroker(ctx, "osmosis")
+	if !found {
+		err := sdkerrors.Wrapf(types.ErrBrokerNotFound, "broker %s not found", "osmosis")
+		k.Logger(ctx).Error(err.Error())
+	}
 	path := "/store/bank/key"
-	connectionid := "connection-0"
+	connectionid := broker.ConnectionId
 	accAddr, err := AccAddressFromBech32Osmo(account)
 	if err != nil {
 		return err
@@ -114,9 +126,11 @@ func (k Keeper) CreateQueryOsmosisBalance(ctx sdk.Context, symbol string, accoun
 	storeid := fmt.Sprintf("balance:%s:osmosis:%s:%s", symbol, account, denom)
 	chainid := "osmo-test-4"
 
-	err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
-	if err != nil {
-		return err
+	if broker.Status == "active" {
+		err = k.queryKeeper.CreateInterqueryRequest(ctx, chainid, storeid, path, key, timeoutHeight, connectionid)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

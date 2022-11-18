@@ -19094,16 +19094,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/defund-labs/defund/broker/broker/{broker}':
@@ -19417,6 +19407,8 @@ paths:
                         signatures required by gogoproto.
                     creator:
                       type: string
+                    rebalancing:
+                      type: boolean
                     lastRebalanceHeight:
                       type: string
                       format: int64
@@ -19620,6 +19612,8 @@ paths:
                       signatures required by gogoproto.
                   creator:
                     type: string
+                  rebalancing:
+                    type: boolean
                   lastRebalanceHeight:
                     type: string
                     format: int64
@@ -19732,42 +19726,6 @@ paths:
           in: query
           required: false
           type: string
-      tags:
-        - Query
-  /defund-labs/defund/icabroker/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: DefundlabsDefundIcabrokerParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                type: object
-                description: Params defines the parameters for the module.
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
       tags:
         - Query
   /defund-labs/defund/query/interquery:
@@ -48102,6 +48060,8 @@ definitions:
           signatures required by gogoproto.
       creator:
         type: string
+      rebalancing:
+        type: boolean
       lastRebalanceHeight:
         type: string
         format: int64
@@ -48254,6 +48214,8 @@ definitions:
                 signatures required by gogoproto.
             creator:
               type: string
+            rebalancing:
+              type: boolean
             lastRebalanceHeight:
               type: string
               format: int64
@@ -48411,6 +48373,8 @@ definitions:
               signatures required by gogoproto.
           creator:
             type: string
+          rebalancing:
+            type: boolean
           lastRebalanceHeight:
             type: string
             format: int64
@@ -48436,16 +48400,6 @@ definitions:
                       custom method
 
                       signatures required by gogoproto.
-  defundlabs.defund.icabroker.Params:
-    type: object
-    description: Params defines the parameters for the module.
-  defundlabs.defund.icabroker.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        type: object
-        description: Params defines the parameters for the module.
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
   defundlabs.defund.query.Interquery:
     type: object
     properties:

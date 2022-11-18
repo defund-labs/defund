@@ -8,8 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	keepertest "github.com/defund-labs/defund/testutil/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	etftypes "github.com/defund-labs/defund/x/etf/types"
 	"github.com/defund-labs/defund/x/query/keeper"
 	"github.com/defund-labs/defund/x/query/types"
 )
@@ -17,22 +19,31 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func TestInterqueryMsgServerCreate(t *testing.T) {
-	k, ctx := keepertest.QueryKeeper(t)
-	srv := keeper.NewMsgServerImpl(*k)
-	wctx := sdk.WrapSDKContext(ctx)
-	creator := "A"
-	for i := 0; i < 5; i++ {
-		expected := &types.MsgCreateInterquery{Creator: creator,
-			Storeid: strconv.Itoa(i),
-		}
-		_, err := srv.CreateInterquery(wctx, expected)
-		require.NoError(t, err)
-	}
+func (s *KeeperTestSuite) setup(ctx sdk.Context) (outctx sdk.Context, fund etftypes.Fund, connectionId string, portId string) {
+	path := s.NewTransferPath()
+	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
+
+	// Commit new block to store info
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+
+	outctx = ctx
+
+	return outctx, fund, connectionId, portId
 }
 
-func TestInterqueryMsgServerResult(t *testing.T) {
+func (s *KeeperTestSuite) TestInterqueryMsgServerResult() {
 	creator := "A"
+
+	k := s.GetDefundApp(s.chainA).QueryKeeper
+	ctx := s.chainA.GetContext()
+	ctx, _, _, _ = s.setup(ctx)
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	srv := keeper.NewMsgServerImpl(k)
+	wctx := sdk.WrapSDKContext(ctx)
+
+	h := clienttypes.NewHeight(0, 0)
+
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
 	for _, tc := range []struct {
 		desc    string
@@ -43,12 +54,16 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 			desc: "Completed",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(0),
+				Proof:   &crypto.ProofOps{},
+				Height:  &h,
 			},
 		},
 		{
 			desc: "Invalid proof",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(0),
+				Proof:   &crypto.ProofOps{},
+				Height:  &h,
 			},
 			err: sdkerrors.Wrapf(types.ErInvalidProof, "no proof provided"),
 		},
@@ -56,21 +71,24 @@ func TestInterqueryMsgServerResult(t *testing.T) {
 			desc: "InterqueryNotFound",
 			request: &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(100000),
+				Proof:   &crypto.ProofOps{},
+				Height:  &h,
 			},
 			err: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Interquery with StoreId %s could not be found.", strconv.Itoa(0))),
 		},
 	} {
-		t.Run(tc.desc, func(t *testing.T) {
-			k, ctx := keepertest.QueryKeeper(t)
-			srv := keeper.NewMsgServerImpl(*k)
-			wctx := sdk.WrapSDKContext(ctx)
-			expected := &types.MsgCreateInterquery{Creator: creator,
+		s.T().Run(tc.desc, func(t *testing.T) {
+			expected := &types.MsgCreateInterqueryResult{Creator: creator,
 				Storeid: strconv.Itoa(0),
 			}
-			_, err := srv.CreateInterquery(wctx, expected)
-			require.NoError(t, err)
 
-			_, err = srv.CreateInterqueryResult(wctx, tc.request)
+			iq := types.Interquery{
+				Storeid:      tc.request.Storeid,
+				ConnectionId: "connection-0",
+			}
+			k.SetInterquery(ctx, iq)
+
+			_, err := srv.CreateInterqueryResult(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

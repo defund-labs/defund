@@ -14,52 +14,6 @@ import (
 	"github.com/defund-labs/defund/x/query/types"
 )
 
-func (k msgServer) CreateInterquery(goCtx context.Context, msg *types.MsgCreateInterquery) (*types.MsgCreateInterqueryResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Check if the value already exists in pending interquery
-	_, isFound := k.GetInterquery(
-		ctx,
-		msg.Storeid,
-	)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("storeid %s is already set. all store id's must be unique.", msg.Storeid))
-	}
-
-	// Check if the value already exists in submitted interquery
-	_, isFound = k.GetInterqueryResult(
-		ctx,
-		msg.Storeid,
-	)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("storeid %s is already set. all store id's must be unique.", msg.Storeid))
-	}
-
-	// Check if the value already exists in timedout interquery
-	_, isFound = k.GetInterqueryTimeoutResult(
-		ctx,
-		msg.Storeid,
-	)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("storeid %s is already set. all store id's must be unique.", msg.Storeid))
-	}
-
-	var interquery = types.Interquery{
-		Storeid:       msg.Storeid,
-		Chainid:       msg.Chainid,
-		Path:          msg.Path,
-		Key:           msg.Key,
-		TimeoutHeight: msg.TimeoutHeight,
-		ConnectionId:  msg.ConnectionId,
-	}
-
-	k.SetInterquery(
-		ctx,
-		interquery,
-	)
-	return &types.MsgCreateInterqueryResponse{}, nil
-}
-
 func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgCreateInterqueryResult) (*types.MsgCreateInterqueryResultResponse, error) {
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -164,29 +118,4 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 	k.RemoveInterquery(ctx, interqueryresult.Storeid)
 
 	return &types.MsgCreateInterqueryResultResponse{}, nil
-}
-
-func (k msgServer) CreateInterqueryTimeout(goCtx context.Context, msg *types.MsgCreateInterqueryTimeout) (*types.MsgCreateInterqueryTimeoutResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Check if the value already exists
-	_, isFound := k.GetInterqueryTimeoutResult(
-		ctx,
-		msg.Storeid,
-	)
-	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s Key to Id is already set. All Key to Id values must be unique.", msg.Storeid))
-	}
-
-	var interquerytimeoutresult = types.InterqueryTimeoutResult{
-		Storeid:       msg.Storeid,
-		TimeoutHeight: msg.TimeoutHeight,
-	}
-
-	k.SetInterqueryTimeoutResult(ctx, interquerytimeoutresult)
-
-	// Remove/cleanup the pending interquery from the store
-	k.RemoveInterquery(ctx, interquerytimeoutresult.Storeid)
-
-	return &types.MsgCreateInterqueryTimeoutResponse{}, nil
 }

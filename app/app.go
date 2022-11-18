@@ -194,7 +194,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, fmt.Sprintf(".%s", Name))
 
-	SetAddressConfig()
+	SetAddressConfig(AccountAddressPrefix)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.

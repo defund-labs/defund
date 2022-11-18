@@ -24,7 +24,7 @@ func (gs GenesisState) Validate() error {
 	interqueryTimeoutIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.InterqueryList {
-		index := string(InterqueryKey(elem.Storeid))
+		index := elem.Storeid
 		if _, ok := interqueryIndexMap[index]; ok {
 			fmt.Print("ok: ", ok, "\n")
 			return fmt.Errorf("duplicated index for interquery")
@@ -32,14 +32,14 @@ func (gs GenesisState) Validate() error {
 		interqueryIndexMap[index] = struct{}{}
 	}
 	for _, elem := range gs.InterqueryResultList {
-		index := string(InterqueryKey(elem.Storeid))
+		index := elem.Storeid
 		if _, ok := interqueryResultIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for interquery result")
 		}
 		interqueryResultIndexMap[index] = struct{}{}
 	}
 	for _, elem := range gs.InterqueryTimeoutResultList {
-		index := string(InterqueryKey(elem.Storeid))
+		index := elem.Storeid
 		if _, ok := interqueryTimeoutIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for interquery timeout result")
 		}

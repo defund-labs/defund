@@ -29,8 +29,10 @@ func networkWithFundObjects(t *testing.T, n int) (*network.Network, []types.Fund
 	for i := 0; i < n; i++ {
 		holdings := []*types.Holding{}
 		state.FundList = append(state.FundList, types.Fund{
-			Symbol:   strconv.Itoa(i),
-			Holdings: holdings,
+			Symbol:              strconv.Itoa(i),
+			Holdings:            holdings,
+			LastRebalanceHeight: 0,
+			Balances:            make(map[string]*types.Balances),
 		})
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)

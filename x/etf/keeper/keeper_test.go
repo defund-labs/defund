@@ -563,7 +563,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), "etf", s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenInRedeem))
 
 		// redeem the created shares from above
-		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), "osmo"+strings.Split(s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), "defund")[1], fund, tokenInRedeem, addrMap)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
 		s.Assert().NoError(err)
 	})
 
@@ -573,8 +573,6 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 		msgs, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
 		s.Assert().NoError(err)
-
-		s.chainA.Log(msgs)
 
 		s.Assert().Equal(msgs.Osmosis[0].TokenIn, sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(27598242)))
 		s.Assert().Equal(msgs.Osmosis[0].TokenOutMinAmount, sdk.NewInt(88779146))

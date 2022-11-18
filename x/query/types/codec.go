@@ -13,21 +13,13 @@ var (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateInterquery{}, "query/CreateInterquery", nil)
 	cdc.RegisterConcrete(&MsgCreateInterqueryResult{}, "query/CreateInterqueryResult", nil)
-	cdc.RegisterConcrete(&MsgCreateInterqueryTimeout{}, "query/CreateInterqueryTimeout", nil)
 	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateInterquery{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateInterqueryResult{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateInterqueryTimeout{},
 	)
 	// this line is used by starport scaffolding # 3
 

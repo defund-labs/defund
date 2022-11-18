@@ -398,6 +398,7 @@ func (m *QueryAllInterqueryResultResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
+// Interquery timeout result requests/response
 type QueryGetInterqueryTimeoutResultRequest struct {
 	Storeid string `protobuf:"bytes,1,opt,name=storeid,proto3" json:"storeid,omitempty"`
 }

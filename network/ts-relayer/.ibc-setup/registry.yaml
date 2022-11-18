@@ -14,10 +14,10 @@ chains:
   defund:
     chain_id: defund
     prefix: defund
-    gas_price: 0ufetf
+    gas_price: 1000ufetf
     hd_path: m/44'/118'/0'/0/0
     ics20_port: 'transfer'
     estimated_block_time: 1000
     estimated_indexer_time: 250
     rpc:
-      - http://localhost:26657
+      - http://65.108.6.45:60557

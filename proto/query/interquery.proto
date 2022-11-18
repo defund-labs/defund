@@ -3,7 +3,6 @@ package defundlabs.defund.query;
 
 option go_package = "github.com/defund-labs/defund/x/query/types";
 
-import "tendermint/crypto/proof.proto";
 import "ibc/core/client/v1/client.proto";
 
 message Interquery {
@@ -18,7 +17,6 @@ message Interquery {
 
 message InterqueryResult {
   string creator = 1;
-  
   string storeid = 2; 
   string chainid = 3; 
   bytes  data = 4;
