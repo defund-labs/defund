@@ -19527,6 +19527,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/defund-labs/defund/etf/fund/{symbol}':
@@ -48134,6 +48144,8 @@ definitions:
     type: object
   defundlabs.defund.etf.MsgCreateResponse:
     type: object
+  defundlabs.defund.etf.MsgEditFundResponse:
+    type: object
   defundlabs.defund.etf.MsgRedeemResponse:
     type: object
   defundlabs.defund.etf.QueryAllFundResponse:
@@ -48475,11 +48487,7 @@ definitions:
       timeoutHeight:
         type: string
         format: uint64
-  defundlabs.defund.query.MsgCreateInterqueryResponse:
-    type: object
   defundlabs.defund.query.MsgCreateInterqueryResultResponse:
-    type: object
-  defundlabs.defund.query.MsgCreateInterqueryTimeoutResponse:
     type: object
   defundlabs.defund.query.QueryAllInterqueryResponse:
     type: object

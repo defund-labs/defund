@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -124,16 +123,6 @@ func sumDecs(items []sdk.Dec) sdk.Dec {
 		sum = sum.Add(item)
 	}
 	return sum
-}
-
-func containsMsg(msgs []*osmosisgammtypes.MsgSwapExactAmountIn, msg osmosisgammtypes.MsgSwapExactAmountIn) bool {
-	for _, m := range msgs {
-		if reflect.DeepEqual(m, msg) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // CreateShares send an IBC transfer to all the brokers for each holding with the proportion of tokenIn

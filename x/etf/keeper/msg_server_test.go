@@ -146,3 +146,5 @@ func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 	_, err = srv.Redeem(wctx, expectedRedeem)
 	require.NoError(s.T(), err)
 }
+
+func (s *KeeperTestSuite) TestSharesMsgServerEditFund() {}

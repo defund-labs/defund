@@ -238,7 +238,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.MsgCreateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//basic validation of the message
+	// basic validation of the message
 	msg.ValidateBasic()
 
 	fund, found := k.GetFund(ctx, msg.Fund)
@@ -268,7 +268,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//basic validation of the message
+	// basic validation of the message
 	msg.ValidateBasic()
 
 	// get the fund and check if it exists
@@ -283,4 +283,13 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	}
 
 	return &types.MsgRedeemResponse{}, nil
+}
+
+func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*types.MsgEditFundResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// TODO: Handling the message
+	_ = ctx
+
+	return &types.MsgEditFundResponse{}, nil
 }
