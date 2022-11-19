@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,7 +75,7 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
-	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
+	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.GetEnabledProposals(), app.EmptyAppOptions{}, []wasm.Option{})
 	gensisState := app.NewDefaultGenesisState(encCdc.Marshaler)
 	return appd, gensisState
 }
@@ -155,6 +156,8 @@ func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = "ics20-1"
 
 	s.coordinator.Setup(path)
+
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
 	return path
 }
@@ -330,6 +333,8 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	portID, err := icatypes.NewControllerPortID(acct.GetAddress().String())
 	s.Assert().NoError(err)
 
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+
 	connectionId, portID = s.CreateChannelICA(portID, transferPath)
 
 	// set the interchain accounts in store since IBC callback will not
@@ -454,8 +459,9 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 	path := s.NewTransferPath()
 	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
-	s.CreateTestFund(path)
-	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), "test")
+	fund, _, _, _ := s.CreateTestFund(path)
+	s.chainA.Log(fund)
+	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), fund.Symbol)
 	s.Assert().NoError(err)
 	// Commit new block to store info
 	s.coordinator.CommitBlock(s.chainA, s.chainB)

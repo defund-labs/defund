@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -18,12 +20,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/defund-labs/defund/app"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -43,7 +47,9 @@ type (
 		homePath string,
 		invCheckPeriod uint,
 		encodingConfig app.EncodingConfig,
+		enabledProposals []wasm.ProposalType,
 		appOpts servertypes.AppOptions,
+		wasmOpts []wasm.Option,
 		baseAppOptions ...func(*baseapp.BaseApp),
 	) *app.App
 
@@ -60,12 +66,6 @@ type (
 			jailAllowedAddrs []string,
 		) (servertypes.ExportedApp, error)
 		LoadHeight(height int64) error
-	}
-
-	// appCreator is an app creator
-	appCreator struct {
-		encodingConfig app.EncodingConfig
-		buildApp       AppBuilder
 	}
 )
 
@@ -123,30 +123,34 @@ func NewRootCmd(
 	options ...Option,
 ) (*cobra.Command, app.EncodingConfig) {
 	rootOptions := newRootOptions(options...)
+	encodingConfig := app.MakeEncodingConfig(app.ModuleBasics)
 
-	encodingConfig := app.MakeEncodingConfig(moduleBasics)
+	app.SetAddressConfig()
+
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(defaultNodeHome).
-		WithViper(rootOptions.envPrefix)
+		WithHomeDir(app.DefaultNodeHome).
+		WithViper("")
 
 	rootCmd := &cobra.Command{
-		Use:   appName + "d",
-		Short: "Defund Network daemon and client.",
+		Use:   version.AppName,
+		Short: "Wasm Daemon (server)",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
+
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
+
 			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
@@ -156,9 +160,7 @@ func NewRootCmd(
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
+			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
 		},
 	}
 
@@ -170,10 +172,6 @@ func NewRootCmd(
 		buildApp,
 		rootOptions,
 	)
-	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        defaultChainID,
-		flags.FlagKeyringBackend: "test",
-	})
 
 	return rootCmd, encodingConfig
 }
@@ -187,54 +185,30 @@ func initRootCmd(
 	options rootOptions,
 ) {
 	rootCmd.AddCommand(
-		InitCmd(moduleBasics, defaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		genutilcli.MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(
-			moduleBasics,
-			encodingConfig.TxConfig,
-			banktypes.GenesisBalancesIterator{},
-			defaultNodeHome,
-		),
-		genutilcli.ValidateGenesisCmd(moduleBasics),
-		AddGenesisAccountCmd(defaultNodeHome),
+		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		AddGenesisAccountCmd(app.DefaultNodeHome),
+		AddGenesisWasmMsgCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
+		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		config.Cmd(),
 	)
 
-	a := appCreator{
-		encodingConfig,
-		buildApp,
+	ac := appCreator{
+		encCfg: encodingConfig,
 	}
-
-	// add server commands
-	server.AddCommands(
-		rootCmd,
-		defaultNodeHome,
-		a.newApp,
-		a.appExport,
-		func(cmd *cobra.Command) {
-			addModuleInitFlags(cmd)
-
-			if options.startCmdCustomizer != nil {
-				options.startCmdCustomizer(cmd)
-			}
-		},
-	)
+	server.AddCommands(rootCmd, app.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		queryCommand(moduleBasics),
-		txCommand(moduleBasics),
-		keys.Commands(defaultNodeHome),
+		queryCommand(app.ModuleBasics),
+		txCommand(app.ModuleBasics),
+		keys.Commands(app.DefaultNodeHome),
 	)
-
-	// add user given sub commands.
-	for _, cmd := range options.addSubCmds {
-		rootCmd.AddCommand(cmd)
-	}
 }
 
 // queryCommand returns the sub-command to send queries to the app
@@ -309,6 +283,10 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	}
 }
 
+type appCreator struct {
+	encCfg app.EncodingConfig
+}
+
 // newApp creates a new Cosmos SDK app
 func (a appCreator) newApp(
 	logger log.Logger,
@@ -332,7 +310,12 @@ func (a appCreator) newApp(
 		panic(err)
 	}
 
-	return a.buildApp(
+	var wasmOpts []wasm.Option
+	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+	}
+
+	return app.New(
 		logger,
 		db,
 		traceStore,
@@ -340,8 +323,10 @@ func (a appCreator) newApp(
 		skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-		a.encodingConfig,
+		a.encCfg,
+		app.GetEnabledProposals(),
 		appOpts,
+		wasmOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
@@ -354,7 +339,7 @@ func (a appCreator) newApp(
 }
 
 // appExport creates a new simapp (optionally at a given height)
-func (a appCreator) appExport(
+func (ac appCreator) appExport(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -363,33 +348,35 @@ func (a appCreator) appExport(
 	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
-
-	var exportableApp ExportableApp
-
+	var defund *app.App
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home not set")
+		return servertypes.ExportedApp{}, errors.New("application home is not set")
 	}
 
-	exportableApp = a.buildApp(
+	loadLatest := height == -1
+	var emptyWasmOpts []wasm.Option
+	defund = app.New(
 		logger,
 		db,
 		traceStore,
-		height == -1, // -1: no height provided
+		loadLatest,
 		map[int64]bool{},
 		homePath,
-		uint(1),
-		a.encodingConfig,
+		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
+		ac.encCfg,
+		app.GetEnabledProposals(),
 		appOpts,
+		emptyWasmOpts,
 	)
 
 	if height != -1 {
-		if err := exportableApp.LoadHeight(height); err != nil {
+		if err := defund.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	}
 
-	return exportableApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return defund.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
 
 // initAppConfig helps to override default appConfig template and configs.

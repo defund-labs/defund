@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,7 +57,7 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
-	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
+	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, []wasm.ProposalType{}, app.EmptyAppOptions{}, []wasm.Option{})
 	gensisState := app.NewDefaultGenesisState(encCdc.Marshaler)
 	return appd, gensisState
 }

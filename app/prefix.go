@@ -5,7 +5,7 @@ import (
 )
 
 // SetAddressConfig sets the address configuration.
-func SetAddressConfig(AccountAddressPrefix string) {
+func SetAddressConfig() {
 	var (
 		AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
 		ValidatorAddressPrefix = AccountAddressPrefix + "valoper"

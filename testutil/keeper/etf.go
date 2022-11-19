@@ -3,6 +3,7 @@ package keeper
 import (
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -50,8 +51,8 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 		authtypes.FeeCollectorName: nil,
 	}
 
-	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding,
-		simapp.EmptyAppOptions{})
+	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding, app.GetEnabledProposals(),
+		simapp.EmptyAppOptions{}, []wasm.Option{})
 
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		codec.NewProtoCodec(registry), storeKeyAcc, a.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
