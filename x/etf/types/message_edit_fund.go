@@ -9,7 +9,7 @@ const TypeMsgEditFund = "edit_fund"
 
 var _ sdk.Msg = &MsgEditFund{}
 
-func NewMsgEditFund(creator string, symbol string, holdings string) *MsgEditFund {
+func NewMsgEditFund(creator string, symbol string, holdings []*Holding) *MsgEditFund {
 	return &MsgEditFund{
 		Creator:  creator,
 		Symbol:   symbol,

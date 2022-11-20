@@ -68,7 +68,7 @@ message MsgRedeemResponse {
 message MsgEditFund {
   string creator = 1;
   string symbol = 2;
-  string holdings = 3;
+  repeated Holding holdings = 3;
 }
 
 message MsgEditFundResponse {
