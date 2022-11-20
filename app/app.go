@@ -86,6 +86,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	wasmbinding "github.com/defund-labs/defund/wasmbindings"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -483,7 +484,8 @@ func New(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1"
+	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1,defund"
+	wasmOpts = append(wasmbinding.RegisterPlugins(&app.EtfKeeper, &app.BrokerKeeper, &app.AccountKeeper, app.MsgServiceRouter()), wasmOpts...)
 	app.WasmKeeper = wasm.NewKeeper(
 		appCodec,
 		keys[wasm.StoreKey],
