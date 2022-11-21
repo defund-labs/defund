@@ -181,6 +181,19 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	// Generate and get a new fund address
 	fundAddress := NewFundAddress(msg.Symbol)
 
+	var t string = types.FundTypePassive
+	var contractAddress string
+	if msg.Active {
+		// set the fund type to active
+		t = types.FundTypeActive
+		// instantiate a wasm contract from code id provided
+		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte{}, "", sdk.NewCoins(sdk.NewCoin("", sdk.NewInt(0))))
+		if err != nil {
+			return nil, err
+		}
+		contractAddress = contract.String()
+	}
+
 	// Create and save corresponding module account to the account keeper
 	acc := k.accountKeeper.NewAccount(ctx, authtypes.NewModuleAccount(
 		authtypes.NewBaseAccountWithAddress(
@@ -218,6 +231,8 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Symbol:        msg.Symbol,
 		Address:       acc.GetAddress().String(),
 		Name:          msg.Name,
+		Type:          t,
+		Contract:      contractAddress,
 		Description:   msg.Description,
 		Shares:        &shares,
 		Holdings:      holdings,
@@ -288,8 +303,38 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*types.MsgEditFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: Handling the message
-	_ = ctx
+	// get the fund
+	fund, err := k.GetFundBySymbol(ctx, msg.Symbol)
+	if err != nil {
+		return &types.MsgEditFundResponse{}, err
+	}
+
+	// update the fund for the holdings if provided
+	if fund.Holdings != nil {
+		// ensure the fund is active type
+		if fund.Type != types.FundTypeActive {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type (%s) only %s can edit holdings", fund.Type, "active")
+		}
+
+		// convert the raw string address to addr bytes
+		contractAddr, err := sdk.AccAddressFromBech32(fund.Contract)
+		if err != nil {
+			return &types.MsgEditFundResponse{}, err
+		}
+		// ensure the contract specified in fund is a wasm contract
+		isContract := k.wasmKeeper.HasContractInfo(ctx, contractAddr)
+		if !isContract {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "contract specified for fund (%s) is not a cosmwasm contract", fund.Contract)
+		}
+		// make sure the signer is the wasm contract
+		if msg.Creator != fund.Contract {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "msg signer (%s) is not the funds contract (%s)", msg.Creator, fund.Contract)
+		}
+
+		fund.Holdings = msg.GetHoldings()
+	}
+
+	k.SetFund(ctx, fund)
 
 	return &types.MsgEditFundResponse{}, nil
 }

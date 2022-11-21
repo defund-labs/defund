@@ -27,6 +27,8 @@ const (
 	flagPacketTimeoutHeight    = "packet-timeout-height"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
+	flagActiveFund             = "active"
+	flagWasmCodeId             = "cw-id"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -74,6 +76,16 @@ func CmdCreateFund() *cobra.Command {
 				return err
 			}
 
+			// get the active flag
+			activeFund, err := cmd.Flags().GetBool(flagActiveFund)
+			if err != nil {
+				return err
+			}
+			wasmCodeId, err := cmd.Flags().GetUint64(flagWasmCodeId)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgCreateFund(
 				clientCtx.GetFromAddress().String(),
 				argSymbol,
@@ -83,6 +95,8 @@ func CmdCreateFund() *cobra.Command {
 				rebalance,
 				argBaseDenom,
 				argStartingPrice,
+				activeFund,
+				wasmCodeId,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -91,6 +105,8 @@ func CmdCreateFund() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Bool(flagActiveFund, false, "Sets the fund as an active fund. Active funds must specify Cosmwasm Code ID via cw-id flag.")
+	cmd.Flags().Uint64(flagWasmCodeId, 0, "The Cosmwasm code ID to instantiate the dETF contract from and attach to these dETF.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

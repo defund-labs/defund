@@ -5,6 +5,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	FundTypePassive = "passive"
+	FundTypeActive  = "active"
+)
+
 var _ sdk.Msg = &MsgCreateFund{}
 
 func NewMsgCreateFund(
@@ -16,6 +21,8 @@ func NewMsgCreateFund(
 	rebalance int64,
 	basedenom string,
 	startingprice string,
+	active bool,
+	wasmcodeid uint64,
 
 ) *MsgCreateFund {
 	return &MsgCreateFund{
@@ -27,6 +34,8 @@ func NewMsgCreateFund(
 		Rebalance:     rebalance,
 		BaseDenom:     basedenom,
 		StartingPrice: startingprice,
+		Active:        active,
+		WasmCodeId:    wasmcodeid,
 	}
 }
 

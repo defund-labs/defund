@@ -30,6 +30,8 @@ message MsgCreateFund {
   int64 rebalance = 6;
   string baseDenom = 7;
   string startingPrice = 8;
+  bool active = 9;
+  uint64 wasmCodeId = 10;
 }
 message MsgCreateFundResponse {}
 

@@ -43,24 +43,27 @@ message Fund {
   string symbol = 1;
   string address = 2;
   string name = 3; 
-  string description = 4; 
-  cosmos.base.v1beta1.Coin shares = 5 [
+  string description = 4;
+  string type = 5;
+  // the only contract allowed is a wasm contract address if the type is active
+  string contract = 6;
+  cosmos.base.v1beta1.Coin shares = 7 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = true
   ];
-  repeated Holding holdings = 6 [
+  repeated Holding holdings = 8 [
     (gogoproto.moretags) = "yaml:\"holdings\"",
     (gogoproto.nullable) = true
   ];
-  int64 rebalance = 7;
-  BaseDenom baseDenom = 8;
-  cosmos.base.v1beta1.Coin startingPrice = 9 [
+  int64 rebalance = 9;
+  BaseDenom baseDenom = 10;
+  cosmos.base.v1beta1.Coin startingPrice = 11 [
     (gogoproto.moretags) = "yaml:\"starting_price\"",
     (gogoproto.nullable) = true
   ];
-  string creator = 10;
-  bool rebalancing = 11;
-  int64  lastRebalanceHeight = 12;
-  map<string, Balances> balances = 13;
+  string creator = 12;
+  bool rebalancing = 13;
+  int64  lastRebalanceHeight = 14;
+  map<string, Balances> balances = 15;
 }
 

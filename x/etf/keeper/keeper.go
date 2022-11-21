@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -40,6 +41,8 @@ type (
 		clientKeeper        types.ClientKeeper
 		icaControllerKeeper icacontrollerkeeper.Keeper
 		transferKeeper      transferkeeper.Keeper
+		wasmKeeper          wasmkeeper.Keeper
+		wasmInternalKeeper  wasmkeeper.PermissionedKeeper
 	}
 
 	Surplus struct {
@@ -66,6 +69,8 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	iaKeeper icacontrollerkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
+	wasmKeeper wasmkeeper.Keeper,
+	wasmInternalKeeper wasmkeeper.PermissionedKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:      cdc,
@@ -83,6 +88,8 @@ func NewKeeper(
 		clientKeeper:        clientKeeper,
 		icaControllerKeeper: iaKeeper,
 		transferKeeper:      transferKeeper,
+		wasmKeeper:          wasmKeeper,
+		wasmInternalKeeper:  wasmInternalKeeper,
 	}
 }
 

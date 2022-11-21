@@ -272,6 +272,7 @@ type App struct {
 	EtfKeeper           etfmodulekeeper.Keeper
 	QueryKeeper         querymodulekeeper.Keeper
 	WasmKeeper          wasm.Keeper
+	WasmInternalKeeper  wasmkeeper.PermissionedKeeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -446,6 +447,8 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
+	app.WasmInternalKeeper = *wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
+
 	app.EtfKeeper = etfmodulekeeper.NewKeeper(
 		appCodec,
 		keys[etfmoduletypes.StoreKey],
@@ -462,6 +465,8 @@ func New(
 		app.IBCKeeper.ClientKeeper,
 		app.ICAControllerKeeper,
 		app.TransferKeeper,
+		app.WasmKeeper,
+		app.WasmInternalKeeper,
 	)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.EtfKeeper, app.BrokerKeeper)

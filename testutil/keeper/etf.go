@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -64,6 +65,8 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 		a.ScopedICAControllerKeeper, a.MsgServiceRouter(),
 	)
 
+	a.WasmInternalKeeper = *wasmkeeper.NewDefaultPermissionKeeper(a.WasmKeeper)
+
 	capKeeper := *capabilitykeeper.NewKeeper(codec.NewProtoCodec(registry), storeKey, memStoreKey)
 
 	scopedEtfKeeper := capKeeper.ScopeToModule("etf")
@@ -82,6 +85,8 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 		a.IBCKeeper.ClientKeeper,
 		a.ICAControllerKeeper,
 		a.TransferKeeper,
+		a.WasmKeeper,
+		a.WasmInternalKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

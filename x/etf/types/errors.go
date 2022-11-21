@@ -29,4 +29,5 @@ var (
 	ErrMarshallGetFundPrice = sdkerrors.Register(ModuleName, 18, "Error marshalling GetFundPrice")
 	ErrUnknownEtfQuery      = sdkerrors.Register(ModuleName, 19, "Unknown ETF query")
 	ErrParsingWasmMsg       = sdkerrors.Register(ModuleName, 20, "Error parsing wasm msg")
+	ErrUnauthorized         = sdkerrors.Register(ModuleName, 21, "Unauthorized")
 )

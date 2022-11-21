@@ -147,4 +147,8 @@ func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 	require.NoError(s.T(), err)
 }
 
-func (s *KeeperTestSuite) TestSharesMsgServerEditFund() {}
+func (s *KeeperTestSuite) TestSharesMsgServerEditFund() {
+	s.Run("Completed", func() {})
+
+	s.Run("Unauthorized", func() {})
+}
