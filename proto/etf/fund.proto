@@ -32,11 +32,17 @@ message Holding {
   string token = 1;
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
-  uint64 poolId = 3;
+  uint64 poolId = 3 [
+    (gogoproto.jsontag) = "pool_id"
+  ];
   // Broker Id for the Broker
-  string brokerId = 4;
+  string brokerId = 4 [
+    (gogoproto.jsontag) = "broker_id"
+  ];
   // the type of the asset. Valid types are spot, staked
-  string type = 5;
+  string type = 5 [
+    (gogoproto.jsontag) = "fund_type"
+  ];
 }
 
 message Fund {
@@ -44,7 +50,7 @@ message Fund {
   string address = 2;
   string name = 3; 
   string description = 4;
-  string type = 5;
+  string fundType = 5;
   // the only contract allowed is a wasm contract address if the type is active
   string contract = 6;
   cosmos.base.v1beta1.Coin shares = 7 [

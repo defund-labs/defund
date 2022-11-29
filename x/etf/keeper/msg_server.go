@@ -231,7 +231,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Symbol:        msg.Symbol,
 		Address:       acc.GetAddress().String(),
 		Name:          msg.Name,
-		Type:          t,
+		FundType:      t,
 		Contract:      contractAddress,
 		Description:   msg.Description,
 		Shares:        &shares,
@@ -303,6 +303,8 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*types.MsgEditFundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	msg.ValidateBasic()
+
 	// get the fund
 	fund, err := k.GetFundBySymbol(ctx, msg.Symbol)
 	if err != nil {
@@ -312,8 +314,8 @@ func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*typ
 	// update the fund for the holdings if provided
 	if fund.Holdings != nil {
 		// ensure the fund is active type
-		if fund.Type != types.FundTypeActive {
-			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type (%s) only %s can edit holdings", fund.Type, "active")
+		if fund.FundType != types.FundTypeActive {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type (%s) only %s can edit holdings", fund.FundType, "active")
 		}
 
 		// convert the raw string address to addr bytes
