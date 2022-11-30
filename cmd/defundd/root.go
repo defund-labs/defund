@@ -125,8 +125,6 @@ func NewRootCmd(
 	rootOptions := newRootOptions(options...)
 	encodingConfig := app.MakeEncodingConfig(app.ModuleBasics)
 
-	app.SetAddressConfig()
-
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
