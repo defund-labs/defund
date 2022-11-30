@@ -25,8 +25,3 @@ func (handler BrokerWasmQueryHandler) GetBrokers(ctx sdk.Context, req *types.Que
 	c := sdk.WrapSDKContext(ctx)
 	return handler.brokerkeeper.Brokers(c, req)
 }
-
-func (handler BrokerWasmQueryHandler) GetBrokerAddress(ctx sdk.Context, req *types.QueryInterchainAccountFromAddressRequest) (*types.QueryInterchainAccountFromAddressResponse, error) {
-	c := sdk.WrapSDKContext(ctx)
-	return handler.brokerkeeper.InterchainAccountFromAddress(c, req)
-}

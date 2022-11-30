@@ -53,17 +53,6 @@ func (qp QueryPlugin) HandleBrokerQuery(ctx sdk.Context, queryData json.RawMessa
 		}
 
 		return bz, nil
-	case query.GetBrokerAddress != nil:
-		res, err := qp.brokerHandler.GetBrokerAddress(ctx, query.GetBrokerAddress)
-		if err != nil {
-			return nil, err
-		}
-		bz, err := json.Marshal(res)
-		if err != nil {
-			return nil, brokertypes.ErrEncodingBrokerAddress
-		}
-
-		return bz, nil
 	default:
 		return nil, brokertypes.ErrUnknownQuery
 	}
