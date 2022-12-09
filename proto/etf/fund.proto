@@ -8,8 +8,12 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
 message BaseDenom {
-  string onDefund = 1;
-  string onBroker = 2;
+  string onDefund = 1 [
+		(gogoproto.jsontag) = "on_defund"
+	];
+  string onBroker = 2 [
+		(gogoproto.jsontag) = "on_broker"
+	];
 }
 
 message FundPrice {
@@ -32,44 +36,38 @@ message Holding {
   string token = 1;
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
-  uint64 poolId = 3 [
-    (gogoproto.jsontag) = "pool_id"
-  ];
+  uint64 poolId = 3;
   // Broker Id for the Broker
-  string brokerId = 4 [
-    (gogoproto.jsontag) = "broker_id"
-  ];
+  string brokerId = 4;
   // the type of the asset. Valid types are spot, staked
-  string type = 5 [
-    (gogoproto.jsontag) = "fund_type"
-  ];
+  string type = 5;
 }
 
 message Fund {
   string symbol = 1;
   string address = 2;
   string name = 3; 
-  string description = 4;
-  string fundType = 5;
-  // the only contract allowed is a wasm contract address if the type is active
-  string contract = 6;
-  cosmos.base.v1beta1.Coin shares = 7 [
+  string description = 4; 
+  cosmos.base.v1beta1.Coin shares = 5 [
     (gogoproto.moretags) = "yaml:\"total_shares\"",
     (gogoproto.nullable) = true
   ];
-  repeated Holding holdings = 8 [
+  repeated Holding holdings = 6 [
     (gogoproto.moretags) = "yaml:\"holdings\"",
     (gogoproto.nullable) = true
   ];
-  int64 rebalance = 9;
-  BaseDenom baseDenom = 10;
-  cosmos.base.v1beta1.Coin startingPrice = 11 [
+  int64 rebalance = 7;
+  BaseDenom baseDenom = 8;
+  cosmos.base.v1beta1.Coin startingPrice = 9 [
+    (gogoproto.jsontag) = "starting_price",
     (gogoproto.moretags) = "yaml:\"starting_price\"",
     (gogoproto.nullable) = true
   ];
-  string creator = 12;
-  bool rebalancing = 13;
-  int64  lastRebalanceHeight = 14;
-  map<string, Balances> balances = 15;
+  string creator = 10;
+  bool rebalancing = 11;
+  int64  lastRebalanceHeight = 12 [
+		(gogoproto.jsontag) = "last_rebalance_height"
+	];
+  map<string, Balances> balances = 13;
 }
 

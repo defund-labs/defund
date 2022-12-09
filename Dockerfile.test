@@ -1,0 +1,16 @@
+FROM golang:1.19-alpine AS build-env
+
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3 jq
+RUN apk add --no-cache $PACKAGES
+
+COPY . /go/delivery/defund
+
+WORKDIR /go/delivery/defund
+
+RUN make install
+
+EXPOSE 26656 26657 1317 9090
+
+RUN bash ./network/init.sh
+
+CMD ["/bin/bash", "./network/start-logger.sh"]
