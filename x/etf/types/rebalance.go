@@ -6,6 +6,12 @@ import (
 	osmosisgammtypes "github.com/osmosis-labs/osmosis/v8/x/gamm/types"
 )
 
+type RunnerArgs struct{}
+
+type Runner struct {
+	Runner RunnerArgs `json:"runner"`
+}
+
 type RebalanceMsgs struct {
 	Osmosis []*osmosisgammtypes.MsgSwapExactAmountIn
 }

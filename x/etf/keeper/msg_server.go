@@ -181,11 +181,11 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	// Generate and get a new fund address
 	fundAddress := NewFundAddress(msg.Symbol)
 
-	var t string = types.FundTypePassive
+	var t types.Fund_FundType = types.Fund_PASSIVE
 	var contractAddress string
 	if msg.Active {
 		// set the fund type to active
-		t = types.FundTypeActive
+		t = types.Fund_ACTIVE
 		// instantiate a wasm contract from code id provided
 		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte{}, "", sdk.NewCoins(sdk.NewCoin("", sdk.NewInt(0))))
 		if err != nil {
@@ -231,8 +231,6 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Symbol:        msg.Symbol,
 		Address:       acc.GetAddress().String(),
 		Name:          msg.Name,
-		FundType:      t,
-		Contract:      contractAddress,
 		Description:   msg.Description,
 		Shares:        &shares,
 		Holdings:      holdings,
@@ -240,6 +238,8 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Rebalance:     msg.Rebalance,
 		StartingPrice: &startPrice,
 		Balances:      balances,
+		FundType:      t,
+		Contract:      contractAddress,
 	}
 
 	k.SetFund(
@@ -314,8 +314,8 @@ func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*typ
 	// update the fund for the holdings if provided
 	if fund.Holdings != nil {
 		// ensure the fund is active type
-		if fund.FundType != types.FundTypeActive {
-			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type (%s) only %s can edit holdings", fund.FundType, "active")
+		if fund.FundType != types.Fund_ACTIVE {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type only active funds can edit holdings")
 		}
 
 		// convert the raw string address to addr bytes

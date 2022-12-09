@@ -44,6 +44,10 @@ message Holding {
 }
 
 message Fund {
+  enum FundType {
+    PASSIVE = 0;
+    ACTIVE = 1;
+  }
   string symbol = 1;
   string address = 2;
   string name = 3; 
@@ -69,5 +73,14 @@ message Fund {
 		(gogoproto.jsontag) = "last_rebalance_height"
 	];
   map<string, Balances> balances = 13;
+  // type of the fund. can only be active (wasm) or passive
+  FundType fundType = 14 [
+		(gogoproto.jsontag) = "fund_type"
+	];
+  string contract = 15 [
+    (gogoproto.jsontag) = "contract",
+    (gogoproto.moretags) = "yaml:\"contract\"",
+    (gogoproto.nullable) = true
+  ];
 }
 
