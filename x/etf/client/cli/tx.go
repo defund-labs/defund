@@ -106,7 +106,7 @@ func CmdCreateFund() *cobra.Command {
 	}
 
 	cmd.Flags().Bool(flagActiveFund, false, "Sets the fund as an active fund. Active funds must specify Cosmwasm Code ID via cw-id flag.")
-	cmd.Flags().Uint64(flagWasmCodeId, 0, "The Cosmwasm code ID to instantiate the dETF contract from and attach to these dETF.")
+	cmd.Flags().Uint64(flagWasmCodeId, 0, "The Cosmwasm code ID to instantiate the dETF contract from and attach to this dETF.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
