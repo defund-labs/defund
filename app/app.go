@@ -114,6 +114,7 @@ import (
 	brokermoduletypes "github.com/defund-labs/defund/x/broker/types"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmclient "github.com/CosmWasm/wasmd/x/wasm/client"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
@@ -137,10 +138,10 @@ var (
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
 
 func getGovProposalHandlers() []govclient.ProposalHandler {
-	var govProposalHandlers []govclient.ProposalHandler
 	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
-	govProposalHandlers = append(govProposalHandlers,
+	govProposalHandlers := append(
+		wasmclient.ProposalHandlers,
 		paramsclient.ProposalHandler,
 		distrclient.ProposalHandler,
 		upgradeclient.ProposalHandler,
@@ -272,7 +273,7 @@ type App struct {
 	EtfKeeper           etfmodulekeeper.Keeper
 	QueryKeeper         querymodulekeeper.Keeper
 	WasmKeeper          wasm.Keeper
-	WasmInternalKeeper  wasmkeeper.PermissionedKeeper
+	WasmInternalKeeper  *wasmkeeper.PermissionedKeeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -447,33 +448,6 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
-	app.WasmInternalKeeper = *wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-
-	app.EtfKeeper = etfmodulekeeper.NewKeeper(
-		appCodec,
-		keys[etfmoduletypes.StoreKey],
-		keys[etfmoduletypes.MemStoreKey],
-
-		scopedETFKeeper,
-
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.QueryKeeper,
-		app.BrokerKeeper,
-		app.IBCKeeper.ConnectionKeeper,
-		app.IBCKeeper.ClientKeeper,
-		app.ICAControllerKeeper,
-		app.TransferKeeper,
-		app.WasmKeeper,
-		app.WasmInternalKeeper,
-	)
-	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
-	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.EtfKeeper, app.BrokerKeeper)
-
-	icaControllerIBCModule := icacontroller.NewIBCMiddleware(etfIBCModule, app.ICAControllerKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
-
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper, app.SlashingKeeper,
@@ -489,7 +463,7 @@ func New(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1,defund"
+	availableCapabilities := "iterator,staking,stargate,defund"
 	wasmOpts = append(wasmbinding.RegisterPlugins(&app.EtfKeeper, &app.BrokerKeeper, &app.AccountKeeper, app.MsgServiceRouter()), wasmOpts...)
 	app.WasmKeeper = wasm.NewKeeper(
 		appCodec,
@@ -510,6 +484,34 @@ func New(
 		availableCapabilities,
 		wasmOpts...,
 	)
+
+	app.WasmInternalKeeper = wasmkeeper.NewDefaultPermissionKeeper(&app.WasmKeeper)
+
+	app.EtfKeeper = etfmodulekeeper.NewKeeper(
+		appCodec,
+		keys[etfmoduletypes.StoreKey],
+		keys[etfmoduletypes.MemStoreKey],
+
+		scopedETFKeeper,
+
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.QueryKeeper,
+		app.BrokerKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.ICAControllerKeeper,
+		app.TransferKeeper,
+		&app.WasmKeeper,
+		app.WasmInternalKeeper,
+	)
+
+	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
+	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.BrokerKeeper)
+
+	icaControllerIBCModule := icacontroller.NewIBCMiddleware(etfIBCModule, app.ICAControllerKeeper)
+	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// finish transfer stack
 	transferStack := etfmodule.NewIBCMiddleware(transferIBCModule, app.EtfKeeper)
@@ -658,6 +660,15 @@ func New(
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
 
+	app.ScopedIBCKeeper = scopedIBCKeeper
+	app.ScopedTransferKeeper = scopedTransferKeeper
+	app.ScopedWasmKeeper = scopedWasmKeeper
+	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
+	app.ScopedICAHostKeeper = scopedICAHostKeeper
+	app.ScopedETFKeeper = scopedETFKeeper
+	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
+
+	// Register snapshot extensions to enable state-sync for wasm.
 	if manager := app.SnapshotManager(); manager != nil {
 		err := manager.RegisterExtensions(
 			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
@@ -667,21 +678,12 @@ func New(
 		}
 	}
 
-	app.ScopedIBCKeeper = scopedIBCKeeper
-	app.ScopedTransferKeeper = scopedTransferKeeper
-	app.ScopedWasmKeeper = scopedWasmKeeper
-	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
-	app.ScopedICAHostKeeper = scopedICAHostKeeper
-	app.ScopedETFKeeper = scopedETFKeeper
-	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
-
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
-			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err))
+			tmos.Exit(err.Error())
 		}
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
 
-		// Initialize pinned codes in wasmvm as they are not persisted there
+		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
 		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}

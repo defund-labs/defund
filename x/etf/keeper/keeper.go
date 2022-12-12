@@ -41,8 +41,8 @@ type (
 		clientKeeper        types.ClientKeeper
 		icaControllerKeeper icacontrollerkeeper.Keeper
 		transferKeeper      transferkeeper.Keeper
-		wasmKeeper          wasmkeeper.Keeper
-		wasmInternalKeeper  wasmkeeper.PermissionedKeeper
+		wasmKeeper          *wasmkeeper.Keeper
+		wasmInternalKeeper  *wasmkeeper.PermissionedKeeper
 	}
 
 	Surplus struct {
@@ -69,8 +69,8 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	iaKeeper icacontrollerkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
-	wasmKeeper wasmkeeper.Keeper,
-	wasmInternalKeeper wasmkeeper.PermissionedKeeper,
+	wasmKeeper *wasmkeeper.Keeper,
+	wasmInternalKeeper *wasmkeeper.PermissionedKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:      cdc,

@@ -65,7 +65,7 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 		a.ScopedICAControllerKeeper, a.MsgServiceRouter(),
 	)
 
-	a.WasmInternalKeeper = *wasmkeeper.NewDefaultPermissionKeeper(a.WasmKeeper)
+	a.WasmInternalKeeper = wasmkeeper.NewDefaultPermissionKeeper(a.WasmKeeper)
 
 	capKeeper := *capabilitykeeper.NewKeeper(codec.NewProtoCodec(registry), storeKey, memStoreKey)
 
@@ -85,7 +85,7 @@ func EtfKeeper(db *dbm.MemDB, t testing.TB) (keeper.Keeper, sdk.Context) {
 		a.IBCKeeper.ClientKeeper,
 		a.ICAControllerKeeper,
 		a.TransferKeeper,
-		a.WasmKeeper,
+		&a.WasmKeeper,
 		a.WasmInternalKeeper,
 	)
 

@@ -2,12 +2,45 @@ package keeper_test
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/CosmWasm/wasmd/x/wasm/ioutils"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/require"
 )
+
+func parseStoreCodeArgs(file string, sender sdk.AccAddress) (wasmtypes.MsgStoreCode, error) {
+	wasm, err := os.ReadFile(file)
+	if err != nil {
+		return wasmtypes.MsgStoreCode{}, err
+	}
+
+	// gzip the wasm file
+	if ioutils.IsWasm(wasm) {
+		wasm, err = ioutils.GzipIt(wasm)
+
+		if err != nil {
+			return wasmtypes.MsgStoreCode{}, err
+		}
+	} else if !ioutils.IsGzip(wasm) {
+		return wasmtypes.MsgStoreCode{}, fmt.Errorf("invalid input file. Use wasm binary or gzip")
+	}
+
+	perm := &wasmtypes.AllowEverybody
+	if err != nil {
+		return wasmtypes.MsgStoreCode{}, err
+	}
+
+	msg := wasmtypes.MsgStoreCode{
+		Sender:                sender.String(),
+		WASMByteCode:          wasm,
+		InstantiatePermission: perm,
+	}
+	return msg, nil
+}
 
 func (s *KeeperTestSuite) setup(ctx sdk.Context) (outctx sdk.Context, fund types.Fund, connectionId string, portId string) {
 	path := s.NewTransferPath()
@@ -56,6 +89,33 @@ func (s *KeeperTestSuite) TestFundMsgServerCreate() {
 		_, err := srv.CreateFund(wctx, expected)
 		s.Assert().NoError(err)
 	}
+}
+
+func (s *KeeperTestSuite) TestFundMsgServerCreateActive() {
+	k := s.GetDefundApp(s.chainA).EtfKeeper
+	ctx := s.chainA.GetContext()
+	ctx, _, _, _ = s.setup(ctx)
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	srv := keeper.NewMsgServerImpl(k)
+	wctx := sdk.WrapSDKContext(ctx)
+	creator := "A"
+	expected := &types.MsgCreateFund{
+		Symbol:        "test2",
+		Creator:       creator,
+		Holdings:      "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:75:osmosis:1:spot,uosmo:25:osmosis:1:spot",
+		BaseDenom:     "osmo",
+		Rebalance:     10,
+		StartingPrice: "10000000",
+		Active:        true,
+		WasmCodeId:    1,
+	}
+	sender := s.chainA.SenderAccount.GetAddress()
+	uploadMsg, err := parseStoreCodeArgs("../../../tests/contracts/odd_number.wasm", sender)
+	s.Assert().NoError(err)
+	_, _, err = s.GetDefundApp(s.chainA).WasmInternalKeeper.Create(ctx, s.chainA.SenderAccount.GetAddress(), uploadMsg.WASMByteCode, uploadMsg.InstantiatePermission)
+	s.Assert().NoError(err)
+	_, err = srv.CreateFund(wctx, expected)
+	s.Assert().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestSharesMsgServerCreate() {

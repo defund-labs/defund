@@ -187,7 +187,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		// set the fund type to active
 		t = types.Fund_ACTIVE
 		// instantiate a wasm contract from code id provided
-		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte{}, "", sdk.NewCoins())
+		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte(fmt.Sprintf(`{"fund": "%s"}`, msg.Symbol)), msg.Symbol, sdk.NewCoins())
 		if err != nil {
 			return nil, err
 		}
