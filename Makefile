@@ -289,3 +289,11 @@ test-create-shares:
 test-redeem-shares:
 	@echo "Running redeem shares bash test......."
 	./tests/etf/redeem-shares.sh
+
+test-upload-code:
+	@echo "Running redeem shares bash test......."
+	./tests/etf/upload-code.sh
+
+test-create-active:
+	@echo "Running redeem shares bash test......."
+	./tests/etf/create-active-fund.sh

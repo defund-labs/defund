@@ -92,16 +92,16 @@ func (s *KeeperTestSuite) TestFundMsgServerCreate() {
 }
 
 func (s *KeeperTestSuite) TestFundMsgServerCreateActive() {
-	k := s.GetDefundApp(s.chainA).EtfKeeper
 	ctx := s.chainA.GetContext()
 	ctx, _, _, _ = s.setup(ctx)
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
-	srv := keeper.NewMsgServerImpl(k)
+	srv := keeper.NewMsgServerImpl(s.GetDefundApp(s.chainA).EtfKeeper)
 	wctx := sdk.WrapSDKContext(ctx)
-	creator := "A"
 	expected := &types.MsgCreateFund{
+		Creator:       s.chainA.SenderAccount.GetAddress().String(),
+		Name:          "Test 2",
+		Description:   "Test 2",
 		Symbol:        "test2",
-		Creator:       creator,
 		Holdings:      "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:75:osmosis:1:spot,uosmo:25:osmosis:1:spot",
 		BaseDenom:     "osmo",
 		Rebalance:     10,
@@ -112,9 +112,20 @@ func (s *KeeperTestSuite) TestFundMsgServerCreateActive() {
 	sender := s.chainA.SenderAccount.GetAddress()
 	uploadMsg, err := parseStoreCodeArgs("../../../tests/contracts/odd_number.wasm", sender)
 	s.Assert().NoError(err)
-	_, _, err = s.GetDefundApp(s.chainA).WasmInternalKeeper.Create(ctx, s.chainA.SenderAccount.GetAddress(), uploadMsg.WASMByteCode, uploadMsg.InstantiatePermission)
+	codeId, _, err := s.GetDefundApp(s.chainA).WasmInternalKeeper.Create(ctx, s.chainA.SenderAccount.GetAddress(), uploadMsg.WASMByteCode, uploadMsg.InstantiatePermission)
 	s.Assert().NoError(err)
+	expected.WasmCodeId = codeId
 	_, err = srv.CreateFund(wctx, expected)
+	s.Assert().NoError(err)
+	// try running the runner within the active contract. This runner will be run at each rebalance
+	fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(ctx, "test2")
+	s.Assert().True(found)
+	fund.Rebalancing = false
+	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(ctx, fund)
+	contractAddr, err := sdk.AccAddressFromBech32(fund.Contract)
+	s.Assert().NoError(err)
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	_, err = s.GetDefundApp(s.chainA).WasmInternalKeeper.Execute(ctx, contractAddr, contractAddr, []byte(`{"runner": {}}`), sdk.Coins{})
 	s.Assert().NoError(err)
 }
 

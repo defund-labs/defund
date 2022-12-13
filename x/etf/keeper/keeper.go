@@ -41,8 +41,8 @@ type (
 		clientKeeper        types.ClientKeeper
 		icaControllerKeeper icacontrollerkeeper.Keeper
 		transferKeeper      transferkeeper.Keeper
-		wasmKeeper          *wasmkeeper.Keeper
-		wasmInternalKeeper  *wasmkeeper.PermissionedKeeper
+		wasmKeeper          wasmkeeper.Keeper
+		wasmInternalKeeper  wasmkeeper.PermissionedKeeper
 	}
 
 	Surplus struct {
@@ -69,8 +69,6 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	iaKeeper icacontrollerkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
-	wasmKeeper *wasmkeeper.Keeper,
-	wasmInternalKeeper *wasmkeeper.PermissionedKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:      cdc,
@@ -88,14 +86,17 @@ func NewKeeper(
 		clientKeeper:        clientKeeper,
 		icaControllerKeeper: iaKeeper,
 		transferKeeper:      transferKeeper,
-		wasmKeeper:          wasmKeeper,
-		wasmInternalKeeper:  wasmInternalKeeper,
 	}
 }
 
 // ClaimCapability claims the channel capability passed via the OnOpenChanInit callback
 func (k *Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+func (k *Keeper) SetWasmKeeper(wasmKeeper *wasmkeeper.Keeper, wasmInternalKeeper *wasmkeeper.PermissionedKeeper) {
+	k.wasmKeeper = *wasmKeeper
+	k.wasmInternalKeeper = *wasmInternalKeeper
 }
 
 // SetICS4Wrapper sets the ICS4 wrapper to the keeper.

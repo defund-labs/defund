@@ -36,18 +36,25 @@ message Holding {
   string token = 1;
   int64 percent = 2;
   // Pool ID of the Pool for this holding on Broker
-  uint64 poolId = 3;
+  uint64 poolId = 3 [
+		(gogoproto.jsontag) = "pool_id"
+	];
   // Broker Id for the Broker
-  string brokerId = 4;
+  string brokerId = 4 [
+		(gogoproto.jsontag) = "broker_id"
+	];
   // the type of the asset. Valid types are spot, staked
-  string type = 5;
+  string type = 5 [
+		(gogoproto.jsontag) = "asset_type"
+	];
+}
+
+enum FundType {
+  PASSIVE = 0;
+  ACTIVE = 1;
 }
 
 message Fund {
-  enum FundType {
-    PASSIVE = 0;
-    ACTIVE = 1;
-  }
   string symbol = 1;
   string address = 2;
   string name = 3; 
@@ -61,7 +68,9 @@ message Fund {
     (gogoproto.nullable) = true
   ];
   int64 rebalance = 7;
-  BaseDenom baseDenom = 8;
+  BaseDenom baseDenom = 8 [
+		(gogoproto.jsontag) = "base_denom"
+	];
   cosmos.base.v1beta1.Coin startingPrice = 9 [
     (gogoproto.jsontag) = "starting_price",
     (gogoproto.moretags) = "yaml:\"starting_price\"",

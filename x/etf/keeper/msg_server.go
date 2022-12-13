@@ -181,11 +181,11 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	// Generate and get a new fund address
 	fundAddress := NewFundAddress(msg.Symbol)
 
-	var t types.Fund_FundType = types.Fund_PASSIVE
+	var t types.FundType = types.FundType_ACTIVE
 	var contractAddress string
 	if msg.Active {
 		// set the fund type to active
-		t = types.Fund_ACTIVE
+		t = types.FundType_ACTIVE
 		// instantiate a wasm contract from code id provided
 		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte(fmt.Sprintf(`{"fund": "%s"}`, msg.Symbol)), msg.Symbol, sdk.NewCoins())
 		if err != nil {
@@ -227,19 +227,21 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	balances := make(map[string]*types.Balances)
 
 	var fund = types.Fund{
-		Creator:       msg.Creator,
-		Symbol:        msg.Symbol,
-		Address:       acc.GetAddress().String(),
-		Name:          msg.Name,
-		Description:   msg.Description,
-		Shares:        &shares,
-		Holdings:      holdings,
-		BaseDenom:     &basedenom,
-		Rebalance:     msg.Rebalance,
-		StartingPrice: &startPrice,
-		Balances:      balances,
-		FundType:      t,
-		Contract:      contractAddress,
+		Creator:             msg.Creator,
+		Symbol:              msg.Symbol,
+		Address:             acc.GetAddress().String(),
+		Name:                msg.Name,
+		Description:         msg.Description,
+		Shares:              &shares,
+		Holdings:            holdings,
+		BaseDenom:           &basedenom,
+		Rebalance:           msg.Rebalance,
+		Rebalancing:         false,
+		LastRebalanceHeight: 0,
+		StartingPrice:       &startPrice,
+		Balances:            balances,
+		FundType:            t,
+		Contract:            contractAddress,
 	}
 
 	k.SetFund(
@@ -258,7 +260,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", fund.Symbol)
+		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", msg.Fund)
 	}
 
 	// base denom tokenIn check
@@ -314,7 +316,7 @@ func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*typ
 	// update the fund for the holdings if provided
 	if fund.Holdings != nil {
 		// ensure the fund is active type
-		if fund.FundType != types.Fund_ACTIVE {
+		if fund.FundType != types.FundType_ACTIVE {
 			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type only active funds can edit holdings")
 		}
 

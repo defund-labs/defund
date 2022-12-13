@@ -443,17 +443,30 @@ func New(
 	app.BrokerKeeper = brokermodulekeeper.NewKeeper(appCodec, keys[brokermoduletypes.StoreKey], app.GetSubspace(brokermoduletypes.ModuleName), app.ICAControllerKeeper, app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ConnectionKeeper, app.IBCKeeper.ClientKeeper, app.QueryKeeper, app.EtfKeeper, app.BankKeeper)
 	brokerModule := brokermodule.NewAppModule(appCodec, app.BrokerKeeper, app.TransferKeeper)
 
-	app.GovKeeper = govkeeper.NewKeeper(
-		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		&stakingKeeper, govRouter,
-	)
-
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper, app.SlashingKeeper,
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
+
+	app.EtfKeeper = etfmodulekeeper.NewKeeper(
+		appCodec,
+		keys[etfmoduletypes.StoreKey],
+		keys[etfmoduletypes.MemStoreKey],
+
+		scopedETFKeeper,
+
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.QueryKeeper,
+		app.BrokerKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.ICAControllerKeeper,
+		app.TransferKeeper,
+	)
 
 	wasmDir := filepath.Join(homePath, "wasm")
 	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
@@ -463,7 +476,7 @@ func New(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	availableCapabilities := "iterator,staking,stargate,defund"
+	availableCapabilities := "iterator,staking,stargate,defund,cosmwasm_1_1"
 	wasmOpts = append(wasmbinding.RegisterPlugins(&app.EtfKeeper, &app.BrokerKeeper, &app.AccountKeeper, app.MsgServiceRouter()), wasmOpts...)
 	app.WasmKeeper = wasm.NewKeeper(
 		appCodec,
@@ -487,28 +500,18 @@ func New(
 
 	app.WasmInternalKeeper = wasmkeeper.NewDefaultPermissionKeeper(&app.WasmKeeper)
 
-	app.EtfKeeper = etfmodulekeeper.NewKeeper(
-		appCodec,
-		keys[etfmoduletypes.StoreKey],
-		keys[etfmoduletypes.MemStoreKey],
-
-		scopedETFKeeper,
-
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.QueryKeeper,
-		app.BrokerKeeper,
-		app.IBCKeeper.ConnectionKeeper,
-		app.IBCKeeper.ClientKeeper,
-		app.ICAControllerKeeper,
-		app.TransferKeeper,
-		&app.WasmKeeper,
-		app.WasmInternalKeeper,
-	)
-
+	app.EtfKeeper.SetWasmKeeper(&app.WasmKeeper, app.WasmInternalKeeper)
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.BrokerKeeper)
+
+	if len(enabledProposals) != 0 {
+		govRouter.AddRoute(wasm.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, enabledProposals))
+	}
+
+	app.GovKeeper = govkeeper.NewKeeper(
+		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
+		&stakingKeeper, govRouter,
+	)
 
 	icaControllerIBCModule := icacontroller.NewIBCMiddleware(etfIBCModule, app.ICAControllerKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)

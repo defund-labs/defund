@@ -32,7 +32,7 @@ func CustomQuerier(qp *QueryPlugin) func(ctx sdk.Context, request json.RawMessag
 		case BrokerRoute:
 			return qp.HandleBrokerQuery(ctx, contractQuery.QueryData)
 		default:
-			return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unknown Sei Query Route"}
+			return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unknown Defund Query Route"}
 		}
 	}
 }

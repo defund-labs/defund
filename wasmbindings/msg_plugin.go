@@ -63,7 +63,7 @@ func (m *CustomMessenger) DispatchCustomMsg(
 	case parsedMessage.EditFund != nil:
 		sdkMsgs, err = etfwasm.EncodeEditFund(parsedMessage.EditFund, contractAddr)
 	default:
-		sdkMsgs, err = []sdk.Msg{}, wasmvmtypes.UnsupportedRequest{Kind: "Unknown Sei Wasm Message"}
+		sdkMsgs, err = []sdk.Msg{}, wasmvmtypes.UnsupportedRequest{Kind: "Unknown Defund Wasm Message"}
 	}
 	if err != nil {
 		return nil, nil, err
