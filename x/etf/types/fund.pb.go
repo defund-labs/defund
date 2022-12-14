@@ -53,6 +53,103 @@ func (FundType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_2f7de7f2b67d1612, []int{0}
 }
 
+type Balances struct {
+	Address  string        `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Balances []*types.Coin `protobuf:"bytes,2,rep,name=balances,proto3" json:"balances,omitempty"`
+}
+
+func (m *Balances) Reset()         { *m = Balances{} }
+func (m *Balances) String() string { return proto.CompactTextString(m) }
+func (*Balances) ProtoMessage()    {}
+func (*Balances) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2f7de7f2b67d1612, []int{0}
+}
+func (m *Balances) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Balances) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Balances.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Balances) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Balances.Merge(m, src)
+}
+func (m *Balances) XXX_Size() int {
+	return m.Size()
+}
+func (m *Balances) XXX_DiscardUnknown() {
+	xxx_messageInfo_Balances.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Balances proto.InternalMessageInfo
+
+func (m *Balances) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *Balances) GetBalances() []*types.Coin {
+	if m != nil {
+		return m.Balances
+	}
+	return nil
+}
+
+// balances are named by broker id for each supported broker
+type FundBalances struct {
+	Osmosis *Balances `protobuf:"bytes,1,opt,name=osmosis,proto3" json:"osmosis,omitempty"`
+}
+
+func (m *FundBalances) Reset()         { *m = FundBalances{} }
+func (m *FundBalances) String() string { return proto.CompactTextString(m) }
+func (*FundBalances) ProtoMessage()    {}
+func (*FundBalances) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2f7de7f2b67d1612, []int{1}
+}
+func (m *FundBalances) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *FundBalances) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_FundBalances.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *FundBalances) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FundBalances.Merge(m, src)
+}
+func (m *FundBalances) XXX_Size() int {
+	return m.Size()
+}
+func (m *FundBalances) XXX_DiscardUnknown() {
+	xxx_messageInfo_FundBalances.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FundBalances proto.InternalMessageInfo
+
+func (m *FundBalances) GetOsmosis() *Balances {
+	if m != nil {
+		return m.Osmosis
+	}
+	return nil
+}
+
 type BaseDenom struct {
 	OnDefund string `protobuf:"bytes,1,opt,name=onDefund,proto3" json:"on_defund"`
 	OnBroker string `protobuf:"bytes,2,opt,name=onBroker,proto3" json:"on_broker"`
@@ -62,7 +159,7 @@ func (m *BaseDenom) Reset()         { *m = BaseDenom{} }
 func (m *BaseDenom) String() string { return proto.CompactTextString(m) }
 func (*BaseDenom) ProtoMessage()    {}
 func (*BaseDenom) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f7de7f2b67d1612, []int{0}
+	return fileDescriptor_2f7de7f2b67d1612, []int{2}
 }
 func (m *BaseDenom) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -117,7 +214,7 @@ func (m *FundPrice) Reset()         { *m = FundPrice{} }
 func (m *FundPrice) String() string { return proto.CompactTextString(m) }
 func (*FundPrice) ProtoMessage()    {}
 func (*FundPrice) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f7de7f2b67d1612, []int{1}
+	return fileDescriptor_2f7de7f2b67d1612, []int{3}
 }
 func (m *FundPrice) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -181,50 +278,6 @@ func (m *FundPrice) GetSymbol() string {
 	return ""
 }
 
-type Balances struct {
-	Balances []*types.Coin `protobuf:"bytes,1,rep,name=balances,proto3" json:"balances,omitempty"`
-}
-
-func (m *Balances) Reset()         { *m = Balances{} }
-func (m *Balances) String() string { return proto.CompactTextString(m) }
-func (*Balances) ProtoMessage()    {}
-func (*Balances) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f7de7f2b67d1612, []int{2}
-}
-func (m *Balances) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Balances) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Balances.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Balances) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Balances.Merge(m, src)
-}
-func (m *Balances) XXX_Size() int {
-	return m.Size()
-}
-func (m *Balances) XXX_DiscardUnknown() {
-	xxx_messageInfo_Balances.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Balances proto.InternalMessageInfo
-
-func (m *Balances) GetBalances() []*types.Coin {
-	if m != nil {
-		return m.Balances
-	}
-	return nil
-}
-
 type Holding struct {
 	Token   string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	Percent int64  `protobuf:"varint,2,opt,name=percent,proto3" json:"percent,omitempty"`
@@ -240,7 +293,7 @@ func (m *Holding) Reset()         { *m = Holding{} }
 func (m *Holding) String() string { return proto.CompactTextString(m) }
 func (*Holding) ProtoMessage()    {}
 func (*Holding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f7de7f2b67d1612, []int{3}
+	return fileDescriptor_2f7de7f2b67d1612, []int{4}
 }
 func (m *Holding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -305,19 +358,19 @@ func (m *Holding) GetType() string {
 }
 
 type Fund struct {
-	Symbol              string               `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	Address             string               `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	Name                string               `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Description         string               `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Shares              *types.Coin          `protobuf:"bytes,5,opt,name=shares,proto3" json:"shares,omitempty" yaml:"total_shares"`
-	Holdings            []*Holding           `protobuf:"bytes,6,rep,name=holdings,proto3" json:"holdings,omitempty" yaml:"holdings"`
-	Rebalance           int64                `protobuf:"varint,7,opt,name=rebalance,proto3" json:"rebalance,omitempty"`
-	BaseDenom           *BaseDenom           `protobuf:"bytes,8,opt,name=baseDenom,proto3" json:"base_denom"`
-	StartingPrice       *types.Coin          `protobuf:"bytes,9,opt,name=startingPrice,proto3" json:"starting_price" yaml:"starting_price"`
-	Creator             string               `protobuf:"bytes,10,opt,name=creator,proto3" json:"creator,omitempty"`
-	Rebalancing         bool                 `protobuf:"varint,11,opt,name=rebalancing,proto3" json:"rebalancing,omitempty"`
-	LastRebalanceHeight int64                `protobuf:"varint,12,opt,name=lastRebalanceHeight,proto3" json:"last_rebalance_height"`
-	Balances            map[string]*Balances `protobuf:"bytes,13,rep,name=balances,proto3" json:"balances,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Symbol              string        `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Address             string        `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Name                string        `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description         string        `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Shares              *types.Coin   `protobuf:"bytes,5,opt,name=shares,proto3" json:"shares,omitempty" yaml:"total_shares"`
+	Holdings            []*Holding    `protobuf:"bytes,6,rep,name=holdings,proto3" json:"holdings,omitempty" yaml:"holdings"`
+	Rebalance           int64         `protobuf:"varint,7,opt,name=rebalance,proto3" json:"rebalance,omitempty"`
+	BaseDenom           *BaseDenom    `protobuf:"bytes,8,opt,name=baseDenom,proto3" json:"base_denom"`
+	StartingPrice       *types.Coin   `protobuf:"bytes,9,opt,name=startingPrice,proto3" json:"starting_price" yaml:"starting_price"`
+	Creator             string        `protobuf:"bytes,10,opt,name=creator,proto3" json:"creator,omitempty"`
+	Rebalancing         bool          `protobuf:"varint,11,opt,name=rebalancing,proto3" json:"rebalancing,omitempty"`
+	LastRebalanceHeight int64         `protobuf:"varint,12,opt,name=lastRebalanceHeight,proto3" json:"last_rebalance_height"`
+	Balances            *FundBalances `protobuf:"bytes,13,opt,name=balances,proto3" json:"balances"`
 	// type of the fund. can only be active (wasm) or passive
 	FundType FundType `protobuf:"varint,14,opt,name=fundType,proto3,enum=defundlabs.defund.etf.FundType" json:"fund_type"`
 	Contract string   `protobuf:"bytes,15,opt,name=contract,proto3" json:"contract" yaml:"contract"`
@@ -327,7 +380,7 @@ func (m *Fund) Reset()         { *m = Fund{} }
 func (m *Fund) String() string { return proto.CompactTextString(m) }
 func (*Fund) ProtoMessage()    {}
 func (*Fund) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2f7de7f2b67d1612, []int{4}
+	return fileDescriptor_2f7de7f2b67d1612, []int{5}
 }
 func (m *Fund) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -440,7 +493,7 @@ func (m *Fund) GetLastRebalanceHeight() int64 {
 	return 0
 }
 
-func (m *Fund) GetBalances() map[string]*Balances {
+func (m *Fund) GetBalances() *FundBalances {
 	if m != nil {
 		return m.Balances
 	}
@@ -463,73 +516,151 @@ func (m *Fund) GetContract() string {
 
 func init() {
 	proto.RegisterEnum("defundlabs.defund.etf.FundType", FundType_name, FundType_value)
+	proto.RegisterType((*Balances)(nil), "defundlabs.defund.etf.Balances")
+	proto.RegisterType((*FundBalances)(nil), "defundlabs.defund.etf.FundBalances")
 	proto.RegisterType((*BaseDenom)(nil), "defundlabs.defund.etf.BaseDenom")
 	proto.RegisterType((*FundPrice)(nil), "defundlabs.defund.etf.FundPrice")
-	proto.RegisterType((*Balances)(nil), "defundlabs.defund.etf.Balances")
 	proto.RegisterType((*Holding)(nil), "defundlabs.defund.etf.Holding")
 	proto.RegisterType((*Fund)(nil), "defundlabs.defund.etf.Fund")
-	proto.RegisterMapType((map[string]*Balances)(nil), "defundlabs.defund.etf.Fund.BalancesEntry")
 }
 
 func init() { proto.RegisterFile("etf/fund.proto", fileDescriptor_2f7de7f2b67d1612) }
 
 var fileDescriptor_2f7de7f2b67d1612 = []byte{
-	// 870 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0xcb, 0x6e, 0xdb, 0x46,
-	0x14, 0x15, 0x6d, 0x45, 0x8f, 0xab, 0x5a, 0x09, 0x26, 0x71, 0xcb, 0xb8, 0x85, 0x28, 0xd0, 0x1b,
-	0xbb, 0x40, 0x49, 0x38, 0x45, 0x80, 0x22, 0x9b, 0xc2, 0x74, 0xdc, 0xc6, 0x2d, 0x10, 0x04, 0x63,
-	0xa3, 0x8b, 0xa2, 0x80, 0x30, 0x24, 0xc7, 0x14, 0x61, 0x6a, 0x46, 0xe0, 0x8c, 0x82, 0xea, 0x2f,
-	0xf2, 0x23, 0xed, 0x6f, 0xd4, 0xcb, 0x2c, 0xbb, 0x62, 0x0b, 0x7b, 0xa7, 0xa5, 0xbf, 0xa0, 0x98,
-	0x07, 0x69, 0x19, 0x88, 0xdd, 0xdd, 0x7d, 0xf3, 0xde, 0x73, 0xe6, 0x48, 0x30, 0xa4, 0xf2, 0x3c,
-	0x3c, 0x5f, 0xb0, 0x34, 0x98, 0x97, 0x5c, 0x72, 0xb4, 0x9d, 0x52, 0xe5, 0x15, 0x24, 0x16, 0x81,
-	0x31, 0x03, 0x2a, 0xcf, 0x77, 0x9e, 0x65, 0x3c, 0xe3, 0xba, 0x22, 0x54, 0x96, 0x29, 0xde, 0x19,
-	0x25, 0x5c, 0xcc, 0xb8, 0x08, 0x63, 0x22, 0x68, 0xf8, 0xfe, 0x20, 0xa6, 0x92, 0x1c, 0x84, 0x09,
-	0xcf, 0x99, 0xcd, 0x7b, 0x19, 0xe7, 0x59, 0x41, 0x43, 0xed, 0xc5, 0x8b, 0xf3, 0x50, 0xe6, 0x33,
-	0x2a, 0x24, 0x99, 0xcd, 0x4d, 0x81, 0x4f, 0xa0, 0x1f, 0x11, 0x41, 0x5f, 0x53, 0xc6, 0x67, 0x68,
-	0x1f, 0x7a, 0x9c, 0xbd, 0xd6, 0xdf, 0x74, 0x9d, 0xb1, 0xb3, 0xd7, 0x8f, 0xb6, 0x56, 0x95, 0xd7,
-	0xe7, 0x6c, 0x62, 0x16, 0xc1, 0x4d, 0xda, 0x94, 0x46, 0x25, 0xbf, 0xa0, 0xa5, 0xbb, 0x71, 0xa7,
-	0x34, 0xd6, 0x41, 0xdc, 0xa4, 0xfd, 0xbf, 0x1c, 0xe8, 0xff, 0xb0, 0x60, 0xe9, 0xbb, 0x32, 0x4f,
-	0x28, 0x1a, 0xc2, 0x46, 0x6e, 0xa7, 0xe3, 0x8d, 0x3c, 0x45, 0x9f, 0x43, 0x67, 0x4a, 0xf3, 0x6c,
-	0x2a, 0xf5, 0x98, 0x4d, 0x6c, 0x3d, 0xf4, 0x23, 0xb4, 0xd5, 0xae, 0xee, 0xe6, 0xd8, 0xd9, 0x1b,
-	0xbc, 0xd8, 0x09, 0xcc, 0x21, 0x41, 0x7d, 0x48, 0x70, 0x56, 0x1f, 0x12, 0x7d, 0x71, 0x59, 0x79,
-	0xad, 0x9b, 0xca, 0x1b, 0x2c, 0xc9, 0xac, 0x78, 0xe5, 0xab, 0x2e, 0xff, 0xc3, 0x3f, 0x9e, 0x83,
-	0xf5, 0x00, 0x74, 0x00, 0x1d, 0x32, 0xe3, 0x0b, 0x26, 0xdd, 0xb6, 0x1e, 0xf5, 0x3c, 0x30, 0x98,
-	0x05, 0x0a, 0xb3, 0xc0, 0x62, 0x16, 0x1c, 0xf1, 0x9c, 0x61, 0x5b, 0xa8, 0x76, 0x12, 0xcb, 0x59,
-	0xcc, 0x0b, 0xf7, 0x91, 0xde, 0xd3, 0x7a, 0xfe, 0x21, 0xf4, 0x22, 0x52, 0x10, 0x96, 0x50, 0x81,
-	0x5e, 0x42, 0x2f, 0xb6, 0xb6, 0xeb, 0x8c, 0x37, 0x1f, 0x1e, 0xdc, 0x94, 0xfa, 0x7f, 0x38, 0xd0,
-	0x7d, 0xc3, 0x8b, 0x34, 0x67, 0x19, 0x7a, 0x06, 0x8f, 0x24, 0xbf, 0xa0, 0xcc, 0xa2, 0x61, 0x1c,
-	0xe4, 0x42, 0x77, 0x4e, 0xcb, 0x84, 0xb2, 0x1a, 0x91, 0xda, 0x45, 0xbb, 0xd0, 0x99, 0x73, 0x5e,
-	0x9c, 0xa4, 0x1a, 0x94, 0x76, 0x34, 0x58, 0x55, 0x5e, 0x57, 0x45, 0x26, 0x79, 0x8a, 0x6d, 0x4a,
-	0x11, 0x63, 0x18, 0x38, 0x49, 0xf5, 0xc1, 0x96, 0x18, 0x13, 0x53, 0x85, 0x4d, 0x1a, 0xf9, 0xd0,
-	0x96, 0xcb, 0x39, 0x35, 0x47, 0x46, 0xc3, 0x55, 0xe5, 0x01, 0x11, 0x82, 0xca, 0x89, 0x8a, 0x62,
-	0x9d, 0xf3, 0xff, 0xec, 0x42, 0x5b, 0x91, 0xb7, 0x86, 0x89, 0xb3, 0x8e, 0x89, 0x5a, 0x97, 0xa4,
-	0x69, 0x49, 0x85, 0x30, 0xef, 0x00, 0xd7, 0x2e, 0x42, 0xd0, 0x66, 0xc4, 0x32, 0xd8, 0xc7, 0xda,
-	0x46, 0x63, 0x18, 0xa4, 0x54, 0x24, 0x65, 0x3e, 0x97, 0x39, 0x67, 0x66, 0x41, 0xbc, 0x1e, 0x42,
-	0x6f, 0xa1, 0x23, 0xa6, 0xa4, 0xa4, 0x42, 0xaf, 0xf5, 0x10, 0xaa, 0xd1, 0x97, 0x97, 0x95, 0xe7,
-	0xdc, 0x54, 0xde, 0x53, 0x4b, 0x3c, 0x97, 0xa4, 0x98, 0x98, 0x66, 0x1f, 0xdb, 0x29, 0xe8, 0x14,
-	0x7a, 0x53, 0x83, 0xb7, 0x70, 0x3b, 0x9a, 0xa7, 0x51, 0xf0, 0x49, 0x85, 0x05, 0x96, 0x16, 0xfd,
-	0x9e, 0xd4, 0xd8, 0xc7, 0x66, 0x6c, 0xdd, 0xed, 0xe3, 0x66, 0x10, 0xfa, 0x0a, 0xfa, 0x25, 0xb5,
-	0x9c, 0xba, 0x5d, 0xcd, 0xd2, 0x6d, 0x00, 0xbd, 0x85, 0x7e, 0x5c, 0x6b, 0xca, 0xed, 0xe9, 0x2b,
-	0xc6, 0xf7, 0x7c, 0xb3, 0xd1, 0x9e, 0x81, 0x5f, 0xb5, 0x4d, 0x52, 0xe5, 0xe3, 0xdb, 0x11, 0x68,
-	0x0e, 0x5b, 0x42, 0x92, 0x52, 0xe6, 0x2c, 0xd3, 0x1a, 0x72, 0xfb, 0xff, 0x87, 0x4c, 0xa8, 0x4e,
-	0x58, 0x55, 0xde, 0xb0, 0xee, 0x9b, 0xcc, 0x55, 0xe3, 0x4d, 0xe5, 0x6d, 0x9b, 0xa3, 0xee, 0xc6,
-	0x7d, 0x7c, 0xf7, 0x03, 0x8a, 0xd4, 0xa4, 0xa4, 0x44, 0xf2, 0xd2, 0x05, 0x43, 0xaa, 0x75, 0x15,
-	0x81, 0xf5, 0xa1, 0x39, 0xcb, 0xdc, 0xc1, 0xd8, 0xd9, 0xeb, 0xe1, 0xf5, 0x10, 0xfa, 0x19, 0x9e,
-	0x16, 0x44, 0x48, 0x5c, 0xc3, 0xf1, 0xc6, 0xa8, 0xfb, 0x33, 0x85, 0x52, 0xf4, 0x7c, 0x55, 0x79,
-	0xdb, 0x2a, 0x3d, 0x69, 0xe0, 0x9a, 0x18, 0xc1, 0xe3, 0x4f, 0x75, 0xa1, 0xe3, 0x35, 0x95, 0x6d,
-	0x69, 0xf6, 0xf6, 0xef, 0x41, 0x52, 0x3d, 0xd2, 0xa0, 0x56, 0xe7, 0x31, 0x93, 0xe5, 0xf2, 0x56,
-	0x75, 0xe8, 0x27, 0xe8, 0xa9, 0xc2, 0x33, 0xf5, 0xda, 0x87, 0x63, 0x67, 0x6f, 0xf8, 0xc2, 0x7b,
-	0x60, 0x8c, 0x2a, 0x33, 0xaa, 0x51, 0x61, 0xa3, 0x86, 0xa6, 0x1f, 0x7d, 0x0f, 0xbd, 0x84, 0x33,
-	0x59, 0x92, 0x44, 0xba, 0x8f, 0xb5, 0x72, 0x76, 0x2d, 0xda, 0x4d, 0xfc, 0xf6, 0xf1, 0xd4, 0x11,
-	0x1f, 0x37, 0xc9, 0x9d, 0xdf, 0x60, 0xeb, 0xce, 0x9e, 0xe8, 0x09, 0x6c, 0x5e, 0xd0, 0xa5, 0xd5,
-	0x95, 0x32, 0xd1, 0x4b, 0x78, 0xf4, 0x9e, 0x14, 0x0b, 0xaa, 0x25, 0x35, 0xb8, 0x77, 0xd9, 0x7a,
-	0x0c, 0x36, 0xd5, 0xaf, 0x36, 0xbe, 0x73, 0xbe, 0xde, 0x85, 0x5e, 0x7d, 0x03, 0x1a, 0x40, 0xf7,
-	0xdd, 0xe1, 0xe9, 0xe9, 0xc9, 0x2f, 0xc7, 0x4f, 0x5a, 0x08, 0xa0, 0x73, 0x78, 0x74, 0xa6, 0x6c,
-	0x27, 0x3a, 0xba, 0xbc, 0x1a, 0x39, 0x1f, 0xaf, 0x46, 0xce, 0xbf, 0x57, 0x23, 0xe7, 0xc3, 0xf5,
-	0xa8, 0xf5, 0xf1, 0x7a, 0xd4, 0xfa, 0xfb, 0x7a, 0xd4, 0xfa, 0x75, 0x3f, 0xcb, 0xe5, 0x74, 0x11,
-	0x07, 0x09, 0x9f, 0x85, 0xe6, 0x4b, 0xdf, 0xa8, 0xaf, 0x5a, 0x3b, 0xfc, 0x3d, 0x54, 0xff, 0x56,
-	0x0a, 0x11, 0x11, 0x77, 0xf4, 0x6f, 0xf1, 0xb7, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x1a, 0xdc,
-	0x41, 0x58, 0xc1, 0x06, 0x00, 0x00,
+	// 864 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x16, 0x65, 0x45, 0xa2, 0x46, 0xb6, 0x52, 0x6c, 0xe2, 0x96, 0x71, 0x0b, 0x51, 0xa0, 0x2f,
+	0x4e, 0x81, 0x92, 0x70, 0x8a, 0x1e, 0xda, 0x4b, 0x11, 0x3a, 0x4d, 0xe3, 0x16, 0x0d, 0x82, 0xb5,
+	0xd1, 0x43, 0x7b, 0x10, 0x96, 0xe4, 0x9a, 0x22, 0x42, 0xed, 0x0a, 0xdc, 0x55, 0x51, 0xbf, 0x45,
+	0x5e, 0xa4, 0xcf, 0x51, 0x1f, 0x73, 0xcc, 0x89, 0x2d, 0xec, 0x9b, 0x8e, 0x7e, 0x82, 0x62, 0x7f,
+	0x48, 0xcb, 0x40, 0xec, 0xde, 0x38, 0x33, 0xdf, 0xcc, 0xce, 0xf7, 0xcd, 0xce, 0x12, 0xc6, 0x54,
+	0x9e, 0x45, 0x67, 0x2b, 0x96, 0x85, 0xcb, 0x8a, 0x4b, 0x8e, 0x76, 0x33, 0xaa, 0xac, 0x92, 0x24,
+	0x22, 0x34, 0x9f, 0x21, 0x95, 0x67, 0x7b, 0x8f, 0x73, 0x9e, 0x73, 0x8d, 0x88, 0xd4, 0x97, 0x01,
+	0xef, 0x4d, 0x52, 0x2e, 0x16, 0x5c, 0x44, 0x09, 0x11, 0x34, 0xfa, 0xe3, 0x30, 0xa1, 0x92, 0x1c,
+	0x46, 0x29, 0x2f, 0x98, 0x8d, 0xfb, 0x39, 0xe7, 0x79, 0x49, 0x23, 0x6d, 0x25, 0xab, 0xb3, 0x48,
+	0x16, 0x0b, 0x2a, 0x24, 0x59, 0x2c, 0x0d, 0x20, 0xf8, 0x1d, 0xdc, 0x98, 0x94, 0x84, 0xa5, 0x54,
+	0x20, 0x0f, 0x06, 0x24, 0xcb, 0x2a, 0x2a, 0x84, 0xe7, 0x4c, 0x9d, 0x83, 0x21, 0x6e, 0x4c, 0xf4,
+	0x0d, 0xb8, 0x89, 0x45, 0x79, 0xdd, 0xe9, 0xd6, 0xc1, 0xe8, 0xd9, 0x93, 0xd0, 0x9c, 0x1c, 0xaa,
+	0x93, 0x43, 0x7b, 0x72, 0x78, 0xc4, 0x0b, 0x86, 0x5b, 0x68, 0x70, 0x0c, 0xdb, 0x2f, 0x57, 0x2c,
+	0x6b, 0x0f, 0xf8, 0x16, 0x06, 0x3a, 0xa9, 0x30, 0x07, 0x8c, 0x9e, 0xf9, 0xe1, 0x47, 0xc9, 0x86,
+	0x4d, 0x06, 0x6e, 0xf0, 0x01, 0x81, 0x61, 0x4c, 0x04, 0x7d, 0x41, 0x19, 0x5f, 0xa0, 0xa7, 0xe0,
+	0x72, 0xf6, 0x42, 0xc3, 0x4d, 0xa7, 0xf1, 0xce, 0xba, 0xf6, 0x87, 0x9c, 0xcd, 0x4c, 0x0d, 0xdc,
+	0x86, 0x0d, 0x34, 0xae, 0xf8, 0x5b, 0x5a, 0x79, 0xdd, 0x5b, 0xd0, 0x44, 0x3b, 0x71, 0x1b, 0x0e,
+	0xfe, 0x76, 0x60, 0xa8, 0xda, 0x7d, 0x53, 0x15, 0x29, 0x45, 0x63, 0xe8, 0x16, 0xb6, 0x3a, 0xee,
+	0x16, 0x19, 0xfa, 0x14, 0xfa, 0x73, 0x5a, 0xe4, 0x73, 0xa9, 0xcb, 0x6c, 0x61, 0x6b, 0xa1, 0x1f,
+	0xa1, 0xa7, 0x34, 0xf5, 0xb6, 0x34, 0xa1, 0xbd, 0xd0, 0x08, 0x1e, 0x36, 0x82, 0x87, 0xa7, 0x8d,
+	0xe0, 0xf1, 0x67, 0x17, 0xb5, 0xdf, 0xb9, 0xae, 0xfd, 0xd1, 0x39, 0x59, 0x94, 0xdf, 0x05, 0x2a,
+	0x2b, 0x78, 0xf7, 0x8f, 0xef, 0x60, 0x5d, 0x00, 0x1d, 0x42, 0x9f, 0x2c, 0xf8, 0x8a, 0x49, 0xaf,
+	0xa7, 0x4b, 0xdd, 0xa3, 0xb0, 0x05, 0xaa, 0x9e, 0xc4, 0xf9, 0x22, 0xe1, 0xa5, 0xf7, 0x40, 0xf7,
+	0x69, 0xad, 0xe0, 0x2f, 0x07, 0x06, 0xaf, 0x78, 0x99, 0x15, 0x2c, 0x47, 0x8f, 0xe1, 0x81, 0xe4,
+	0x6f, 0x29, 0xb3, 0x54, 0x8c, 0xa1, 0x46, 0xbd, 0xa4, 0x55, 0x4a, 0x59, 0x43, 0xa7, 0x31, 0xd1,
+	0x3e, 0xf4, 0x97, 0x9c, 0x97, 0xc7, 0x99, 0x66, 0xd4, 0x8b, 0x47, 0xeb, 0xda, 0x1f, 0x28, 0xcf,
+	0xac, 0xc8, 0xb0, 0x0d, 0x29, 0x55, 0x8d, 0x7c, 0xc7, 0x99, 0xee, 0xd6, 0xaa, 0x6a, 0x7c, 0x0a,
+	0xd8, 0x86, 0x51, 0x00, 0x3d, 0x79, 0xbe, 0xa4, 0xa6, 0xc3, 0x78, 0xbc, 0xae, 0x7d, 0x20, 0x42,
+	0x50, 0x39, 0x53, 0x5e, 0xac, 0x63, 0xc1, 0x87, 0x3e, 0xf4, 0x94, 0xf2, 0x1b, 0x84, 0x9c, 0x4d,
+	0x42, 0x9b, 0x37, 0xb3, 0x7b, 0xfb, 0x66, 0x22, 0xe8, 0x31, 0x62, 0xe5, 0x1f, 0x62, 0xfd, 0x8d,
+	0xa6, 0x30, 0xca, 0xa8, 0x48, 0xab, 0x62, 0x29, 0x0b, 0xce, 0x4c, 0x83, 0x78, 0xd3, 0x85, 0x5e,
+	0x43, 0x5f, 0xcc, 0x49, 0x45, 0x85, 0x6e, 0xeb, 0x3e, 0xad, 0xe3, 0xcf, 0x2f, 0x6a, 0xdf, 0xb9,
+	0xae, 0xfd, 0x47, 0x76, 0x6a, 0x5c, 0x92, 0x72, 0x66, 0x92, 0x03, 0x6c, 0xab, 0xa0, 0x13, 0x70,
+	0xe7, 0x46, 0x6f, 0xe1, 0xf5, 0xf5, 0x7e, 0x4c, 0xee, 0xb8, 0xd9, 0x76, 0x2c, 0xfa, 0x32, 0xa8,
+	0xb2, 0x0f, 0x4d, 0xd9, 0x26, 0x3b, 0xc0, 0x6d, 0x21, 0xf4, 0x05, 0x0c, 0x2b, 0x6a, 0x77, 0xc9,
+	0x1b, 0xe8, 0x29, 0xdd, 0x38, 0xd0, 0x6b, 0x18, 0x26, 0xcd, 0x42, 0x78, 0xae, 0x66, 0x31, 0xbd,
+	0x73, 0x9b, 0x2c, 0xce, 0xc8, 0xaf, 0xd2, 0x66, 0x99, 0xb2, 0xf1, 0x4d, 0x09, 0xb4, 0x84, 0x1d,
+	0x21, 0x49, 0x25, 0x0b, 0x96, 0xeb, 0x05, 0xf0, 0x86, 0xff, 0xa7, 0x4c, 0xa4, 0x28, 0xac, 0x6b,
+	0x7f, 0xdc, 0xe4, 0xcd, 0x96, 0x2a, 0xf1, 0xba, 0xf6, 0x77, 0x0d, 0xa9, 0xdb, 0xfe, 0x00, 0xdf,
+	0x3e, 0x40, 0x0d, 0x35, 0xad, 0x28, 0x91, 0xbc, 0xf2, 0xc0, 0x0c, 0xd5, 0x9a, 0x6a, 0x80, 0x0d,
+	0xd1, 0x82, 0xe5, 0xde, 0x68, 0xea, 0x1c, 0xb8, 0x78, 0xd3, 0x85, 0x7e, 0x86, 0x47, 0x25, 0x11,
+	0x12, 0x37, 0x72, 0xbc, 0x32, 0xab, 0xb9, 0xad, 0x54, 0x8a, 0x9f, 0xac, 0x6b, 0x7f, 0x57, 0x85,
+	0x67, 0xad, 0x5c, 0x33, 0xb3, 0xad, 0xf8, 0x63, 0x59, 0xe8, 0x97, 0x8d, 0xd7, 0x6d, 0x47, 0xb3,
+	0xde, 0xbf, 0x43, 0xc9, 0xcd, 0xd7, 0x2c, 0xde, 0x5e, 0xd7, 0x7e, 0x9b, 0x78, 0xf3, 0xea, 0xa1,
+	0x9f, 0xc0, 0x55, 0x09, 0xa7, 0xea, 0xd6, 0x8f, 0xa7, 0xce, 0xc1, 0xf8, 0xce, 0x67, 0xee, 0xa5,
+	0x85, 0x99, 0xed, 0x51, 0x6e, 0xb3, 0x15, 0x6d, 0x3e, 0xfa, 0x1e, 0xdc, 0x94, 0x33, 0x59, 0x91,
+	0x54, 0x7a, 0x0f, 0xf5, 0x06, 0xed, 0x5b, 0xd5, 0x5b, 0xff, 0xcd, 0x25, 0x6a, 0x3c, 0x01, 0x6e,
+	0x83, 0x5f, 0xee, 0x83, 0xdb, 0x9c, 0x82, 0x46, 0x30, 0x78, 0xf3, 0xfc, 0xe4, 0xe4, 0xf8, 0xd7,
+	0x1f, 0x3e, 0xe9, 0x20, 0x80, 0xfe, 0xf3, 0xa3, 0x53, 0xf5, 0xed, 0xc4, 0x47, 0x17, 0x97, 0x13,
+	0xe7, 0xfd, 0xe5, 0xc4, 0xf9, 0xf7, 0x72, 0xe2, 0xbc, 0xbb, 0x9a, 0x74, 0xde, 0x5f, 0x4d, 0x3a,
+	0x1f, 0xae, 0x26, 0x9d, 0xdf, 0x9e, 0xe6, 0x85, 0x9c, 0xaf, 0x92, 0x30, 0xe5, 0x8b, 0xc8, 0x34,
+	0xfe, 0x95, 0x22, 0x61, 0xbf, 0xa3, 0x3f, 0x23, 0xf5, 0xf3, 0x52, 0x3d, 0x8b, 0xa4, 0xaf, 0x9f,
+	0xbc, 0xaf, 0xff, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x76, 0x39, 0xf8, 0xc5, 0xd0, 0x06, 0x00, 0x00,
+}
+
+func (m *Balances) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Balances) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Balances) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Balances) > 0 {
+		for iNdEx := len(m.Balances) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Balances[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintFund(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintFund(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *FundBalances) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *FundBalances) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *FundBalances) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Osmosis != nil {
+		{
+			size, err := m.Osmosis.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFund(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *BaseDenom) Marshal() (dAtA []byte, err error) {
@@ -608,12 +739,12 @@ func (m *FundPrice) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Time, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Time):])
-	if err2 != nil {
-		return 0, err2
+	n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Time, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Time):])
+	if err3 != nil {
+		return 0, err3
 	}
-	i -= n2
-	i = encodeVarintFund(dAtA, i, uint64(n2))
+	i -= n3
+	i = encodeVarintFund(dAtA, i, uint64(n3))
 	i--
 	dAtA[i] = 0x1a
 	if m.Height != 0 {
@@ -627,43 +758,6 @@ func (m *FundPrice) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintFund(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Balances) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Balances) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Balances) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Balances) > 0 {
-		for iNdEx := len(m.Balances) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Balances[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintFund(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
 	}
 	return len(dAtA) - i, nil
 }
@@ -754,31 +848,17 @@ func (m *Fund) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x70
 	}
-	if len(m.Balances) > 0 {
-		for k := range m.Balances {
-			v := m.Balances[k]
-			baseI := i
-			if v != nil {
-				{
-					size, err := v.MarshalToSizedBuffer(dAtA[:i])
-					if err != nil {
-						return 0, err
-					}
-					i -= size
-					i = encodeVarintFund(dAtA, i, uint64(size))
-				}
-				i--
-				dAtA[i] = 0x12
+	if m.Balances != nil {
+		{
+			size, err := m.Balances.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
 			}
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintFund(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
-			i = encodeVarintFund(dAtA, i, uint64(baseI-i))
-			i--
-			dAtA[i] = 0x6a
+			i -= size
+			i = encodeVarintFund(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x6a
 	}
 	if m.LastRebalanceHeight != 0 {
 		i = encodeVarintFund(dAtA, i, uint64(m.LastRebalanceHeight))
@@ -899,6 +979,38 @@ func encodeVarintFund(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *Balances) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovFund(uint64(l))
+	}
+	if len(m.Balances) > 0 {
+		for _, e := range m.Balances {
+			l = e.Size()
+			n += 1 + l + sovFund(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *FundBalances) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Osmosis != nil {
+		l = m.Osmosis.Size()
+		n += 1 + l + sovFund(uint64(l))
+	}
+	return n
+}
+
 func (m *BaseDenom) Size() (n int) {
 	if m == nil {
 		return 0
@@ -938,21 +1050,6 @@ func (m *FundPrice) Size() (n int) {
 	l = len(m.Symbol)
 	if l > 0 {
 		n += 1 + l + sovFund(uint64(l))
-	}
-	return n
-}
-
-func (m *Balances) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Balances) > 0 {
-		for _, e := range m.Balances {
-			l = e.Size()
-			n += 1 + l + sovFund(uint64(l))
-		}
 	}
 	return n
 }
@@ -1037,18 +1134,9 @@ func (m *Fund) Size() (n int) {
 	if m.LastRebalanceHeight != 0 {
 		n += 1 + sovFund(uint64(m.LastRebalanceHeight))
 	}
-	if len(m.Balances) > 0 {
-		for k, v := range m.Balances {
-			_ = k
-			_ = v
-			l = 0
-			if v != nil {
-				l = v.Size()
-				l += 1 + sovFund(uint64(l))
-			}
-			mapEntrySize := 1 + len(k) + sovFund(uint64(len(k))) + l
-			n += mapEntrySize + 1 + sovFund(uint64(mapEntrySize))
-		}
+	if m.Balances != nil {
+		l = m.Balances.Size()
+		n += 1 + l + sovFund(uint64(l))
 	}
 	if m.FundType != 0 {
 		n += 1 + sovFund(uint64(m.FundType))
@@ -1065,6 +1153,208 @@ func sovFund(x uint64) (n int) {
 }
 func sozFund(x uint64) (n int) {
 	return sovFund(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *Balances) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFund
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Balances: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Balances: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFund
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFund
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFund
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Balances", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFund
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFund
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFund
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Balances = append(m.Balances, &types.Coin{})
+			if err := m.Balances[len(m.Balances)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFund(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFund
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *FundBalances) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFund
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: FundBalances: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: FundBalances: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Osmosis", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFund
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFund
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFund
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Osmosis == nil {
+				m.Osmosis = &Balances{}
+			}
+			if err := m.Osmosis.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFund(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFund
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *BaseDenom) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -1360,90 +1650,6 @@ func (m *FundPrice) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Symbol = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFund(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFund
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Balances) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFund
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Balances: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Balances: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Balances", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFund
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFund
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFund
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Balances = append(m.Balances, &types.Coin{})
-			if err := m.Balances[len(m.Balances)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2069,104 +2275,11 @@ func (m *Fund) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Balances == nil {
-				m.Balances = make(map[string]*Balances)
+				m.Balances = &FundBalances{}
 			}
-			var mapkey string
-			var mapvalue *Balances
-			for iNdEx < postIndex {
-				entryPreIndex := iNdEx
-				var wire uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowFund
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					wire |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				fieldNum := int32(wire >> 3)
-				if fieldNum == 1 {
-					var stringLenmapkey uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowFund
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthFund
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthFund
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
-				} else if fieldNum == 2 {
-					var mapmsglen int
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowFund
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						mapmsglen |= int(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					if mapmsglen < 0 {
-						return ErrInvalidLengthFund
-					}
-					postmsgIndex := iNdEx + mapmsglen
-					if postmsgIndex < 0 {
-						return ErrInvalidLengthFund
-					}
-					if postmsgIndex > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapvalue = &Balances{}
-					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
-						return err
-					}
-					iNdEx = postmsgIndex
-				} else {
-					iNdEx = entryPreIndex
-					skippy, err := skipFund(dAtA[iNdEx:])
-					if err != nil {
-						return err
-					}
-					if (skippy < 0) || (iNdEx+skippy) < 0 {
-						return ErrInvalidLengthFund
-					}
-					if (iNdEx + skippy) > postIndex {
-						return io.ErrUnexpectedEOF
-					}
-					iNdEx += skippy
-				}
+			if err := m.Balances.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-			m.Balances[mapkey] = mapvalue
 			iNdEx = postIndex
 		case 14:
 			if wireType != 0 {

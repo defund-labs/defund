@@ -98,7 +98,7 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 		}
 
 		// only need to rebalance if there are balances/assets for this fund and if it isn't currently rebalancing
-		if len(fund.Balances) > 0 && !fund.Rebalancing {
+		if fund.Balances.HasBalance(fund.Symbol) && !fund.Rebalancing {
 			// only have to run rebalance if this is rebalance period (aka no remainder)
 			if ctx.BlockHeight()%fund.Rebalance == 0 {
 				if fund.FundType == etftypes.FundType_ACTIVE {
@@ -111,7 +111,7 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 					if err != nil {
 						ctx.Logger().Error(fmt.Sprintf("error converting fund address %s to sdk address: %s", fund.Address, err.Error()))
 					}
-					_, err = k.wasmInternalKeeper.Execute(ctx, contractSdkAddress, fundSdkAddress, []byte(`{"runner": {}}`), sdk.NewCoins())
+					_, err = k.wasmInternalKeeper.Execute(ctx, contractSdkAddress, fundSdkAddress, []byte(`{"runner": {}}`), sdk.NewCoins(sdk.Coin{Denom: "", Amount: sdk.NewInt(0)}))
 					if err != nil {
 						ctx.Logger().Error(fmt.Sprintf("error marshalling runner args on contract rebalance run for contract %s (error: %s)", fund.Contract, err.Error()))
 					}

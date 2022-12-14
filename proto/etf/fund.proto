@@ -7,6 +7,19 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/defund-labs/defund/x/etf/types";
 
+message Balances {
+  string address = 1;
+  repeated cosmos.base.v1beta1.Coin balances = 2;
+}
+
+// balances are named by broker id for each supported broker
+message FundBalances {
+  Balances osmosis = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"osmosis\""
+  ];
+}
+
 message BaseDenom {
   string onDefund = 1 [
 		(gogoproto.jsontag) = "on_defund"
@@ -26,10 +39,6 @@ message FundPrice {
   ];
   cosmos.base.v1beta1.Coin amount = 4;
   string symbol = 5;
-}
-
-message Balances {
-  repeated cosmos.base.v1beta1.Coin balances = 1;
 }
 
 message Holding {
@@ -81,7 +90,9 @@ message Fund {
   int64  lastRebalanceHeight = 12 [
 		(gogoproto.jsontag) = "last_rebalance_height"
 	];
-  map<string, Balances> balances = 13;
+  FundBalances balances = 13 [
+		(gogoproto.jsontag) = "balances"
+	];
   // type of the fund. can only be active (wasm) or passive
   FundType fundType = 14 [
 		(gogoproto.jsontag) = "fund_type"

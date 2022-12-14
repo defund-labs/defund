@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -42,7 +43,7 @@ type (
 		icaControllerKeeper icacontrollerkeeper.Keeper
 		transferKeeper      transferkeeper.Keeper
 		wasmKeeper          wasmkeeper.Keeper
-		wasmInternalKeeper  wasmkeeper.PermissionedKeeper
+		wasmInternalKeeper  wasmtypes.ContractOpsKeeper
 	}
 
 	Surplus struct {

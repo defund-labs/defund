@@ -3,7 +3,7 @@ module github.com/defund-labs/defund
 go 1.18
 
 require (
-	github.com/CosmWasm/wasmd v0.27.0
+	github.com/CosmWasm/wasmd v0.29.2
 	github.com/CosmWasm/wasmvm v1.1.1
 	github.com/cosmos/cosmos-sdk v0.45.10-0.20221014225501-18eaf090ca1c
 	github.com/cosmos/go-bip39 v1.0.0

@@ -11,6 +11,7 @@ var _ = strconv.IntSize
 
 func (s *KeeperTestSuite) TestCreatePrice() {
 	path := s.NewTransferPath()
+	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
 	s.CreateTestFund(path)
 	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), "test")
 	s.Assert().NoError(err)

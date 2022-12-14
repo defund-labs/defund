@@ -37,15 +37,6 @@ func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/%s", symbol)
 }
 
-func containsString(strings []string, value string) bool {
-	for _, v := range strings {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
-
 func removeLastChannel(path string) string {
 	var newPath string = ""
 	splits := strings.Split(path, "/")
@@ -63,25 +54,14 @@ func removeLastChannel(path string) string {
 	return newPath
 }
 
-// RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
-// a fund. If no broker account exists, one is created and then stored in the Broker store
+// RegisterBrokerAccounts opens one broker account per broker Defund supports
 func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc string) error {
-	// we must keep track of broker accounts registered so we can make sure we create only one
-	// account per broker.
-	var registeredBrokers []string
-	for _, holding := range holdings {
-		// make sure we do not already have account for broker for this fund
-		if containsString(registeredBrokers, holding.BrokerId) {
-			continue
-		}
-		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
-		if !found {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
-		}
-
+	// get all brokers
+	brokers := k.brokerKeeper.GetAllBrokers(ctx)
+	for _, broker := range brokers {
 		// ensure the broker is active and has connection id assigned to it
 		if broker.Status != "active" {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s) for holding %s", holding.BrokerId, broker.Status, holding.Token))
+			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s)", broker.Id, broker.Status))
 		}
 
 		// Create and save the broker fund ICA account on the broker chain
@@ -89,7 +69,6 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Hol
 		if err != nil {
 			return err
 		}
-		registeredBrokers = append(registeredBrokers, holding.BrokerId)
 	}
 
 	return nil
@@ -224,7 +203,12 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	startPrice := sdk.NewCoin(basedenom.OnBroker, sdk.NewInt(rawIntStartingPrice))
 	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
-	balances := make(map[string]*types.Balances)
+	balances := types.FundBalances{
+		Osmosis: &types.Balances{
+			Address:  "",
+			Balances: []*sdk.Coin{},
+		},
+	}
 
 	var fund = types.Fund{
 		Creator:             msg.Creator,
@@ -239,7 +223,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		Rebalancing:         false,
 		LastRebalanceHeight: 0,
 		StartingPrice:       &startPrice,
-		Balances:            balances,
+		Balances:            &balances,
 		FundType:            t,
 		Contract:            contractAddress,
 	}

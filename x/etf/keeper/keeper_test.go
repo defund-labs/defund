@@ -372,14 +372,6 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	osmosisAccount, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), "connection-0", portID)
 	s.Assert().True(found)
 
-	balances := map[string]*types.Balances{
-		osmosisAccount: {
-			Balances: []*sdk.Coin{
-				&testAtomIBC, &testOsmoIBC, &testAktIBC,
-			},
-		},
-	}
-
 	basedenoms := s.GetDefundApp(s.chainA).BrokerKeeper.GetParam(s.chainA.GetContext(), brokertypes.ParamsKey)
 
 	basedenom := types.BaseDenom{
@@ -400,7 +392,14 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		BaseDenom:     &basedenom,
 		Rebalance:     10,
 		StartingPrice: &startingPrice,
-		Balances:      balances,
+		Balances: &types.FundBalances{
+			Osmosis: &types.Balances{
+				Address: osmosisAccount,
+				Balances: []*sdk.Coin{
+					&testAtomIBC, &testOsmoIBC, &testAktIBC,
+				},
+			},
+		},
 	}
 	// set the test fund in store
 	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), TestFund)

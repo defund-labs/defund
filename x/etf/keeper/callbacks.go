@@ -17,7 +17,6 @@ import (
 // broker chains and adjusts the balances store for the fund on Defund to reflect the updated balance
 func (k Keeper) OnFundBalanceSubmissionCallback(ctx sdk.Context, result *querytypes.InterqueryResult) error {
 	// store id for balance should look like balance:{fundSymbol}:{brokerId}:{address}:{denom}
-	var denom string
 	var account string
 	var brokerId string
 	var fundSymbol string
@@ -26,7 +25,8 @@ func (k Keeper) OnFundBalanceSubmissionCallback(ctx sdk.Context, result *queryty
 		fundSymbol = sep[1]
 		brokerId = sep[2]
 		account = sep[3]
-		denom = sep[4]
+		// denom placeholder
+		_ = sep[4]
 
 		fund, err := k.GetFundBySymbol(ctx, fundSymbol)
 		if err != nil {
@@ -56,31 +56,8 @@ func (k Keeper) OnFundBalanceSubmissionCallback(ctx sdk.Context, result *queryty
 			return err
 		}
 
-		m := make(map[string]*types.Balances)
-
-		newBals := types.Balances{
-			Balances: []*sdk.Coin{&coin},
-		}
-		m[account] = &newBals
-
-		for key, value := range fund.Balances {
-			// if the key from the old balances is the account we are updating
-			if key == account {
-				for _, c := range value.Balances {
-					// if the coin is not the denom we are updating append
-					if c.Denom != denom {
-						newBals.Balances = append(newBals.Balances, c)
-						m[account] = &newBals
-					}
-				}
-			} else {
-				// if the account is not the account we are updating, just add to the new map
-				m[key] = value
-			}
-		}
-
 		// reset fund with updated balances
-		fund.Balances = m
+		fund.SetBalances(brokerId, account, coin)
 		k.SetFund(ctx, fund)
 	}
 
