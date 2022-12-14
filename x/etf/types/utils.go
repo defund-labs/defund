@@ -85,17 +85,19 @@ func (b *FundBalances) GetBalancesByBroker(brokerid string) (bals sdk.Coins, fou
 func (fund *Fund) SetBalances(brokerid string, address string, coin sdk.Coin) error {
 	switch brokerid {
 	case "osmosis":
+		var updated bool = false
 		fund.Balances.Osmosis.Address = address
 		for i := range fund.Balances.Osmosis.Balances {
 			// if we already have this denom update it and break the loop
 			if fund.Balances.Osmosis.Balances[i].Denom == coin.Denom {
 				fund.Balances.Osmosis.Balances[i] = &coin
+				updated = true
 				break
 			}
-			if i == len(fund.Balances.Osmosis.Balances)-1 {
-				// if we did not update by end of last loop, we do not have denom so just set as new denom
-				fund.Balances.Osmosis.Balances[i] = &coin
-			}
+		}
+		if !updated {
+			// if we did not update by end of last loop, we do not have denom so just set as new denom
+			fund.Balances.Osmosis.Balances = append(fund.Balances.Osmosis.Balances, &coin)
 		}
 		return nil
 	default:
