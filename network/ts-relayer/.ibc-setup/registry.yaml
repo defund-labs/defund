@@ -10,7 +10,7 @@ chains:
     estimated_block_time: 7000
     estimated_indexer_time: 250
     rpc:
-      - http://35.193.49.115:26657
+      - https://rpc-test.osmosis.zone:443
   defund:
     chain_id: defund
     prefix: defund

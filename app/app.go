@@ -119,7 +119,7 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 
 	// Upgrades
-	v2 "github.com/defund-labs/defund/app/upgrades/v2"
+	v1 "github.com/defund-labs/defund/app/upgrades/v1"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -530,11 +530,11 @@ func New(
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
-		AddRoute(wasm.ModuleName, wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper)).
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(etfmoduletypes.ModuleName, icaControllerIBCModule)
+		AddRoute(etfmoduletypes.ModuleName, icaControllerIBCModule).
+		AddRoute(wasm.ModuleName, wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper))
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	app.setupUpgradeStoreLoaders()
@@ -827,7 +827,7 @@ func (app *App) setupUpgradeStoreLoaders() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == v2.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == v1.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{wasm.ModuleName},
 		}
@@ -839,7 +839,7 @@ func (app *App) setupUpgradeStoreLoaders() {
 
 func (app *App) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v2.UpgradeName, v2.CreateUpgradeHandler(app.mm, app.configurator, &app.EtfKeeper))
+		v1.UpgradeName, v1.CreateUpgradeHandler(app.mm, app.configurator, &app.EtfKeeper))
 }
 
 // GetMaccPerms returns a copy of the module account permissions
