@@ -10,14 +10,14 @@ chains:
     estimated_block_time: 7000
     estimated_indexer_time: 250
     rpc:
-      - http://162.55.134.55:26657
+      - https://rpc-test.osmosis.zone:443
   defund:
     chain_id: defund
     prefix: defund
-    gas_price: 0ufetf
+    gas_price: 1000ufetf
     hd_path: m/44'/118'/0'/0/0
     ics20_port: 'transfer'
-    estimated_block_time: 1000
+    estimated_block_time: 2000
     estimated_indexer_time: 250
     rpc:
       - http://localhost:26657

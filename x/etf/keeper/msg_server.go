@@ -37,15 +37,6 @@ func GetFundDenom(symbol string) string {
 	return fmt.Sprintf("etf/%s", symbol)
 }
 
-func containsString(strings []string, value string) bool {
-	for _, v := range strings {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
-
 func removeLastChannel(path string) string {
 	var newPath string = ""
 	splits := strings.Split(path, "/")
@@ -63,25 +54,14 @@ func removeLastChannel(path string) string {
 	return newPath
 }
 
-// RegisterBrokerAccounts checks to make sure if all broker accounts are created for holdings within
-// a fund. If no broker account exists, one is created and then stored in the Broker store
+// RegisterBrokerAccounts opens one broker account per broker Defund supports
 func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Holding, acc string) error {
-	// we must keep track of broker accounts registered so we can make sure we create only one
-	// account per broker.
-	var registeredBrokers []string
-	for _, holding := range holdings {
-		// make sure we do not already have account for broker for this fund
-		if containsString(registeredBrokers, holding.BrokerId) {
-			continue
-		}
-		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
-		if !found {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found for holding %s", holding.BrokerId, holding.Token))
-		}
-
+	// get all brokers
+	brokers := k.brokerKeeper.GetAllBrokers(ctx)
+	for _, broker := range brokers {
 		// ensure the broker is active and has connection id assigned to it
 		if broker.Status != "active" {
-			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s) for holding %s", holding.BrokerId, broker.Status, holding.Token))
+			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s status is not active (status: %s)", broker.Id, broker.Status))
 		}
 
 		// Create and save the broker fund ICA account on the broker chain
@@ -89,7 +69,6 @@ func (k msgServer) RegisterBrokerAccounts(ctx sdk.Context, holdings []*types.Hol
 		if err != nil {
 			return err
 		}
-		registeredBrokers = append(registeredBrokers, holding.BrokerId)
 	}
 
 	return nil
@@ -181,6 +160,19 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	// Generate and get a new fund address
 	fundAddress := NewFundAddress(msg.Symbol)
 
+	var t types.FundType = types.FundType_ACTIVE
+	var contractAddress string
+	if msg.Active {
+		// set the fund type to active
+		t = types.FundType_ACTIVE
+		// instantiate a wasm contract from code id provided
+		contract, _, err := k.wasmInternalKeeper.Instantiate(ctx, msg.WasmCodeId, fundAddress, fundAddress, []byte(fmt.Sprintf(`{"fund": "%s"}`, msg.Symbol)), msg.Symbol, sdk.NewCoins())
+		if err != nil {
+			return nil, err
+		}
+		contractAddress = contract.String()
+	}
+
 	// Create and save corresponding module account to the account keeper
 	acc := k.accountKeeper.NewAccount(ctx, authtypes.NewModuleAccount(
 		authtypes.NewBaseAccountWithAddress(
@@ -211,20 +203,29 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	startPrice := sdk.NewCoin(basedenom.OnBroker, sdk.NewInt(rawIntStartingPrice))
 	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
-	balances := make(map[string]*types.Balances)
+	balances := types.FundBalances{
+		Osmosis: &types.Balances{
+			Address:  "",
+			Balances: []*sdk.Coin{},
+		},
+	}
 
 	var fund = types.Fund{
-		Creator:       msg.Creator,
-		Symbol:        msg.Symbol,
-		Address:       acc.GetAddress().String(),
-		Name:          msg.Name,
-		Description:   msg.Description,
-		Shares:        &shares,
-		Holdings:      holdings,
-		BaseDenom:     &basedenom,
-		Rebalance:     msg.Rebalance,
-		StartingPrice: &startPrice,
-		Balances:      balances,
+		Creator:             msg.Creator,
+		Symbol:              msg.Symbol,
+		Address:             acc.GetAddress().String(),
+		Name:                msg.Name,
+		Description:         msg.Description,
+		Shares:              &shares,
+		Holdings:            holdings,
+		BaseDenom:           &basedenom,
+		Rebalance:           msg.Rebalance,
+		Rebalancing:         false,
+		LastRebalanceHeight: 0,
+		StartingPrice:       &startPrice,
+		Balances:            &balances,
+		FundType:            t,
+		Contract:            contractAddress,
 	}
 
 	k.SetFund(
@@ -238,12 +239,12 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.MsgCreateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//basic validation of the message
+	// basic validation of the message
 	msg.ValidateBasic()
 
 	fund, found := k.GetFund(ctx, msg.Fund)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", fund.Symbol)
+		return nil, sdkerrors.Wrapf(types.ErrFundNotFound, "failed to find fund with symbol of %s", msg.Fund)
 	}
 
 	// base denom tokenIn check
@@ -268,7 +269,7 @@ func (k msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//basic validation of the message
+	// basic validation of the message
 	msg.ValidateBasic()
 
 	// get the fund and check if it exists
@@ -283,4 +284,45 @@ func (k msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	}
 
 	return &types.MsgRedeemResponse{}, nil
+}
+
+func (k msgServer) EditFund(goCtx context.Context, msg *types.MsgEditFund) (*types.MsgEditFundResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	msg.ValidateBasic()
+
+	// get the fund
+	fund, err := k.GetFundBySymbol(ctx, msg.Symbol)
+	if err != nil {
+		return &types.MsgEditFundResponse{}, err
+	}
+
+	// update the fund for the holdings if provided
+	if fund.Holdings != nil {
+		// ensure the fund is active type
+		if fund.FundType != types.FundType_ACTIVE {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "invalid fund type only active funds can edit holdings")
+		}
+
+		// convert the raw string address to addr bytes
+		contractAddr, err := sdk.AccAddressFromBech32(fund.Contract)
+		if err != nil {
+			return &types.MsgEditFundResponse{}, err
+		}
+		// ensure the contract specified in fund is a wasm contract
+		isContract := k.wasmKeeper.HasContractInfo(ctx, contractAddr)
+		if !isContract {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "contract specified for fund (%s) is not a cosmwasm contract", fund.Contract)
+		}
+		// make sure the signer is the wasm contract
+		if msg.Creator != fund.Contract {
+			return &types.MsgEditFundResponse{}, sdkerrors.Wrapf(types.ErrUnauthorized, "msg signer (%s) is not the funds contract (%s)", msg.Creator, fund.Contract)
+		}
+
+		fund.Holdings = msg.GetHoldings()
+	}
+
+	k.SetFund(ctx, fund)
+
+	return &types.MsgEditFundResponse{}, nil
 }

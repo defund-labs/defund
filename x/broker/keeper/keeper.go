@@ -81,8 +81,12 @@ func (k Keeper) CreateDefundQueries(ctx sdk.Context) error {
 
 // QueryOsmosisPool sets an interquery request in store for a Osmosis pool to be run by relayers
 func (k Keeper) CreateQueryOsmosisPool(ctx sdk.Context, poolId uint64) error {
+	broker, found := k.GetBroker(ctx, "osmosis")
+	if !found {
+		return sdkerrors.Wrap(types.ErrBrokerNotFound, "broker not found: osmosis")
+	}
 	path := "/store/gamm/key"
-	connectionid := "connection-0"
+	connectionid := broker.ConnectionId
 	key := osmosisgammtypes.GetKeyPrefixPools(poolId)
 	timeoutHeight := uint64(ctx.BlockHeight() + 50)
 	storeid := fmt.Sprintf("osmosis-%d", poolId)

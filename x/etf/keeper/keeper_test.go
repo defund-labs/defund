@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,7 +75,7 @@ func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 func SetDefundTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig(app.ModuleBasics)
-	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.EmptyAppOptions{})
+	appd := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, app.GetEnabledProposals(), app.EmptyAppOptions{}, []wasm.Option{})
 	gensisState := app.NewDefaultGenesisState(encCdc.Marshaler)
 	return appd, gensisState
 }
@@ -155,6 +156,8 @@ func (s *KeeperTestSuite) NewTransferPath() *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = "ics20-1"
 
 	s.coordinator.Setup(path)
+
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
 
 	return path
 }
@@ -330,6 +333,8 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	portID, err := icatypes.NewControllerPortID(acct.GetAddress().String())
 	s.Assert().NoError(err)
 
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+
 	connectionId, portID = s.CreateChannelICA(portID, transferPath)
 
 	// set the interchain accounts in store since IBC callback will not
@@ -367,14 +372,6 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	osmosisAccount, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), "connection-0", portID)
 	s.Assert().True(found)
 
-	balances := map[string]*types.Balances{
-		osmosisAccount: {
-			Balances: []*sdk.Coin{
-				&testAtomIBC, &testOsmoIBC, &testAktIBC,
-			},
-		},
-	}
-
 	basedenoms := s.GetDefundApp(s.chainA).BrokerKeeper.GetParam(s.chainA.GetContext(), brokertypes.ParamsKey)
 
 	basedenom := types.BaseDenom{
@@ -395,7 +392,14 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		BaseDenom:     &basedenom,
 		Rebalance:     10,
 		StartingPrice: &startingPrice,
-		Balances:      balances,
+		Balances: &types.FundBalances{
+			Osmosis: &types.Balances{
+				Address: osmosisAccount,
+				Balances: []*sdk.Coin{
+					&testAtomIBC, &testOsmoIBC, &testAktIBC,
+				},
+			},
+		},
 	}
 	// set the test fund in store
 	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), TestFund)
@@ -454,8 +458,9 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 	path := s.NewTransferPath()
 	s.Require().Equal(path.EndpointA.ChannelID, "channel-0")
-	s.CreateTestFund(path)
-	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), "test")
+	fund, _, _, _ := s.CreateTestFund(path)
+	s.chainA.Log(fund)
+	fund, err := s.GetDefundApp(s.chainA).EtfKeeper.GetFundBySymbol(s.chainA.GetContext(), fund.Symbol)
 	s.Assert().NoError(err)
 	// Commit new block to store info
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
@@ -563,7 +568,7 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), "etf", s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenInRedeem))
 
 		// redeem the created shares from above
-		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), "osmo"+strings.Split(s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), "defund")[1], fund, tokenInRedeem, addrMap)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.RedeemShares(s.chainA.GetContext(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), fund, tokenInRedeem, addrMap)
 		s.Assert().NoError(err)
 	})
 
@@ -573,8 +578,6 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 
 		msgs, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateRebalanceMsgs(s.chainA.GetContext(), fund)
 		s.Assert().NoError(err)
-
-		s.chainA.Log(msgs)
 
 		s.Assert().Equal(msgs.Osmosis[0].TokenIn, sdk.NewCoin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(27598242)))
 		s.Assert().Equal(msgs.Osmosis[0].TokenOutMinAmount, sdk.NewInt(88779146))

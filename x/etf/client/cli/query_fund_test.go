@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/codes"
@@ -29,8 +30,15 @@ func networkWithFundObjects(t *testing.T, n int) (*network.Network, []types.Fund
 	for i := 0; i < n; i++ {
 		holdings := []*types.Holding{}
 		state.FundList = append(state.FundList, types.Fund{
-			Symbol:   strconv.Itoa(i),
-			Holdings: holdings,
+			Symbol:              strconv.Itoa(i),
+			Holdings:            holdings,
+			LastRebalanceHeight: 0,
+			Balances: &types.FundBalances{
+				Osmosis: &types.Balances{
+					Address:  "",
+					Balances: []*sdk.Coin{},
+				},
+			},
 		})
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)

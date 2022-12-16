@@ -4,17 +4,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Account specific Bech32 prefixes.
-var (
-	AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
-	ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
-	ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
-	ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
-	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
-)
-
-// SetAddressConfig sets Umee's address configuration.
+// SetAddressConfig sets the address configuration.
 func SetAddressConfig() {
+	var (
+		AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
+		ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
+		ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
+		ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
+		ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
+	)
+
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)

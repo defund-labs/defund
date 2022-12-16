@@ -104,7 +104,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		fund, found = s.GetDefundApp(s.chainA).EtfKeeper.GetFund(s.chainA.GetContext(), fund.Symbol)
 		s.Assert().True(found)
 		// check to make sure fund last rebelance height was updated
-		s.Assert().Equal(fund.LastRebalanceHeight, int64(23))
+		s.Assert().Equal(fund.LastRebalanceHeight, int64(25))
 		// ensure the rebalance store was deleted
 		_, found = s.GetDefundApp(s.chainA).BrokerKeeper.GetRebalance(s.chainA.GetContext(), rebalance.Id)
 		s.Assert().False(found)

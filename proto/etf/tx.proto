@@ -16,6 +16,7 @@ service Msg {
   rpc CreateFund(MsgCreateFund) returns (MsgCreateFundResponse);
   rpc Create(MsgCreate) returns (MsgCreateResponse);
   rpc Redeem(MsgRedeem) returns (MsgRedeemResponse);
+  rpc EditFund(MsgEditFund) returns (MsgEditFundResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -29,6 +30,8 @@ message MsgCreateFund {
   int64 rebalance = 6;
   string baseDenom = 7;
   string startingPrice = 8;
+  bool active = 9;
+  uint64 wasmCodeId = 10;
 }
 message MsgCreateFundResponse {}
 
@@ -62,6 +65,15 @@ message MsgRedeem {
 }
 
 message MsgRedeemResponse {
+}
+
+message MsgEditFund {
+  string creator = 1;
+  string symbol = 2;
+  repeated Holding holdings = 3;
+}
+
+message MsgEditFundResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message

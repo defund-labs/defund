@@ -28,25 +28,17 @@ func (p PricesSort) Less(i, j int) bool {
 }
 
 func (k Keeper) GetBalanceForFundByAddress(ctx sdk.Context, symbol string, address string) (banktypes.Balance, error) {
-	var coins []sdk.Coin
-
 	fund, found := k.GetFund(ctx, symbol)
 	if !found {
 		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
 
 	// check to ensure that we have a balance for this address
-	if _, ok := fund.Balances[address]; !ok {
-		return banktypes.Balance{}, sdkerrors.Wrapf(types.ErrInvalidBalance, "fund with symbol %s account balance %s does not exist", symbol, address)
-	}
-
-	for i := range fund.Balances[address].Balances {
-		coins = append(coins, *fund.Balances[address].Balances[i])
-	}
+	bals := fund.Balances.GetBalancesByAddress(address)
 
 	balance := banktypes.Balance{
 		Address: address,
-		Coins:   sdk.NewCoins(coins...),
+		Coins:   bals,
 	}
 
 	return balance, nil

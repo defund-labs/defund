@@ -60,6 +60,7 @@ type BankKeeper interface {
 
 type BrokerKeeper interface {
 	GetBroker(ctx sdk.Context, id string) (val brokertypes.Broker, found bool)
+	GetAllBrokers(ctx sdk.Context) (list []brokertypes.Broker)
 	SetBroker(ctx sdk.Context, broker brokertypes.Broker)
 	SetTransfer(ctx sdk.Context, transfer brokertypes.Transfer)
 	GetAllTransfer(ctx sdk.Context) (list []brokertypes.Transfer)

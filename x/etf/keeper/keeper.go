@@ -2,13 +2,14 @@ package keeper
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/tendermint/tendermint/libs/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -41,6 +42,8 @@ type (
 		clientKeeper        types.ClientKeeper
 		icaControllerKeeper icacontrollerkeeper.Keeper
 		transferKeeper      transferkeeper.Keeper
+		wasmKeeper          wasmkeeper.Keeper
+		wasmInternalKeeper  wasmtypes.ContractOpsKeeper
 	}
 
 	Surplus struct {
@@ -92,6 +95,11 @@ func (k *Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capabilit
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
+func (k *Keeper) SetWasmKeeper(wasmKeeper *wasmkeeper.Keeper, wasmInternalKeeper *wasmkeeper.PermissionedKeeper) {
+	k.wasmKeeper = *wasmKeeper
+	k.wasmInternalKeeper = *wasmInternalKeeper
+}
+
 // SetICS4Wrapper sets the ICS4 wrapper to the keeper.
 // It panics if already set
 func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
@@ -124,16 +132,6 @@ func sumDecs(items []sdk.Dec) sdk.Dec {
 		sum = sum.Add(item)
 	}
 	return sum
-}
-
-func containsMsg(msgs []*osmosisgammtypes.MsgSwapExactAmountIn, msg osmosisgammtypes.MsgSwapExactAmountIn) bool {
-	for _, m := range msgs {
-		if reflect.DeepEqual(m, msg) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // CreateShares send an IBC transfer to all the brokers for each holding with the proportion of tokenIn

@@ -216,8 +216,8 @@ create-connection:
 init:
 	@echo "Initializing both blockchains..."
 	./network/init.sh
-	@echo "Optimizing network"
-	./testnet/private/update_configs.sh
+#	@echo "Optimizing network"
+#	./testnet/private/update_configs.sh
 	@echo "Starting up network"
 	./network/start.sh
 	@echo "Starting up hermes"
@@ -229,8 +229,6 @@ init-rly:
 	./network/relayer/restore-keys.sh
 
 start: 
-	@echo "Optimizing network"
-	./testnet/private/update_configs.sh
 	@echo "Starting up network"
 	./network/start.sh
 
@@ -291,3 +289,11 @@ test-create-shares:
 test-redeem-shares:
 	@echo "Running redeem shares bash test......."
 	./tests/etf/redeem-shares.sh
+
+test-upload-code:
+	@echo "Running redeem shares bash test......."
+	./tests/etf/upload-code.sh
+
+test-create-active:
+	@echo "Running redeem shares bash test......."
+	./tests/etf/create-active-fund.sh

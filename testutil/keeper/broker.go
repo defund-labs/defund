@@ -3,6 +3,7 @@ package keeper
 import (
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -30,8 +31,8 @@ func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	encoding := app.MakeEncodingConfig(app.ModuleBasics)
 
-	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding,
-		simapp.EmptyAppOptions{})
+	a := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encoding, app.GetEnabledProposals(),
+		simapp.EmptyAppOptions{}, []wasm.Option{})
 
 	k := keeper.NewKeeper(
 		codec.NewProtoCodec(registry),

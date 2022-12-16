@@ -23,10 +23,10 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				InterqueryList: []types.Interquery{
 					{
-						Storeid: "Key-3",
+						Storeid: "Key-1",
 					},
 					{
-						Storeid: "Key-4",
+						Storeid: "Key-2",
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -38,10 +38,10 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				InterqueryList: []types.Interquery{
 					{
-						Storeid: "Key-5",
+						Storeid: "Key-3",
 					},
 					{
-						Storeid: "Key-5",
+						Storeid: "Key-3",
 					},
 				},
 			},

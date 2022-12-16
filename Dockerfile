@@ -3,7 +3,7 @@ FROM golang:1.19-alpine AS build-env
 ARG MONIKER
 ENV MONIKER moniker
 
-ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3 lz4
 RUN apk add --no-cache $PACKAGES
 
 COPY . /go/delivery/defund

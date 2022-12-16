@@ -98,9 +98,24 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 		}
 
 		// only need to rebalance if there are balances/assets for this fund and if it isn't currently rebalancing
-		if len(fund.Balances) > 0 && !fund.Rebalancing {
+		if fund.Balances.HasBalance(fund.Symbol) && !fund.Rebalancing {
 			// only have to run rebalance if this is rebalance period (aka no remainder)
 			if ctx.BlockHeight()%fund.Rebalance == 0 {
+				if fund.FundType == etftypes.FundType_ACTIVE {
+					// if the fund is active run through the wasm keeper before you run rebalance
+					contractSdkAddress, err := sdk.AccAddressFromBech32(fund.Contract)
+					if err != nil {
+						ctx.Logger().Error(fmt.Sprintf("error converting contract address %s to sdk address: %s", fund.Contract, err.Error()))
+					}
+					fundSdkAddress, err := sdk.AccAddressFromBech32(fund.Address)
+					if err != nil {
+						ctx.Logger().Error(fmt.Sprintf("error converting fund address %s to sdk address: %s", fund.Address, err.Error()))
+					}
+					_, err = k.wasmInternalKeeper.Execute(ctx, contractSdkAddress, fundSdkAddress, []byte(`{"runner": {}}`), sdk.NewCoins(sdk.Coin{Denom: "", Amount: sdk.NewInt(0)}))
+					if err != nil {
+						ctx.Logger().Error(fmt.Sprintf("error marshalling runner args on contract rebalance run for contract %s (error: %s)", fund.Contract, err.Error()))
+					}
+				}
 				err := k.SendRebalanceTx(ctx, fund)
 				if err != nil {
 					ctx.Logger().Error(fmt.Sprintf("rebalance failed for fund %s with error: %s", fund.Symbol, err.Error()))

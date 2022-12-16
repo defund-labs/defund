@@ -45,7 +45,6 @@ $BINARY gentx val 7000000000ufetf --home $CHAIN_DIR/$CHAINID_1 --chain-id $CHAIN
 $BINARY collect-gentxs --home $CHAIN_DIR/$CHAINID_1
 
 echo "Changing defaults and ports in app.toml and config.toml files..."
-sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/$CHAINID_1/config/config.toml
 sed -i -e 's/cors_allowed_origins = []/cors_allowed_origins = [*]/g' $CHAIN_DIR/$CHAINID_1/config/config.toml
 sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/$CHAINID_1/config/app.toml
 sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/$CHAINID_1/config/app.toml
@@ -72,4 +71,6 @@ echo -E "${contents}" > ./network/data/defund/config/genesis.json
 contents="$(jq '.app_state.broker.params.base_denoms.AtomTrace.path = "transfer/channel-0/transfer/channel-0"' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json
 contents="$(jq '.app_state.broker.params.base_denoms.OsmoTrace.path = "transfer/channel-0"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
+contents="$(jq '.consensus_params.block.time_iota_ms = "1"' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json

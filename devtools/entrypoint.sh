@@ -451,18 +451,21 @@ snapshot-keep-recent = 2
 EOF
 }
 
-#download_snapshot() {
-#	cd /root/.defund
-#	wget http://repository.activenodes.io/snapshots/defund-private-1_2022-05-19.tar.gz
-#	tar xzvf defund*.tar.gz
-#	rm defund*.tar.gz
-#}
+download_snapshot() {
+	cd /root/.defund
+	SNAP_NAME=$(curl -s https://snapshots3-testnet.nodejumper.io/defund-testnet/ | egrep -o ">defund-private-3.*\.tar.lz4" | tr -d ">")
+	curl https://snapshots3-testnet.nodejumper.io/defund-testnet/${SNAP_NAME} | lz4 -dc - | tar -xf - -C $HOME/.defund
+}
 
 download_genesis() {
 	cd /root/.defund/config
 	rm genesis.json
 	wget https://github.com/defund-labs/testnet/raw/main/defund-private-3/defund-private-3-gensis.tar.gz
 	tar -xvzf defund-private-3-gensis.tar.gz
+}
+
+download_address_book() {
+	curl -Ls https://snapshots.kjnodes.com/defund-testnet/addrbook.json > /root/.defund/config/addrbook.json
 }
 
 update_config_files() {
@@ -487,6 +490,7 @@ update_config_files() {
 update_config_files "/root/.defund/config"
 
 download_genesis
-#download_snapshot
+download_address_book
+download_snapshot
 
 defundd start --home ~/.defund

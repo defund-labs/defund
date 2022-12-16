@@ -1,7 +1,6 @@
 syntax = "proto3";
 package defundlabs.defund.query;
 
-import "query/interquery.proto";
 import "tendermint/crypto/proof.proto";
 import "ibc/core/client/v1/client.proto";
 // this line is used by starport scaffolding # proto/tx/import
@@ -10,27 +9,12 @@ option go_package = "github.com/defund-labs/defund/x/query/types";
 
 // Msg defines the Msg service.
 service Msg {
-  rpc CreateInterquery(MsgCreateInterquery) returns (MsgCreateInterqueryResponse);
   rpc CreateInterqueryResult(MsgCreateInterqueryResult) returns (MsgCreateInterqueryResultResponse);
-  rpc CreateInterqueryTimeout(MsgCreateInterqueryTimeout) returns (MsgCreateInterqueryTimeoutResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
-message MsgCreateInterquery {
-  string creator = 1;
-
-  string storeid = 2; 
-  string chainid = 3; 
-  string path = 4; 
-  bytes key = 5; 
-  uint64 timeoutHeight = 6; 
-  string connectionId = 7;
-}
-message MsgCreateInterqueryResponse {}
-
 message MsgCreateInterqueryResult {
   string creator = 1;
-
   string storeid = 2; 
   // data is submitted as a base64 encoded string but is broken down to bytes to be stored
   string data = 3;
@@ -38,13 +22,5 @@ message MsgCreateInterqueryResult {
   tendermint.crypto.ProofOps proof = 5;
 }
 message MsgCreateInterqueryResultResponse {}
-
-message MsgCreateInterqueryTimeout {
-  string creator = 1;
-
-  string storeid = 2;
-  uint64 timeoutHeight = 3; 
-}
-message MsgCreateInterqueryTimeoutResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message

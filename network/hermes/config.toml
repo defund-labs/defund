@@ -91,9 +91,9 @@ port = 3001
 
 [[chains]]
 id = 'defund'
-rpc_addr = 'http://0.0.0.0:26657'
-grpc_addr = 'http://0.0.0.0:9090'
-websocket_addr = 'ws://0.0.0.0:26657/websocket'
+rpc_addr = 'http://localhost:26657'
+grpc_addr = 'http://localhost:9090'
+websocket_addr = 'ws://localhost:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'defund'
 key_name = 'defund'
@@ -104,16 +104,16 @@ gas_price = { price = 0.001, denom = 'ufetf' }
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '1000s'
-max_block_time = '200ms'
+max_block_time = '1s'
 trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
 
 [[chains]]
 id = 'osmo-test-4'
-rpc_addr = 'http://162.55.134.55:26657'
-grpc_addr = 'http://162.55.134.55:9090'
-websocket_addr = 'ws://162.55.134.55:26657/websocket'
+rpc_addr = 'http://35.193.49.115:26657'
+grpc_addr = 'http://35.193.49.115:9090'
+websocket_addr = 'ws://35.193.49.115:26657/websocket'
 rpc_timeout = '10s'
 account_prefix = 'osmo'
 key_name = 'osmo-test-4'
@@ -132,9 +132,10 @@ address_type = { derivation = 'cosmos' }
 [chains.packet_filter]
 policy = 'allow'
 list = [
-    ['transfer', 'channel-1402'],
-    ['icahost', 'channel-1403'],
-    ['icahost', 'channel-1404'],
-    ['icahost', 'channel-1405'],
-    ['icahost', 'channel-1406'],
+    ['transfer', 'channel-1894'],
+    ['icahost', 'channel-1895'],
+    ['icahost', 'channel-1896'],
+    ['icahost', 'channel-1897'],
+    ['icahost', 'channel-1898'],
+    ['icahost', 'channel-1899'],
 ]

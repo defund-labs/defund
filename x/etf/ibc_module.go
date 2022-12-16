@@ -29,10 +29,9 @@ type IBCModule struct {
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper, etfkeeper etfkeeper.Keeper, brokerkeeper brokerkeeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper, brokerkeeper brokerkeeper.Keeper) IBCModule {
 	return IBCModule{
 		keeper:       k,
-		etfKeeper:    etfkeeper,
 		brokerKeeper: brokerkeeper,
 	}
 }

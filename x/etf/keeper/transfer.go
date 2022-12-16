@@ -87,7 +87,7 @@ func (k Keeper) SendIBCSend(ctx sdk.Context, msgs []*banktypes.MsgSend, owner st
 
 	// timeoutTimestamp set to max value with the unsigned bit shifted to sastisfy hermes timestamp conversion
 	// it is the responsibility of the auth module developer to ensure an appropriate timeout timestamp
-	timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Minute).UnixNano())
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(5 * time.Minute).UnixNano())
 	sequence, err = k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, packetData, uint64(timeoutTimestamp))
 	if err != nil {
 		return sequence, channel, err
