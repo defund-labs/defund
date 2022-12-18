@@ -67,7 +67,7 @@ type BrokerKeeper interface {
 	GetTransfer(ctx sdk.Context, index string) (val brokertypes.Transfer, found bool)
 	RemoveTransfer(ctx sdk.Context, id string)
 	GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint64) (val brokertypes.Source, found bool)
-	GetParam(ctx sdk.Context, key []byte) *brokertypes.BaseDenoms
+	GetBaseDenomParam(ctx sdk.Context) brokertypes.BaseDenoms
 	GetRebalance(ctx sdk.Context, index string) (val brokertypes.Rebalance, found bool)
 	RemoveRebalance(ctx sdk.Context, id string)
 	RemoveRedeem(ctx sdk.Context, id string)

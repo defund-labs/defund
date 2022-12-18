@@ -372,7 +372,7 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 	osmosisAccount, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), "connection-0", portID)
 	s.Assert().True(found)
 
-	basedenoms := s.GetDefundApp(s.chainA).BrokerKeeper.GetParam(s.chainA.GetContext(), brokertypes.ParamsKey)
+	basedenoms := s.GetDefundApp(s.chainA).BrokerKeeper.GetBaseDenomParam(s.chainA.GetContext())
 
 	basedenom := types.BaseDenom{
 		OnDefund: basedenoms.OsmoTrace.IBCDenom(),
@@ -393,7 +393,7 @@ func (s *KeeperTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fund ty
 		Rebalance:     10,
 		StartingPrice: &startingPrice,
 		Balances: &types.FundBalances{
-			Osmosis: &types.Balances{
+			Osmosis: types.Balances{
 				Address: osmosisAccount,
 				Balances: []*sdk.Coin{
 					&testAtomIBC, &testOsmoIBC, &testAktIBC,

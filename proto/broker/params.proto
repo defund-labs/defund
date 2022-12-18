@@ -13,6 +13,8 @@ message BaseDenoms{
 
 // Params defines the parameters for the broker module.
 message Params {
-    // set the base denoms
-    BaseDenoms base_denoms = 1;
+    // set the atom official denom path
+    string AtomIBCPath = 1;
+    // set the osmo official denom path
+    string OsmoIBCPath = 2;
 }

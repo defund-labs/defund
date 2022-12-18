@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/defund-labs/defund/app"
 	"github.com/defund-labs/defund/x/broker/keeper"
 	"github.com/defund-labs/defund/x/broker/types"
@@ -21,10 +22,12 @@ import (
 
 func BrokerKeeper(db *dbm.MemDB, t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	paramsStoreKey := sdk.NewKVStoreKey(paramstypes.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(paramsStoreKey, sdk.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, sdk.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
 

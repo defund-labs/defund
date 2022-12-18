@@ -47,7 +47,7 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 			Rebalancing:         val.Rebalancing,
 			LastRebalanceHeight: val.LastRebalanceHeight,
 			Balances: &types.FundBalances{
-				Osmosis: &types.Balances{
+				Osmosis: types.Balances{
 					Address:  "",
 					Balances: []*sdk.Coin{},
 				},

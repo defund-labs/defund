@@ -11,17 +11,6 @@ const TypeMsgAddConnectionBroker = "add_connection_broker"
 var _ sdk.Msg = &MsgAddLiquiditySource{}
 var _ sdk.Msg = &MsgAddConnectionBroker{}
 
-// helper function to check if a string is within a slice
-func contains(list []string, str string) bool {
-	for _, value := range list {
-		if value == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func NewMsgAddLiquiditySource(creator string, brokerId string, poolId uint64) *MsgAddLiquiditySource {
 	return &MsgAddLiquiditySource{
 		Creator:  creator,

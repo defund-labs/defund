@@ -34,7 +34,7 @@ func networkWithFundObjects(t *testing.T, n int) (*network.Network, []types.Fund
 			Holdings:            holdings,
 			LastRebalanceHeight: 0,
 			Balances: &types.FundBalances{
-				Osmosis: &types.Balances{
+				Osmosis: types.Balances{
 					Address:  "",
 					Balances: []*sdk.Coin{},
 				},
