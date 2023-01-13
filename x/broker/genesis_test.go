@@ -11,23 +11,16 @@ import (
 )
 
 func TestGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		Brokers: []types.Broker{},
-		Params:  types.DefaultParams(),
-		// this line is used by starport scaffolding # genesis/test/state
-	}
+	genesisState := types.DefaultGenesis()
 
 	db := dbm.NewMemDB()
 	k, ctx := keepertest.BrokerKeeper(db, t)
-	broker.InitGenesis(ctx, *k, genesisState)
+	broker.InitGenesis(ctx, *k, *genesisState)
 	got := broker.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
-	require.Len(t, got.Brokers, len(genesisState.Brokers))
+	require.Equal(t, got.Brokers[0].Id, "osmosis")
 	require.Equal(t, got.Params.AtomIBCPath, types.DefaultAtomPath)
 	require.Equal(t, got.Params.OsmoIBCPath, types.DefaultOsmoPath)
-	t.Log(genesisState.Brokers)
-	t.Log(got.Brokers)
-	require.Subset(t, genesisState.Brokers, got.Brokers)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
