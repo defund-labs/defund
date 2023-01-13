@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	brokertypes "github.com/defund-labs/defund/x/broker/types"
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
@@ -135,7 +134,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	}
 
 	var basedenom types.BaseDenom
-	basedenoms := k.brokerKeeper.GetParam(ctx, brokertypes.ParamsKey)
+	basedenoms := k.brokerKeeper.GetBaseDenomParam(ctx)
 	if msg.BaseDenom == "atom" {
 		basedenom.OnDefund = basedenoms.AtomTrace.IBCDenom()
 		// create the broker chain denom
@@ -204,7 +203,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
 
 	balances := types.FundBalances{
-		Osmosis: &types.Balances{
+		Osmosis: types.Balances{
 			Address:  "",
 			Balances: []*sdk.Coin{},
 		},
