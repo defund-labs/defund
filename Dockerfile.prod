@@ -1,10 +1,10 @@
 FROM golang:1.19-alpine AS build-env
 
 ARG MONIKER
-ENV MONIKER moniker
+ENV moniker $MONIKER
 
-ARG tag
-ENV TAG tag
+ARG TAG
+ENV tag $TAG
 
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3 lz4
 RUN apk add --no-cache $PACKAGES
@@ -17,11 +17,11 @@ RUN chmod +x /entrypoint.sh
 
 WORKDIR /go/delivery/defund
 
-RUN git checkout $TAG
+RUN git checkout ${TAG}
 
 RUN make install
 
-RUN defundd init $MONIKER
+RUN defundd init ${MONIKER}
 
 EXPOSE 26656 26657 1317 9090
 
