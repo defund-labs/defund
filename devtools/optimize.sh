@@ -1,5 +1,5 @@
 #!/bin/bash
-CONFIG_PATH="./$HOME/.defund/config/config.toml"
+CONFIG_PATH="$HOME/.defund/config/config.toml"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   sed -i 's/max_num_inbound_peers =.*/max_num_inbound_peers = 150/g' $CONFIG_PATH
