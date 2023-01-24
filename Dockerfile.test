@@ -3,7 +3,7 @@ ARG arch=x86_64
 
 RUN set -eux; apk add --no-cache ca-certificates build-base;
 
-ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3 jq
+ENV PACKAGES ca-certificates build-base git curl make libc-dev bash linux-headers eudev-dev python3 jq
 RUN apk add --no-cache $PACKAGES
 
 WORKDIR /code

@@ -452,16 +452,21 @@ EOF
 }
 
 download_snapshot() {
-	cd /root/.defund
-	SNAP_NAME=$(curl -s https://snapshots3-testnet.nodejumper.io/defund-testnet/ | egrep -o ">defund-private-3.*\.tar.lz4" | tr -d ">")
-	curl https://snapshots3-testnet.nodejumper.io/defund-testnet/${SNAP_NAME} | lz4 -dc - | tar -xf - -C $HOME/.defund
+	cp $HOME/.defund/data/priv_validator_state.json $HOME/.defund/priv_validator_state.json.backup
+	defundd tendermint unsafe-reset-all --home $HOME/.defund --keep-addr-book
+
+	rm -rf $HOME/.defund/data 
+
+	SNAP_NAME=$(curl -s http://snapshots.l0vd.com/defund/ | egrep -o ">defund-private-3.*\.tar.lz4" | tr -d ">")
+	curl http://snapshots.l0vd.com/defund/${SNAP_NAME} | lz4 -dc - | tar -xf - -C $HOME/.defund
+
+	mv $HOME/.defund/priv_validator_state.json.backup $HOME/.defund/data/priv_validator_state.json
 }
 
 download_genesis() {
 	cd /root/.defund/config
 	rm genesis.json
-	wget https://github.com/defund-labs/testnet/raw/main/defund-private-3/defund-private-3-gensis.tar.gz
-	tar -xvzf defund-private-3-gensis.tar.gz
+	curl -s https://raw.githubusercontent.com/defund-labs/testnet/main/defund-private-4/genesis.json > ~/.defund/config/genesis.json
 }
 
 download_address_book() {
@@ -490,7 +495,7 @@ update_config_files() {
 update_config_files "/root/.defund/config"
 
 download_genesis
-download_address_book
+#download_address_book
 download_snapshot
 
 defundd start --home ~/.defund

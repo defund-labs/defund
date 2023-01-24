@@ -454,8 +454,7 @@ EOF
 download_genesis() {
 	cd /root/.defund/config
 	rm genesis.json
-	wget https://github.com/defund-labs/testnet/raw/main/defund-private-3/defund-private-3-gensis.tar.gz
-	tar -xvzf defund-private-3-gensis.tar.gz
+	curl -s https://raw.githubusercontent.com/defund-labs/testnet/main/defund-private-4/genesis.json > ~/.defund/config/genesis.json
 }
 
 update_config_files() {
@@ -478,9 +477,6 @@ update_config_files() {
 }
 
 update_config_files "/root/.defund/config"
-
-# Optimize for Defund
-/bin/bash ~/defund/optimize.sh
 
 download_genesis
 

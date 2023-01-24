@@ -13,3 +13,4 @@ relayer/keys/
 relayer/config/
 relayer.log
 env.list
+vue

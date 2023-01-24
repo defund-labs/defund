@@ -25,4 +25,4 @@ RUN defundd init ${MONIKER}
 
 EXPOSE 26656 26657 1317 9090
 
-CMD ["/bin/bash", "/entrypoint.sh"]
+CMD ["/bin/bash", "/bare_entrypoint.sh"]

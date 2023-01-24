@@ -132,10 +132,10 @@ address_type = { derivation = 'cosmos' }
 [chains.packet_filter]
 policy = 'allow'
 list = [
-    ['transfer', 'channel-1894'],
-    ['icahost', 'channel-1895'],
-    ['icahost', 'channel-1896'],
-    ['icahost', 'channel-1897'],
-    ['icahost', 'channel-1898'],
-    ['icahost', 'channel-1899'],
+    ['transfer', 'channel-2171'],
+    ['icahost', 'channel-2172'],
+    ['icahost', 'channel-2173'],
+    ['icahost', 'channel-2174'],
+    ['icahost', 'channel-2175'],
+    ['icahost', 'channel-2176'],
 ]
