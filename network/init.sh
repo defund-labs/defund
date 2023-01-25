@@ -63,6 +63,9 @@ echo -E "${contents}" > ./network/data/defund/config/genesis.json
 # Change gov deposit denom to fake detf
 contents="$(jq '.app_state.gov.deposit_params.min_deposit[0].denom = "ufetf"' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json
+# Change the cost of tx per byte
+contents="$(jq '.app_state.auth.params.tx_size_cost_per_byte = "0"' ./network/data/defund/config/genesis.json)" && \
+echo -E "${contents}" > ./network/data/defund/config/genesis.json
 # Change brokers in broker in genesis file to blank so it will run broker function
 contents="$(jq '.app_state.broker.brokers = []' ./network/data/defund/config/genesis.json)" && \
 echo -E "${contents}" > ./network/data/defund/config/genesis.json
