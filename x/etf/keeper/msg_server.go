@@ -159,7 +159,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 	// Generate and get a new fund address
 	fundAddress := NewFundAddress(msg.Symbol)
 
-	var t types.FundType = types.FundType_ACTIVE
+	var t types.FundType = types.FundType_PASSIVE
 	var contractAddress string
 	if msg.Active {
 		// set the fund type to active
