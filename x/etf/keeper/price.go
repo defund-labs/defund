@@ -51,6 +51,10 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 	if !found {
 		return price, sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", symbol)
 	}
+	fundAddress, err := sdk.AccAddressFromBech32(fund.Address)
+	if err != nil {
+		return price, err
+	}
 	// If the fund is brand new, the price starts at price specifed in BaseDenom (5,000,000 uusdc for example)
 	if fund.Shares.Amount.IsZero() {
 		price = *fund.StartingPrice
@@ -96,8 +100,18 @@ func (k Keeper) CreateFundPrice(ctx sdk.Context, symbol string) (price sdk.Coin,
 		// to obtain the balance in base denom.
 		priceWeighted := holdingBalance.Mul(priceInBaseDenom)
 		comp = append(comp, priceWeighted)
+
+		// if this holding is the base denom, include the base denom amount held on defund fund account
+		if fund.BaseDenom.OnBroker == holding.Token {
+			// get the balance of base denom on defund for fund address
+			amountOnDefundInBaseDenom := k.bankKeeper.GetBalance(ctx, fundAddress, fund.BaseDenom.OnDefund)
+			// add the base denom held on Defund into the sum (not yet transferred to broker)
+			comp = append(comp, amountOnDefundInBaseDenom.Amount.ToDec().Mul(priceInBaseDenom))
+		}
 	}
+	// sum up all the balances in base denom
 	total := sumDecs(comp).Mul(sdk.NewDec(1000000)).RoundInt()
+	// calculate the price per share
 	price = sdk.NewCoin(fund.BaseDenom.OnBroker, total.Quo(fund.Shares.Amount))
 	return price, nil
 }
