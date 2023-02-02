@@ -223,11 +223,11 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 	msgs := make(map[string][]*banktypes.MsgSend)
 	// Map for keeping track of the total of etf shares redeeming for each broker tx so we can
 	// perform logic on acks based on success or failure
-	redeem := make(map[string]sdk.Int)
+	redeem := make(map[string]sdk.Dec)
 
 	// Add Osmosis broker to the mappings
 	msgs["osmosis"] = []*banktypes.MsgSend{}
-	redeem["osmosis"] = sdk.NewInt(0)
+	redeem["osmosis"] = sdk.NewDec(0)
 
 	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
@@ -256,16 +256,16 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 		// multiply the fund price by the current amount of etf tokens to get the basedenom total amount
 		totalWorthOfFundTokensInBaseDenom := fundPrice.Amount.Mul(amount.Amount)
 
-		spotPrice, err := k.CalculateOsmosisSpotPrice(ctx, holding.PoolId, holding.Token, fund.BaseDenom.OnBroker)
+		spotPrice, err := k.CalculateOsmosisSpotPrice(ctx, holding.PoolId, fund.BaseDenom.OnBroker, holding.Token)
 		if err != nil {
 			return err
 		}
 		// calculate the ownership amount in basedenom
-		totalOwnershipInBaseDenom := spotPrice.Mul(currentCoinAmt.ToDec())
+		totalOwnershipInBaseDenom := spotPrice.Mul(currentCoinAmt.ToDec()).Mul(sdk.NewDec(1000000))
 		// calculate the percent amount of fund token this ownership represents
 		percentOwnership := totalOwnershipInBaseDenom.Quo(totalWorthOfFundTokensInBaseDenom.ToDec())
 		// multiply total etf shares amount by ownership percent
-		etfSharesThisHoldingRepresents := amount.Amount.ToDec().Mul(percentOwnership).RoundInt()
+		etfSharesThisHoldingRepresents := amount.Amount.ToDec().Mul(percentOwnership)
 		// Add the amount of the etf shares this holding redeem represents in basedenom
 		redeem["osmosis"] = redeem["osmosis"].Add(etfSharesThisHoldingRepresents)
 
@@ -314,7 +314,7 @@ func (k Keeper) RedeemShares(ctx sdk.Context, creator string, fund types.Fund, a
 			return err
 		}
 
-		etfAmount := sdk.NewCoin(fund.Shares.Denom, redeem[brokerId])
+		etfAmount := sdk.NewCoin(fund.Shares.Denom, redeem[brokerId].RoundInt())
 
 		// Create the redeem store
 		redeem := brokertypes.Redeem{

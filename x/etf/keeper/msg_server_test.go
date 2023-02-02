@@ -7,6 +7,8 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm/ioutils"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	"github.com/defund-labs/defund/x/etf/keeper"
 	"github.com/defund-labs/defund/x/etf/types"
 	"github.com/stretchr/testify/require"
@@ -173,7 +175,7 @@ func (s *KeeperTestSuite) TestSharesMsgServerCreate() {
 func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 	k := s.GetDefundApp(s.chainA).EtfKeeper
 	ctx := s.chainA.GetContext()
-	ctx, _, _, _ = s.setup(ctx)
+	ctx, _, _, portId := s.setup(ctx)
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
 	srv := keeper.NewMsgServerImpl(k)
 	wctx := sdk.WrapSDKContext(ctx)
@@ -192,15 +194,10 @@ func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 	s.Assert().NoError(err)
 	s.CreatePoolQueries(fund)
 	// create the etf shares we will redeem
-	etfToken := sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(224387))
+	etfToken := sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(5000000))
 	err = s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), types.ModuleName, sdk.NewCoins(etfToken))
 	s.Assert().NoError(err)
 	err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(etfToken))
-	s.Assert().NoError(err)
-	// add the etf shares to the fund
-	newShares := fund.Shares.Add(etfToken)
-	fund.Shares = &newShares
-	s.GetDefundApp(s.chainA).EtfKeeper.SetFund(s.chainA.GetContext(), fund)
 	s.Assert().NoError(err)
 
 	s.coordinator.CommitBlock(s.chainA, s.chainB)
@@ -214,8 +211,21 @@ func (s *KeeperTestSuite) TestSharesMsgServerRedeem() {
 		},
 	}
 
+	// mock data for packet
+	data := []byte{18, 219, 113, 12, 103, 107, 95, 216, 56, 143, 130, 159, 113, 176, 79, 128, 79, 214, 45, 220, 115, 169, 192, 84, 181, 42, 226, 211, 113, 13, 252, 109}
+	// create a mock packet
+	packet := channeltypes.NewPacket(data, 1, portId, "channel-1", "icahost", "channel-1", clienttypes.NewHeight(0, 10), 0)
+
 	_, err = srv.Redeem(wctx, expectedRedeem)
 	require.NoError(s.T(), err)
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	redeems := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllRedeembySymbol(ctx, fund.Symbol)
+	s.chainA.Log(redeems)
+	s.GetDefundApp(s.chainA).EtfKeeper.OnRedeemSuccess(ctx, packet, redeems[0])
+	s.coordinator.CommitBlock(s.chainA, s.chainB)
+	fund, found := s.GetDefundApp(s.chainA).EtfKeeper.GetFund(ctx, fund.Symbol)
+	s.Assert().True(found)
+	s.Assert().Equal(*fund.Shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(0)))
 }
 
 func (s *KeeperTestSuite) TestSharesMsgServerEditFund() {
