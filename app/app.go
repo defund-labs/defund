@@ -838,8 +838,7 @@ func (app *App) setupUpgradeStoreLoaders() {
 }
 
 func (app *App) setupUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		v1.UpgradeName, v1.CreateUpgradeHandler(app.mm, app.configurator, &app.EtfKeeper))
+	return
 }
 
 // GetMaccPerms returns a copy of the module account permissions
