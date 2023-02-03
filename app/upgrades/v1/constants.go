@@ -1,3 +1,3 @@
 package v1
 
-const UpgradeName = "Cosmwasm Upgrade"
+const UpgradeName = "v0.2.3"
