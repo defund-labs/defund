@@ -83,6 +83,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v4/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v4/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v4/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
@@ -150,6 +151,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		distrclient.ProposalHandler,
 		upgradeclient.ProposalHandler,
 		upgradeclient.CancelProposalHandler,
+		ibcclientclient.UpdateClientProposalHandler,
+		ibcclientclient.UpgradeProposalHandler,
 		// this line is used by starport scaffolding # stargate/app/govProposalHandler
 	)
 
@@ -411,6 +414,15 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 
+	if len(enabledProposals) != 0 {
+		govRouter.AddRoute(wasm.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, enabledProposals))
+	}
+
+	app.GovKeeper = govkeeper.NewKeeper(
+		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
+		&stakingKeeper, govRouter,
+	)
+
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
@@ -508,25 +520,12 @@ func New(
 	etfModule := etfmodule.NewAppModule(appCodec, app.EtfKeeper, app.AccountKeeper, app.BankKeeper, app.QueryKeeper, app.BrokerKeeper)
 	etfIBCModule := etfmodule.NewIBCModule(app.EtfKeeper, app.BrokerKeeper)
 
-	if len(enabledProposals) != 0 {
-		govRouter.AddRoute(wasm.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, enabledProposals))
-	}
-
-	app.GovKeeper = govkeeper.NewKeeper(
-		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		&stakingKeeper, govRouter,
-	)
-
 	icaControllerIBCModule := icacontroller.NewIBCMiddleware(etfIBCModule, app.ICAControllerKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// finish transfer stack
 	transferStack := etfmodule.NewIBCMiddleware(transferIBCModule, app.EtfKeeper)
 
-	// The gov proposal types can be individually enabled
-	if len(enabledProposals) != 0 {
-		govRouter.AddRoute(wasm.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, enabledProposals))
-	}
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
