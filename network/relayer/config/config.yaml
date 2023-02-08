@@ -4,11 +4,12 @@ global:
     memo: ""
     light-cache-size: 20
 chains:
-    - type: cosmos
+    defund:
+      type: cosmos
       value:
         key: defund
         chain-id: defund
-        rpc-addr: https://localhost:26657
+        rpc-addr: https://t-defund.rpc.utsa.tech:443
         account-prefix: defund
         keyring-backend: test
         gas-adjustment: 1.2
@@ -17,7 +18,8 @@ chains:
         timeout: 20s
         output-format: json
         sign-mode: direct
-    - type: cosmos
+    osmosis:
+      type: cosmos
       value:
         key: osmo
         chain-id: osmo-test-4
@@ -33,13 +35,13 @@ chains:
 paths:
     defundosmosis:
         src:
-            chain-id: defund
-            client-id: 07-tendermint-0
-            connection-id: connection-0
+            chain-id: defund-private-4
+            client-id: 07-tendermint-2
+            connection-id: connection-1
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-2517
-            connection-id: connection-2030
+            client-id: 07-tendermint-3622
+            connection-id: connection-3098
         src-channel-filter:
             rule: ""
             channel-list: []

@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/defund-labs/defund/x/etf/keeper"
 	proto "github.com/gogo/protobuf/proto"
 
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -17,19 +16,19 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
 	brokerkeeper "github.com/defund-labs/defund/x/broker/keeper"
 	etfkeeper "github.com/defund-labs/defund/x/etf/keeper"
+	"github.com/defund-labs/defund/x/etf/types"
 )
 
 var _ porttypes.IBCModule = IBCModule{}
 
 // IBCModule implements the ICS26 interface for interchain accounts controller chains
 type IBCModule struct {
-	keeper       keeper.Keeper
-	etfKeeper    etfkeeper.Keeper
+	keeper       etfkeeper.Keeper
 	brokerKeeper brokerkeeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper, brokerkeeper brokerkeeper.Keeper) IBCModule {
+func NewIBCModule(k etfkeeper.Keeper, brokerkeeper brokerkeeper.Keeper) IBCModule {
 	return IBCModule{
 		keeper:       k,
 		brokerKeeper: brokerkeeper,
@@ -125,7 +124,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return channeltypes.NewErrorAcknowledgement(errors.New("cannot receive packet via broker module"))
+	return channeltypes.NewErrorAcknowledgement(errors.New("cannot receive packet via etf module"))
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -161,12 +160,15 @@ func (im IBCModule) OnTimeoutPacket(
 	redeem, redeemExists := im.brokerKeeper.GetRedeem(ctx, id)
 	if redeemExists {
 		// on a timeout, ICA channel closes so automatically set the fund as not autorebalancing
-		fund, _ := im.keeper.GetFund(ctx, redeem.Fund)
+		fund, found := im.keeper.GetFund(ctx, redeem.Fund)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", redeem.Fund)
+		}
 		fund.Rebalancing = false
 		im.keeper.SetFund(ctx, fund)
 
 		im.keeper.Logger(ctx).Error("redeem %s timed out. Running the redeem timeout logic.", id)
-		err := im.etfKeeper.OnRedeemFailure(ctx, packet, redeem)
+		err := im.keeper.OnRedeemFailure(ctx, packet, redeem)
 		if err != nil {
 			im.keeper.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRedeemFailure", "error", err.Error())
 		}
@@ -177,12 +179,15 @@ func (im IBCModule) OnTimeoutPacket(
 	rebalance, rebalanceExists := im.brokerKeeper.GetRebalance(ctx, id)
 	if rebalanceExists {
 		// on a timeout, ICA channel closes so automatically set the fund as not autorebalancing
-		fund, _ := im.keeper.GetFund(ctx, redeem.Fund)
+		fund, found := im.keeper.GetFund(ctx, rebalance.Fund)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrFundNotFound, "fund %s not found", rebalance.Fund)
+		}
 		fund.Rebalancing = false
 		im.keeper.SetFund(ctx, fund)
 
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("rebalance %s timed out. Running the rebalance timeout logic.", id))
-		err := im.etfKeeper.OnRebalanceFailure(ctx, rebalance, rebalance.Fund)
+		err := im.keeper.OnRebalanceFailure(ctx, rebalance, fund.Symbol)
 		if err != nil {
 			im.keeper.Logger(ctx).Error("Error occured during run of ICA callback.", "callback", "OnRebalanceFailure", "error", err.Error())
 		}
