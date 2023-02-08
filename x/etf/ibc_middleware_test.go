@@ -480,11 +480,22 @@ func (s *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 		data := []byte{18, 219, 113, 12, 103, 107, 95, 216, 56, 143, 130, 159, 113, 176, 79, 128, 79, 214, 45, 220, 115, 169, 192, 84, 181, 42, 226, 211, 113, 13, 252, 109}
 		// create a mock packet
 		packet := channeltypes.NewPacket(data, 1, portId, "channel-1", "icahost", "channel-1", clienttypes.NewHeight(0, 10), 0)
-		txMsgData := &sdk.TxMsgData{}
 		ack := channeltypes.Acknowledgement{
 			Response: &channeltypes.Acknowledgement_Result{},
 		}
-		s.GetDefundApp(s.chainA).EtfKeeper.OnAcknowledgementPacketSuccess(s.chainA.GetContext(), packet, ack, txMsgData)
+		module, _, err := s.GetDefundApp(s.chainA).GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), portId)
+		s.Assert().NoError(err)
+		ibcModule, ok := s.GetDefundApp(s.chainA).GetIBCKeeper().Router.GetRoute(module)
+		s.Assert().True(ok)
+		redeem := brokertypes.Redeem{
+			Id:   fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence),
+			Fund: fund.Symbol,
+		}
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		relayer := s.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+		err = ibcModule.OnAcknowledgementPacket(s.chainA.GetContext(), packet, ack.Acknowledgement(), relayer)
+		s.Assert().NoError(err)
 	})
 
 	s.Run("OnAcknowledgementPacketFailureRedeem", func() {
@@ -492,9 +503,40 @@ func (s *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 		data := []byte{18, 219, 113, 12, 103, 107, 95, 216, 56, 143, 130, 159, 113, 176, 79, 128, 79, 214, 45, 220, 115, 169, 192, 84, 181, 42, 226, 211, 113, 13, 252, 109}
 		// create a mock packet
 		packet := channeltypes.NewPacket(data, 1, portId, "channel-1", "icahost", "channel-1", clienttypes.NewHeight(0, 10), 0)
-		txMsgData := &sdk.TxMsgData{}
 		ack := channeltypes.NewErrorAcknowledgement(errors.New("error submitting packet"))
-		s.GetDefundApp(s.chainA).EtfKeeper.OnAcknowledgementPacketFailure(s.chainA.GetContext(), packet, ack, txMsgData)
+		module, _, err := s.GetDefundApp(s.chainA).GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), portId)
+		s.Assert().NoError(err)
+		ibcModule, ok := s.GetDefundApp(s.chainA).GetIBCKeeper().Router.GetRoute(module)
+		s.Assert().True(ok)
+		redeem := brokertypes.Redeem{
+			Id:   fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence),
+			Fund: fund.Symbol,
+		}
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		relayer := s.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+		err = ibcModule.OnAcknowledgementPacket(s.chainA.GetContext(), packet, ack.Acknowledgement(), relayer)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("OnTimeoutPacketRedeem", func() {
+		// mock data for packet
+		data := []byte{18, 219, 113, 12, 103, 107, 95, 216, 56, 143, 130, 159, 113, 176, 79, 128, 79, 214, 45, 220, 115, 169, 192, 84, 181, 42, 226, 211, 113, 13, 252, 109}
+		// create a mock packet
+		packet := channeltypes.NewPacket(data, 1, portId, "channel-1", "icahost", "channel-1", clienttypes.NewHeight(0, 10), 0)
+		module, _, err := s.GetDefundApp(s.chainA).GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), portId)
+		s.Assert().NoError(err)
+		ibcModule, ok := s.GetDefundApp(s.chainA).GetIBCKeeper().Router.GetRoute(module)
+		s.Assert().True(ok)
+		redeem := brokertypes.Redeem{
+			Id:   fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence),
+			Fund: fund.Symbol,
+		}
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		s.GetDefundApp(s.chainA).BrokerKeeper.SetRedeem(s.chainA.GetContext(), redeem)
+		relayer := s.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+		err = ibcModule.OnTimeoutPacket(s.chainA.GetContext(), packet, relayer)
+		s.Assert().NoError(err)
 	})
 
 	s.Run("OnAcknowledgementPacketSuccessRebalance", func() {
