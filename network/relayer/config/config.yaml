@@ -9,7 +9,7 @@ chains:
       value:
         key: defund
         chain-id: defund
-        rpc-addr: https://t-defund.rpc.utsa.tech:443
+        rpc-addr: http://localhost:26657
         account-prefix: defund
         keyring-backend: test
         gas-adjustment: 1.2
@@ -18,12 +18,12 @@ chains:
         timeout: 20s
         output-format: json
         sign-mode: direct
-    osmosis:
+    osmo-test-4:
       type: cosmos
       value:
         key: osmo
         chain-id: osmo-test-4
-        rpc-addr: https://rpc-test.osmosis.zone:443
+        rpc-addr: http://35.193.49.115:26657
         account-prefix: osmo
         keyring-backend: test
         gas-adjustment: 1.2
@@ -35,13 +35,13 @@ chains:
 paths:
     defundosmosis:
         src:
-            chain-id: defund-private-4
-            client-id: 07-tendermint-2
-            connection-id: connection-1
+            chain-id: defund
+            client-id: 07-tendermint-0
+            connection-id: connection-0
         dst:
             chain-id: osmo-test-4
-            client-id: 07-tendermint-3622
-            connection-id: connection-3098
+            client-id: 07-tendermint-3658
+            connection-id: connection-3130
         src-channel-filter:
             rule: ""
             channel-list: []

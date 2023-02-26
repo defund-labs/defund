@@ -223,10 +223,11 @@ init:
 	@echo "Starting up hermes"
 	./network/hermes/start.sh
 
-init-rly:
+start-go-rly:
 	@echo "Initializing relayer..." 
 	./network/relayer/init.sh
 	./network/relayer/restore-keys.sh
+	./network/relayer/start.sh
 
 start: 
 	@echo "Starting up network"
