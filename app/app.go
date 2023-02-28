@@ -121,6 +121,7 @@ import (
 
 	// Upgrades
 	v1 "github.com/defund-labs/defund/app/upgrades/v1"
+	v2 "github.com/defund-labs/defund/app/upgrades/v2"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -830,6 +831,8 @@ func (app *App) setupUpgradeStoreLoaders() {
 func (app *App) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v1.UpgradeName, v1.CreateUpgradeHandler(app.mm, app.configurator, &app.EtfKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v2.UpgradeName, v2.CreateUpgradeHandler(app.mm, app.configurator, &app.EtfKeeper))
 }
 
 // GetMaccPerms returns a copy of the module account permissions
