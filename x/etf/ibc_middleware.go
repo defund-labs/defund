@@ -1,8 +1,6 @@
 package etf
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
@@ -29,7 +27,6 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-// If fees are not enabled, this callback will default to the ibc-core packet callback.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -136,7 +133,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) (ack exported.Acknowledgement) {
-	im.keeper.Logger(ctx).Debug(fmt.Sprintf("received transfer packet (sequence: %d) through etf middleware", packet.Sequence))
 	return im.app.OnRecvPacket(ctx, packet, relayer)
 }
 
@@ -145,6 +141,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if err := im.keeper.OnTimeoutPacket(ctx, packet, relayer); err != nil {
+		return err
+	}
+
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 

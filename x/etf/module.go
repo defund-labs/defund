@@ -178,7 +178,6 @@ func (AppModule) ConsensusVersion() uint64 { return 3 }
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	// Run All ETF Begin Block Hooks
 	am.keeper.EtfQueryCleanerBeginBlocker(ctx)
-	am.keeper.SendPendingTransfers(ctx)
 	am.keeper.SetPoolStatusHookOsmosis(ctx)
 }
 

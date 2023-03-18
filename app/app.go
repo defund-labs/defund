@@ -525,7 +525,8 @@ func New(
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// finish transfer stack
-	transferStack := etfmodule.NewIBCMiddleware(transferIBCModule, app.EtfKeeper)
+	var transferStack porttypes.IBCModule = transferIBCModule
+	transferStack = etfmodule.NewIBCMiddleware(transferStack, app.EtfKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()

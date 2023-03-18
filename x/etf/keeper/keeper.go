@@ -136,21 +136,10 @@ func sumDecs(items []sdk.Dec) sdk.Dec {
 
 // CreateShares send an IBC transfer to all the brokers for each holding with the proportion of tokenIn
 // represented in baseDenom that the broker will then rebalance on the next rebalance.
-func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, tokenIn sdk.Coin, creator string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) (numETFShares sdk.Coin, err error) {
+func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, tokenIn sdk.Coin, creator string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error {
 	creatorAcc, err := sdk.AccAddressFromBech32(creator)
 	if err != nil {
-		return numETFShares, err
-	}
-	fundAcc, err := sdk.AccAddressFromBech32(fund.Address)
-	if err != nil {
-		return numETFShares, err
-	}
-
-	// send the tokenIn to the Defund fund account to ensure that we receive the
-	// tokens correctly and instantly to proceed.
-	err = k.bankKeeper.SendCoins(ctx, creatorAcc, fundAcc, sdk.NewCoins(tokenIn))
-	if err != nil {
-		return numETFShares, err
+		return err
 	}
 
 	// for each holding send proportional tokenIn to the holdings broker chain. logic continues in
@@ -158,26 +147,26 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 	for _, holding := range fund.Holdings {
 		broker, found := k.brokerKeeper.GetBroker(ctx, holding.BrokerId)
 		if !found {
-			return numETFShares, sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
+			return sdkerrors.Wrap(types.ErrWrongBroker, fmt.Sprintf("broker %s not found", holding.BrokerId))
 		}
 
 		// get the ica account for the fund on the broker chain
 		portID, err := icatypes.NewControllerPortID(fund.Address)
 		if err != nil {
-			return numETFShares, err
+			return err
 		}
 		fundBrokerAddress, found := k.GetBrokerAccount(ctx, broker.ConnectionId, portID)
 		if !found {
-			return numETFShares, sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
+			return sdkerrors.Wrapf(brokertypes.ErrIBCAccountNotExist, "failed to find ica account for owner %s on connection %s and port %s", fund.Address, broker.ConnectionId, portID)
 		}
 
 		// Multiply the tokenIn by the % this holding should represent
 		sendAmt := tokenIn.Amount.Mul(sdk.NewInt(holding.Percent)).Quo(sdk.NewInt(100))
 		sendCoin := sdk.NewCoin(tokenIn.Denom, sendAmt)
 
-		sequence, err := k.SendTransfer(ctx, channel, sendCoin, fund.Address, fundBrokerAddress, timeoutHeight, timeoutTimestamp)
+		sequence, err := k.SendTransfer(ctx, channel, sendCoin, creatorAcc.String(), fundBrokerAddress, timeoutHeight, timeoutTimestamp)
 		if err != nil {
-			return numETFShares, err
+			return err
 		}
 		transfer := brokertypes.Transfer{
 			Id:       fmt.Sprintf("%s-%d", channel, sequence),
@@ -185,35 +174,14 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			Sequence: sequence,
 			Status:   types.TransferStateTransferring,
 			Token:    &sendCoin,
-			Sender:   fund.Address,
+			Sender:   creatorAcc.String(),
 			Receiver: fundBrokerAddress,
+			Fund:     fund.Symbol,
 		}
 		k.brokerKeeper.SetTransfer(ctx, transfer)
 	}
 
-	// compute the amount of etf shares this creator is given
-	numETFShares, err = k.GetAmountETFSharesForToken(ctx, fund, tokenIn)
-	if err != nil {
-		return numETFShares, err
-	}
-	newETFCoins := sdk.NewCoins(numETFShares)
-
-	// finally mint coins (to module account) and then send them to the creator of the create
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, newETFCoins)
-	if err != nil {
-		return numETFShares, err
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creatorAcc, newETFCoins)
-	if err != nil {
-		return numETFShares, err
-	}
-
-	// finally reflect the new shares in the fund store for shares
-	newShares := fund.Shares.Add(numETFShares)
-	fund.Shares = &newShares
-	k.SetFund(ctx, fund)
-
-	return numETFShares, nil
+	return nil
 }
 
 // RedeemShares sends an ICA Send message to each broker chain for each holding to be run on that chain.

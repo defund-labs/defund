@@ -605,4 +605,31 @@ func (s *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 		err = ibcModule.OnTimeoutPacket(s.chainA.GetContext(), packet, relayer)
 		s.Assert().NoError(err)
 	})
+	s.Run("OnTimeoutTransfer", func() {
+		// create shares for middleware not to fail
+		tokenIn := sdk.NewCoin(fund.BaseDenom.OnDefund, sdk.NewInt(44565793))
+		err := s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), "etf", sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
+		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenIn))
+		s.Assert().NoError(err)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		s.Assert().NoError(err)
+		// mock data for packet
+		data, err := base64.StdEncoding.DecodeString("eyJhbW91bnQiOiIxMDAwMDAwMCIsImRlbm9tIjoidHJhbnNmZXIvY2hhbm5lbC0xL3Vvc21vIiwicmVjZWl2ZXIiOiJvc21vMTQ1czM4dmh2bjVqaGN2OWQyZWtrYXZ1NjUyenc2dHI3YXE0OWZjNXFlYzd0eXdwcWV6a3F6dW43MnIiLCJzZW5kZXIiOiJkZWZ1bmQxeDh4MnY0Z3VqYTl5NWxrbjgzNnVncm5kenF1eTJoZ3lmcXNxYTNtbHBmemV0Mm11MG10cXk4eXYwOCJ9")
+		s.Assert().NoError(err)
+		// create a mock packet
+		packet := channeltypes.NewPacket(data, 1, "transfer", path.EndpointA.ChannelID, "transfer", path.EndpointB.ChannelID, clienttypes.NewHeight(0, 10), 0)
+		escrowAddress := ibctransfertypes.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+		err = s.GetDefundApp(s.chainA).BankKeeper.MintCoins(s.chainA.GetContext(), "etf", sdk.NewCoins(sdk.NewCoin("ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B", sdk.NewInt(10000000))))
+		s.Assert().NoError(err)
+		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), "etf", escrowAddress, sdk.NewCoins(sdk.NewCoin("ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B", sdk.NewInt(10000000))))
+		s.Assert().NoError(err)
+		module, _, err := s.GetDefundApp(s.chainA).GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), "transfer")
+		s.Assert().NoError(err)
+		ibcModule, ok := s.GetDefundApp(s.chainA).GetIBCKeeper().Router.GetRoute(module)
+		s.Assert().True(ok)
+		relayer := s.chainA.SenderAccounts[2].SenderAccount.GetAddress()
+		err = ibcModule.OnTimeoutPacket(s.chainA.GetContext(), packet, relayer)
+		s.Assert().NoError(err)
+	})
 }

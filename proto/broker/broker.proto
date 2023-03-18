@@ -30,6 +30,8 @@ message Transfer {
     string receiver = 7;
     // if we need to stake the transfer on completion or not
     bool stake = 8;
+    // fund symbol
+    string fund = 9;
 }
 
 message Redeem {

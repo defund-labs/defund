@@ -541,9 +541,8 @@ func (s *KeeperTestSuite) TestETFFundActions() {
 		s.Assert().NoError(err)
 		err = s.GetDefundApp(s.chainA).BankKeeper.SendCoinsFromModuleToAccount(s.chainA.GetContext(), types.ModuleName, s.chainA.SenderAccounts[1].SenderAccount.GetAddress(), sdk.NewCoins(tokenIn))
 		s.Assert().NoError(err)
-		shares, err := s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
+		err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
-		s.Assert().Equal(shares, sdk.NewCoin(fund.Shares.Denom, sdk.NewInt(1000000)))
 	})
 
 	s.Run("Rebalance", func() {
