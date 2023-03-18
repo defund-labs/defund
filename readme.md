@@ -61,14 +61,13 @@ npm run dev
 ```
 
 ### Planned Roadmap
-* Add Market Cap Weighted as Cosmwasm Contract
 * Fractionalized NFT's
-* Superfluid Staking - Fixed Income dETF's
+* Perps
+* Options
 * Support for More Chains and Tokens Until All Tokens are Supported :)
 
 ### Potential Roadmap
 * Add Support for More TradFi Based Smart Contract Language Support (Java?, Python?, Julia?)
-* Sub 1s Block Times for HFT?
 
 ## CLI Docs
 - [Create Fund Command](./x/etf/client/docs/create-etf.md)
