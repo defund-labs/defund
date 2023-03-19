@@ -128,3 +128,14 @@ max_block_time = '10s'
 trusting_period = '1days'
 trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
+
+[chains.packet_filter]
+policy = 'allow'
+list = [
+    ['transfer', 'channel-3146'],
+    ['icahost', 'channel-3147'],
+    ['icahost', 'channel-3148'],
+    ['icahost', 'channel-3149'],
+    ['icahost', 'channel-3150'],
+    ['icahost', 'channel-3151'],
+]
