@@ -21,6 +21,14 @@ service Query {
   rpc Brokers(QueryBrokersRequest) returns (QueryBrokersResponse) {
     option (google.api.http).get = "/defund-labs/defund/broker/broker";
   };
+  // QueryCreateRequest returns all create shares in progress
+  rpc Create(QueryCreateRequest) returns (QueryCreateResponse) {
+    option (google.api.http).get = "/defund-labs/defund/broker/creates";
+  };
+  // QueryRedeemRequest returns all redeem shares in progress
+  rpc Redeem(QueryRedeemRequest) returns (QueryRedeemResponse) {
+    option (google.api.http).get = "/defund-labs/defund/broker/redeems";
+  };
   // this line is used by starport scaffolding # 2
 }
 
@@ -53,6 +61,28 @@ message QueryBrokersRequest {
 // QueryBrokersResponse the response type for the Query/Brokers RPC
 message QueryBrokersResponse {
   repeated Broker brokers = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryCreateRequest is the request type for the Query/Brokers RPC
+message QueryCreateRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryCreateResponse the response type for the Query/Brokers RPC
+message QueryCreateResponse {
+  repeated Create creates = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryRedeemRequest is the request type for the Query/Brokers RPC
+message QueryRedeemRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryRedeemResponse the response type for the Query/Brokers RPC
+message QueryRedeemResponse {
+  repeated Redeem redeems = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

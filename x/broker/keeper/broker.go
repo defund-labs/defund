@@ -80,8 +80,8 @@ func (k Keeper) GetPoolFromBroker(ctx sdk.Context, brokerId string, poolId uint6
 	return val, false
 }
 
-// SetTransfer set a specific transfer in the store from its index
-func (k Keeper) SetTransfer(ctx sdk.Context, transfer types.Transfer) {
+// SetCreate set a specific create in the store from its index
+func (k Keeper) SetCreate(ctx sdk.Context, transfer types.Create) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferKeyPrefix))
 	b := k.cdc.MustMarshal(&transfer)
 	store.Set(types.TransferKey(
@@ -89,12 +89,12 @@ func (k Keeper) SetTransfer(ctx sdk.Context, transfer types.Transfer) {
 	), b)
 }
 
-// GetTransfer returns a transfer from its index
-func (k Keeper) GetTransfer(
+// GetCreate returns a create from its index
+func (k Keeper) GetCreate(
 	ctx sdk.Context,
 	index string,
 
-) (val types.Transfer, found bool) {
+) (val types.Create, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferKeyPrefix))
 
 	b := store.Get(types.TransferKey(
@@ -108,8 +108,8 @@ func (k Keeper) GetTransfer(
 	return val, true
 }
 
-// RemoveTransfer removes an transfer from the store
-func (k Keeper) RemoveTransfer(
+// RemoveCreate removes an create from the store
+func (k Keeper) RemoveCreate(
 	ctx sdk.Context,
 	id string,
 
@@ -120,8 +120,8 @@ func (k Keeper) RemoveTransfer(
 	))
 }
 
-// GetAllTransfer returns all transfers from store
-func (k Keeper) GetAllTransfer(ctx sdk.Context) (list []types.Transfer) {
+// Create returns all creates from store
+func (k Keeper) GetAllCreate(ctx sdk.Context) (list []types.Create) {
 	store := ctx.KVStore(k.storeKey)
 	transferStore := prefix.NewStore(store, []byte(types.TransferKeyPrefix))
 
@@ -130,9 +130,29 @@ func (k Keeper) GetAllTransfer(ctx sdk.Context) (list []types.Transfer) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Transfer
+		var val types.Create
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
+	}
+
+	return
+}
+
+// GetAllCreateWithDep returns all creates from store based on the query it depends on
+func (k Keeper) GetAllCreateWithDep(ctx sdk.Context, queryId string, status string) (list []types.Create) {
+	store := ctx.KVStore(k.storeKey)
+	transferStore := prefix.NewStore(store, []byte(types.TransferKeyPrefix))
+
+	iterator := transferStore.Iterator(nil, nil)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Create
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Query == queryId && val.Status == status {
+			list = append(list, val)
+		}
 	}
 
 	return

@@ -71,3 +71,61 @@ func (k Keeper) Brokers(goCtx context.Context, req *types.QueryBrokersRequest) (
 
 	return &types.QueryBrokersResponse{Brokers: brokers, Pagination: pageRes}, nil
 }
+
+// Create implements the Query/Broker gRPC method
+func (k Keeper) Create(goCtx context.Context, req *types.QueryCreateRequest) (*types.QueryCreateResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	var creates []types.Create
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	createStore := prefix.NewStore(store, []byte(types.TransferKeyPrefix))
+
+	pageRes, err := query.Paginate(createStore, req.Pagination, func(key []byte, value []byte) error {
+		var create types.Create
+		if err := k.cdc.Unmarshal(value, &create); err != nil {
+			return err
+		}
+
+		creates = append(creates, create)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryCreateResponse{Creates: creates, Pagination: pageRes}, nil
+}
+
+// Redeem implements the Query/Broker gRPC method
+func (k Keeper) Redeem(goCtx context.Context, req *types.QueryRedeemRequest) (*types.QueryRedeemResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	var redeems []types.Redeem
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	redeemStore := prefix.NewStore(store, []byte(types.RedeemKeyPrefix))
+
+	pageRes, err := query.Paginate(redeemStore, req.Pagination, func(key []byte, value []byte) error {
+		var redeem types.Redeem
+		if err := k.cdc.Unmarshal(value, &redeem); err != nil {
+			return err
+		}
+
+		redeems = append(redeems, redeem)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryRedeemResponse{Redeems: redeems, Pagination: pageRes}, nil
+}

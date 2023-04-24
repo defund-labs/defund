@@ -40,7 +40,7 @@ func (s *KeeperTestSuite) TestCallbacks() {
 		err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		// query the transfers and get the one for the create shares above
-		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllTransfer(s.chainA.GetContext())
+		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllCreate(s.chainA.GetContext())
 		data := transfertypes.NewFungibleTokenPacketData(transfers[0].Token.Denom, transfers[0].Token.Amount.String(), transfers[0].Sender, transfers[0].Receiver)
 		packet := channeltypes.NewPacket(data.GetBytes(), transfers[0].Sequence, "transfer", path.EndpointA.ChannelID, "transfer", path.EndpointB.ChannelID, clienttypes.NewHeight(0, 10), 0)
 		ack := channeltypes.NewResultAcknowledgement([]byte("success"))
@@ -68,7 +68,7 @@ func (s *KeeperTestSuite) TestCallbacks() {
 		err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		// query the transfers and get the one for the create shares above
-		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllTransfer(s.chainA.GetContext())
+		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllCreate(s.chainA.GetContext())
 		data := transfertypes.NewFungibleTokenPacketData(transfers[0].Token.Denom, transfers[0].Token.Amount.String(), transfers[0].Sender, transfers[0].Receiver)
 		packet := channeltypes.NewPacket(data.GetBytes(), transfers[0].Sequence, "transfer", path.EndpointA.ChannelID, "transfer", path.EndpointB.ChannelID, clienttypes.NewHeight(0, 10), 0)
 		ack := channeltypes.NewErrorAcknowledgement(sdkerrors.New("create error", 1000, "create error"))
@@ -109,7 +109,7 @@ func (s *KeeperTestSuite) TestCallbacks() {
 		err = s.GetDefundApp(s.chainA).EtfKeeper.CreateShares(s.chainA.GetContext(), fund, "channel-0", tokenIn, s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 100), 0)
 		s.Assert().NoError(err)
 		// query the transfers and get the one for the create shares above
-		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllTransfer(s.chainA.GetContext())
+		transfers := s.GetDefundApp(s.chainA).BrokerKeeper.GetAllCreate(s.chainA.GetContext())
 		data := transfertypes.NewFungibleTokenPacketData(transfers[0].Token.Denom, transfers[0].Token.Amount.String(), transfers[0].Sender, transfers[0].Receiver)
 		packet := channeltypes.NewPacket(data.GetBytes(), transfers[0].Sequence, "transfer", path.EndpointA.ChannelID, "transfer", path.EndpointB.ChannelID, clienttypes.NewHeight(0, 10), 0)
 		ack := channeltypes.NewErrorAcknowledgement(sdkerrors.New("create error", 1000, "create error"))

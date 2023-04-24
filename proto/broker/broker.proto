@@ -20,7 +20,7 @@ message Broker {
     string status = 4;
 }
 
-message Transfer {
+message Create {
     string id = 1;
     string channel = 2;
     uint64 sequence = 3;
@@ -32,6 +32,8 @@ message Transfer {
     bool stake = 8;
     // fund symbol
     string fund = 9;
+    // the query id this relies on
+    string query = 10;
 }
 
 message Redeem {
@@ -43,12 +45,12 @@ message Redeem {
     string type = 6;
     // if the type is staked, we need a timestamp for when it will be unstaked
     string unstakeTimestamp = 7;
-  }
+}
   
-  message Rebalance {
+message Rebalance {
     string id = 1;
     string fund = 2;
     // the height the rebalance was created
     int64 height = 3;
     string broker = 4;
-  }
+}

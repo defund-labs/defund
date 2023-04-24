@@ -19,6 +19,8 @@ type (
 		storeKey sdk.StoreKey
 		memKey   sdk.StoreKey
 
+		callBacks []*func(sdk.Context, types.InterqueryResult) error
+
 		accountKeeper    types.AccountKeeper
 		connectionKeeper types.ConnectionKeeper
 		clientKeeper     types.ClientKeeper
@@ -47,6 +49,8 @@ func NewKeeper(
 		storeKey: storeKey,
 		memKey:   memKey,
 
+		callBacks: make([]*func(sdk.Context, types.InterqueryResult) error, 0),
+
 		accountKeeper:    accountkeeper,
 		connectionKeeper: connectionkeeper,
 		clientKeeper:     clientkeeper,
@@ -55,6 +59,10 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) AddCallback(ctx sdk.Context, callback func(sdk.Context, types.InterqueryResult) error) {
+	k.callBacks = append(k.callBacks, &callback)
 }
 
 func (k Keeper) NewQueryAddress(id uint64) sdk.AccAddress {

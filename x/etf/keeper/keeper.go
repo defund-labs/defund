@@ -168,7 +168,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 		if err != nil {
 			return err
 		}
-		transfer := brokertypes.Transfer{
+		transfer := brokertypes.Create{
 			Id:       fmt.Sprintf("%s-%d", channel, sequence),
 			Channel:  channel,
 			Sequence: sequence,
@@ -178,7 +178,7 @@ func (k Keeper) CreateShares(ctx sdk.Context, fund types.Fund, channel string, t
 			Receiver: fundBrokerAddress,
 			Fund:     fund.Symbol,
 		}
-		k.brokerKeeper.SetTransfer(ctx, transfer)
+		k.brokerKeeper.SetCreate(ctx, transfer)
 	}
 
 	return nil

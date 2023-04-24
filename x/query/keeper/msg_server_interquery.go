@@ -98,6 +98,15 @@ func (k msgServer) CreateInterqueryResult(goCtx context.Context, msg *types.MsgC
 
 		// Create the interquery result in the store
 		k.SetInterqueryResult(ctx, interqueryresult)
+
+		// Run callbacks
+		for _, callback := range k.callBacks {
+			run := *callback
+			err := run(ctx, interqueryResult)
+			if err != nil {
+				return nil, err
+			}
+		}
 	} else {
 		// if we got a nil response, verify non inclusion proof.
 		if err := merkleProof.VerifyNonMembership(tmclientstate.ProofSpecs, consensusState.GetRoot(), path); err != nil {
