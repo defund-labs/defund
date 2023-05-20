@@ -64,10 +64,6 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 	return address.Module("etf", key)
 }
 
-func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/%s", symbol)
-}
-
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 	return app.ModuleBasics.DefaultGenesis(cdc)
 }
@@ -366,7 +362,7 @@ func (s *IntegrationTestSuite) CreateTestFund(transferPath *ibctesting.Path) (fu
 	}
 	// add the holdings as slice of holdings
 	holdings := []*types.Holding{&holdingOne, &holdingTwo, &holdingThree}
-	shares := sdk.NewCoin(GetFundDenom(testFundSymbol), sdk.NewInt(5000000))
+	shares := sdk.NewCoin(testFundSymbol, sdk.NewInt(5000000))
 	startingPrice := sdk.NewCoin(baseDenom, sdk.NewInt(5000000))
 
 	osmosisAccount, found := s.GetDefundApp(s.chainA).ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), "connection-0", portID)

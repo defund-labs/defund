@@ -32,10 +32,6 @@ func NewFundAddress(fundId string) sdk.AccAddress {
 	return address.Module("etf", key)
 }
 
-func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/%s", symbol)
-}
-
 func removeLastChannel(path string) string {
 	var newPath string = ""
 	splits := strings.Split(path, "/")
@@ -200,7 +196,7 @@ func (k msgServer) CreateFund(goCtx context.Context, msg *types.MsgCreateFund) (
 		return nil, err
 	}
 	startPrice := sdk.NewCoin(basedenom.OnBroker, sdk.NewInt(rawIntStartingPrice))
-	shares := sdk.NewCoin(GetFundDenom(msg.Symbol), sdk.ZeroInt())
+	shares := sdk.NewCoin(msg.Symbol, sdk.ZeroInt())
 
 	balances := types.FundBalances{
 		Osmosis: types.Balances{

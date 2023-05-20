@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -44,10 +43,6 @@ func TestKeeperTestSuite(t *testing.T) {
 func NewFundAddress(fundId string) sdk.AccAddress {
 	key := append([]byte("etf"), []byte(fundId)...)
 	return address.Module("etf", key)
-}
-
-func GetFundDenom(symbol string) string {
-	return fmt.Sprintf("etf/%s", symbol)
 }
 
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {

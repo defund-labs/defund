@@ -74,7 +74,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		addr, err := sdk.AccAddressFromBech32(s.chainA.SenderAccount.GetAddress().String())
 		s.Assert().NoError(err)
 		balance = s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), addr)
-		// account starts off with 1000000etf/test
+		// account starts off with 1000000test
 		s.Assert().Contains(balance, amount)
 		err = s.GetDefundApp(s.chainA).EtfKeeper.OnRedeemFailure(s.chainA.GetContext(), packet, redeem)
 		s.Assert().NoError(err)
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestBrokerCallbacks() {
 		s.Assert().NotContains(balance, amount)
 		// confirm that the balance of etf shares was sent back to the redeemer
 		balance = s.GetDefundApp(s.chainA).BankKeeper.GetAllBalances(s.chainA.GetContext(), addr)
-		// account should now have 2000000etf/test
+		// account should now have 2000000test
 		s.Assert().Contains(balance, sdk.NewCoin(fund.Shares.Denom, amount.Amount.Add(sdk.NewInt(1000000))))
 	})
 

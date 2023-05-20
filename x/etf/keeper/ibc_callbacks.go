@@ -72,8 +72,9 @@ func (k Keeper) OnTransferFailure(ctx sdk.Context, packet channeltypes.Packet, a
 // is handled on Transfer module at the end of Transfer middleware stack automatically.
 func (k Keeper) OnTransferTimeout(ctx sdk.Context, packet channeltypes.Packet) error {
 	transfer, found := k.brokerKeeper.GetTransfer(ctx, fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+	// if not found continue with logic
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCreateNotFound, "transfer %s not found", fmt.Sprintf("%s-%d", packet.SourceChannel, packet.Sequence))
+		return nil
 	}
 	ctx.Logger().Debug(fmt.Sprintf("transfer %s timed out. sending escrowed assets back to user", transfer.Id))
 	k.brokerKeeper.RemoveTransfer(ctx, transfer.Id)
