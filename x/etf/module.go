@@ -176,6 +176,11 @@ func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	// temp delete "SLSTI" fund for devnet mission
+	_, found := am.keeper.GetFund(ctx, "SLSTI")
+	if found {
+		am.keeper.RemoveFund(ctx, "SLSTI")
+	}
 	// Run All ETF Begin Block Hooks
 	am.keeper.EtfQueryCleanerBeginBlocker(ctx)
 	am.keeper.SetPoolStatusHookOsmosis(ctx)

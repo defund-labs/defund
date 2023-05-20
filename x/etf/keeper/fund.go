@@ -104,3 +104,15 @@ func (k Keeper) GetNextID(ctx sdk.Context) (id string) {
 
 	return strconv.Itoa(count)
 }
+
+// RemoveFund removes an fund from the store
+func (k Keeper) RemoveFund(
+	ctx sdk.Context,
+	symbol string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FundKeyPrefix))
+	store.Delete(types.FundKey(
+		symbol,
+	))
+}
