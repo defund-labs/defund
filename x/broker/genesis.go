@@ -11,7 +11,7 @@ import (
 // Create a list of all pool ids supported on osmosis at init/genesis
 var poolsOsmosis = []uint64{
 	1, 2, 560, 604, 561, 497, 584, 3, 9, 601, 605, 627, 481, 5, 629, 15, 619, 608, 7, 463, 571, 42, 586,
-	577, 621, 573, 553, 602, 197, 597, 651, 645, 557, 626, 631, 613, 647, 624, 637, 11, 641,
+	577, 621, 573, 553, 602, 197, 597, 651, 645, 557, 626, 631, 613, 647, 624, 637, 11, 641, 822,
 }
 
 // AddOsmosisToBrokers adds Osmosis as a broker to state manually
