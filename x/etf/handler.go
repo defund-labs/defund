@@ -9,7 +9,7 @@ import (
 	"github.com/defund-labs/defund/x/etf/types"
 )
 
-// NewHandler ...
+// NewHandler returns a new SDK handler for the ETF module.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 
@@ -18,21 +18,36 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 		case *types.MsgCreateFund:
-			res, err := msgServer.CreateFund(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
+			return handleMsgCreateFund(ctx, msgServer, msg)
 		case *types.MsgCreate:
-			res, err := msgServer.Create(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
+			return handleMsgCreate(ctx, msgServer, msg)
 		case *types.MsgRedeem:
-			res, err := msgServer.Redeem(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
+			return handleMsgRedeem(ctx, msgServer, msg)
 		case *types.MsgEditFund:
-			res, err := msgServer.EditFund(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-			// this line is used by starport scaffolding # 1
+			return handleMsgEditFund(ctx, msgServer, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
+}
+
+func handleMsgCreateFund(ctx sdk.Context, msgServer keeper.MsgServer, msg *types.MsgCreateFund) (*sdk.Result, error) {
+	res, err := msgServer.CreateFund(sdk.WrapSDKContext(ctx), msg)
+	return sdk.WrapServiceResult(ctx, res, err)
+}
+
+func handleMsgCreate(ctx sdk.Context, msgServer keeper.MsgServer, msg *types.MsgCreate) (*sdk.Result, error) {
+	res, err := msgServer.Create(sdk.WrapSDKContext(ctx), msg)
+	return sdk.WrapServiceResult(ctx, res, err)
+}
+
+func handleMsgRedeem(ctx sdk.Context, msgServer keeper.MsgServer, msg *types.MsgRedeem) (*sdk.Result, error) {
+	res, err := msgServer.Redeem(sdk.WrapSDKContext(ctx), msg)
+	return sdk.WrapServiceResult(ctx, res, err)
+}
+
+func handleMsgEditFund(ctx sdk.Context, msgServer keeper.MsgServer, msg *types.MsgEditFund) (*sdk.Result, error) {
+	res, err := msgServer.EditFund(sdk.WrapSDKContext(ctx), msg)
+	return sdk.WrapServiceResult(ctx, res, err)
 }
