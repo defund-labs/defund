@@ -1,12 +1,9 @@
 ![alt text](https://defund.app/images/Defund-6-p-500.png)
 
-**DeFund** is a blockchain that allows quantitative developers, financial institutions, ETF providers, financial advisors, and individual investors to build and invest in decentralized exchange traded funds that are completely trustless and decentralized with access to tokens from 60+ blockchains and support for 1000+ assets.
+## What is DeFund
 
-Use our base index fund smart contract to create a dETF from the command line or our UI in minutes. Alternatively, build out your own smart contract based dETF in hours, with direct support for 1000's of assets from 60+ chains.
+**DeFund** is a performance-optimized blockchain that fuels a rich ecosystem of DeFi products and applications, granting builders and investors access to unmatched cross-chain liquidity, minimized or maximized risk, and the full freedom to execute custom trading strategies across hundreds of blockchains and thousands of assets.
 
-## Set Up Validator/Node On Akash
-
-Use the following [deploy.yaml](./testnet/private/deploy.yaml) as the yaml file for launching a DeFund node in Akash on testnet. We suggest using [Akashlytics](https://cloudmos.io/cloud-deploy).
 
 ## Install
 
@@ -60,10 +57,15 @@ npm i
 npm run dev
 ```
 
-### Planned Roadmap
-* Fractionalized NFT's
-* Perps
-* Options
+### Current + Planned Roadmap
+* ETFs - *current*
+* Options + Option Vaults - *next to launch*
+* Hybrid DEX - *next to launch*
+* Revamped tokenomics (distribution + utility/function) - *coming soon*
+* Non-standard/Alternative Asset options - *underway*
+* Hedged Liquidity Pools - *underway*
+* Auto-trade/super-trade functionality - *planned*
+* Cross-VM outposts - *planned*
 * Support for More Chains and Tokens Until All Tokens are Supported :)
 
 ### Potential Roadmap
