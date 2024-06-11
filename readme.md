@@ -58,7 +58,7 @@ npm run dev
 ```
 
 ### Current + Planned Roadmap
-* ETFs - *current*
+* Structured Products - *current*
 * Options + Option Vaults - *next to launch*
 * Hybrid DEX - *next to launch*
 * Revamped tokenomics (distribution + utility/function) - *coming soon*
