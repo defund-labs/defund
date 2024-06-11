@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.prod.website-files.com/61ff2317a4bdb55b6494bb53/61ff26c9b9a7293f886ca79e_Defund%20(6)-p-500.png" alt="DeFund Finance"/>
+  <img src="https://github.com/defund-labs/defund/blob/d80730b57ed80a1f75c5d9990faa16efa7477e92/Defund-BrandAssets/Banners/DeFund-White.png" alt="DeFund Finance"/>
 </p>
 
 **DeFund Finance** is a sovereign rollup built on Celestia using Rollkit, designed to create a rich DeFi ecosystem that serves as a hub for all modular liquidity. By leveraging the Celestia DA (Data Availability) layer, DeFund Finance aims to provide a comprehensive suite of DeFi products and services tailored to the modular blockchain ecosystem.
