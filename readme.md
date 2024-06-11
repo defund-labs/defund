@@ -1,9 +1,33 @@
-![alt text](https://defund.app/images/Defund-6-p-500.png)
+# DeFund Finance
 
-## What is DeFund
+**DeFund Finance** is a sovereign rollup built on Celestia using Rollkit, designed to create a rich DeFi ecosystem that serves as a hub for all modular liquidity. By leveraging the Celestia DA (Data Availability) layer, DeFund Finance aims to provide a comprehensive suite of DeFi products and services tailored to the modular blockchain ecosystem.
 
-**DeFund** is a performance-optimized blockchain that fuels a rich ecosystem of DeFi products and applications, granting builders and investors access to unmatched cross-chain liquidity, minimized or maximized risk, and the full freedom to execute custom trading strategies across hundreds of blockchains and thousands of assets.
+## Key Features
 
+- **Spot Exchange**: DeFund Finance offers a state-of-the-art decentralized exchange that combines the best features of an orderbook and an automated market maker (AMM) model, providing deep liquidity, efficient price discovery, and minimal slippage for traders.
+
+- **LP Vaults**: DeFund Finance's LP Vaults are an innovative solution to the problem of impermanent loss faced by liquidity providers in traditional AMMs. These vaults work in conjunction with the Spot Exchange, serving as the liquidity pools for the exchange while minimizing impermanent loss through an automated hedging mechanism.
+
+- **Option Vaults**: Option Vaults bring the power of customizable risk management to the DeFi space. Users can mint customized options using a unique Dutch auction mechanism, providing a novel approach to hedging, yield generation, and market speculation.
+
+- **Asset Abstraction**: DeFund Finance takes asset interoperability and accessibility to the next level through the integration of Calypso and the Cosmos Metamask Snap. These integrations enable users to perform any action with any asset using the most widely adopted wallet, Metamask.
+
+## Architecture
+
+DeFund Finance is built on a robust and scalable architecture that leverages the power of Rollkit and Celestia to create a high-performance, secure, and flexible platform for decentralized finance.
+
+- **Rollkit + Celestia**: The combination of Rollkit and Celestia enables DeFund Finance to create a sovereign rollup that benefits from the security and scalability of Celestia's DA layer while maintaining the flexibility and customization offered by Rollkit.
+
+- **Asset Abstraction**: DeFund Finance integrates Calypso and the Cosmos Metamask Snap to enable seamless interoperability between different blockchain networks and assets. Users can perform any action with any token, regardless of its native blockchain, using the familiar Metamask wallet.
+
+## Getting Started
+
+### Prerequisites
+
+- Golang
+- Rust
+- Hermes IBC relayer
+- DeFund Golang relayer (https://github.com/defund-labs/relayer)
 
 ## Install
 
@@ -57,22 +81,21 @@ npm i
 npm run dev
 ```
 
-### Current + Planned Roadmap
-* ETFs - *current*
-* Options + Option Vaults - *next to launch*
-* Hybrid DEX - *next to launch*
-* Revamped tokenomics (distribution + utility/function) - *coming soon*
-* Non-standard/Alternative Asset options - *underway*
-* Hedged Liquidity Pools - *underway*
-* Auto-trade/super-trade functionality - *planned*
-* Cross-VM outposts - *planned*
-* Support for More Chains and Tokens Until All Tokens are Supported :)
+## Roadmap
 
-### Potential Roadmap
-* Add Support for More TradFi Based Smart Contract Language Support (Java?, Python?, Julia?)
+- [x] Structured Products
+- [ ] Options + Option Vaults
+- [ ] Hybrid DEX
+- [ ] Revamped tokenomics (distribution + utility/function)
+- [ ] Non-standard/Alternative Asset options
+- [ ] Hedged Liquidity Pools
+- [ ] Auto-trade/super-trade functionality
+- [ ] Cross-VM outposts
+- [ ] Support for more chains and tokens
 
-## CLI Docs
-- [Create Fund Command](./x/etf/client/docs/create-etf.md)
-- [Create Shares Command](./x/etf/client/docs/create-shares.md)
-- [Redeem Shares Command](./x/etf/client/docs/redeem-shares.md)
-- [Cosmwasm dETF Commands](./x/etf/client/docs/create-wasm-etf.md)
+## CLI Documentation (Deprecated)
+
+- [Create Fund Command](docs/cli/create-fund.md)
+- [Create Shares Command](docs/cli/create-shares.md)
+- [Redeem Shares Command](docs/cli/redeem-shares.md)
+- [Cosmwasm dETF Commands](docs/cli/cosmwasm-detf.md)
