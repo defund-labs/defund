@@ -88,7 +88,6 @@ var (
 		group.ModuleName,
 		consensustypes.ModuleName,
 		circuittypes.ModuleName,
-		// chain modules
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -112,7 +111,6 @@ var (
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
-		// chain modules
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -130,7 +128,6 @@ var (
 		capabilitytypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
-		// chain modules
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 

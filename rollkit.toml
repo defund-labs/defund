@@ -1,0 +1,4 @@
+entrypoint = "/home/joe/defund/cmd/defundd/main.go"
+
+[chain]
+  config_dir = "/home/joe/.defund"
