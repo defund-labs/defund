@@ -1654,7 +1654,7 @@ func (m *PoolBalances) GetQuoteCoin() types.Coin {
 
 type OrderBookPairResponse struct {
 	PairId     uint64                                 `protobuf:"varint,1,opt,name=pair_id,json=pairId,proto3" json:"pair_id,omitempty"`
-	BasePrice  github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=base_price,json=basePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"base_price"`
+	BasePrice  github_com_cosmos_cosmos_sdk_types.LegacyDec `protobuf:"bytes,2,opt,name=base_price,json=basePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"base_price"`
 	OrderBooks []OrderBookResponse                    `protobuf:"bytes,3,rep,name=order_books,json=orderBooks,proto3" json:"order_books"`
 }
 

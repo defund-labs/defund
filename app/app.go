@@ -31,7 +31,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	_ "github.com/cosmos/cosmos-sdk/x/auth" // import for side-effects
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // import for side-effects
@@ -52,7 +51,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	_ "github.com/cosmos/cosmos-sdk/x/group/module" // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/mint"         // import for side-effects
@@ -75,6 +73,8 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
+	liquiditykeeper "defund/x/liquidity/keeper"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"defund/docs"
@@ -88,6 +88,11 @@ const (
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
+
+	ModuleBasic = module.NewBasicManager(
+		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+		gov.NewAppModuleBasic(getGovProposalHandlers()),
+	)
 )
 
 var (
@@ -139,6 +144,9 @@ type App struct {
 	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 
+	// Defund
+	LiquidityKeeper liquiditykeeper.Keeper
+
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -174,12 +182,7 @@ func AppConfig() depinject.Config {
 		// Loads the app config from a YAML file.
 		// appconfig.LoadYAML(AppConfigYAML),
 		depinject.Supply(
-			// supply custom module basics
-			map[string]module.AppModuleBasic{
-				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				govtypes.ModuleName:     gov.NewAppModuleBasic(getGovProposalHandlers()),
-				// this line is used by starport scaffolding # stargate/appConfig/moduleBasic
-			},
+			ModuleBasic,
 		),
 	)
 }
@@ -192,7 +195,7 @@ func New(
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) (*App, error) {
+) *App {
 	var (
 		app        = &App{}
 		appBuilder *runtime.AppBuilder
@@ -318,12 +321,12 @@ func New(
 
 	// Register legacy modules
 	if err := app.registerIBCModules(appOpts); err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	/****  Module Options ****/
@@ -351,10 +354,10 @@ func New(
 	// })
 
 	if err := app.Load(loadLatest); err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return app, nil
+	return app
 }
 
 // LegacyAmino returns App's amino codec.

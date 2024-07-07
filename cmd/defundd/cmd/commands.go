@@ -137,14 +137,11 @@ func newApp(
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	app, err := app.New(
+	app := app.New(
 		logger, db, traceStore, true,
 		appOpts,
 		baseappOptions...,
 	)
-	if err != nil {
-		panic(err)
-	}
 	return app
 }
 
@@ -181,7 +178,7 @@ func appExport(
 	appOpts = viperAppOpts
 
 	if height != -1 {
-		bApp, err = app.New(logger, db, traceStore, false, appOpts)
+		bApp = app.New(logger, db, traceStore, false, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}
@@ -190,7 +187,7 @@ func appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		bApp, err = app.New(logger, db, traceStore, true, appOpts)
+		bApp = app.New(logger, db, traceStore, true, appOpts)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
 		}

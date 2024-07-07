@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"defund/app"
+	"defund/x/liquidity/keeper"
+	"defund/x/liquidity/types"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -9,16 +12,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
-
-	"defund/x/test/keeper"
-	"defund/x/test/types"
 )
 
 func TestKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
@@ -29,23 +25,20 @@ func TestKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
-
-	k := keeper.NewKeeper(
-	    cdc,
-	    runtime.NewKVStoreService(storeKey),
-        log.NewNopLogger(),
-	    authority.String(), 
+	app := app.New(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		true,
+		simtestutil.EmptyAppOptions{},
 	)
+
+	k := app.LiquidityKeeper
 
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	if err := k.SetParams(ctx, types.DefaultParams()); err != nil {
-		panic(err)
-	}
+	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
 }
