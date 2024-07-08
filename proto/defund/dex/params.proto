@@ -1,0 +1,63 @@
+syntax = "proto3";
+package defund.dex;
+
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "defund/x/dex/types";
+
+// Params defines the parameters for the liquidity module.
+message Params {
+  option (amino.name) = "defund/x/dex/Params";
+  option (gogoproto.equal) = true;
+
+  uint32 batch_size = 1;
+
+  uint32 tick_precision = 2;
+
+  string fee_collector_address = 3;
+
+  string dust_collector_address = 4;
+
+  string min_initial_pool_coin_supply = 5
+      [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+
+  repeated cosmos.base.v1beta1.Coin pair_creation_fee = 6
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+
+  repeated cosmos.base.v1beta1.Coin pool_creation_fee = 7
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+
+  string min_initial_deposit_amount = 8
+      [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+
+  string max_price_limit_ratio = 9
+      [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
+
+  uint32 max_num_market_making_order_ticks = 10;
+
+  uint32 max_num_market_making_orders_per_pair = 11;
+
+  google.protobuf.Duration max_order_lifespan = 12 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+
+  string swap_fee_rate = 13
+      [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
+
+  string withdraw_fee_rate = 14
+      [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
+
+  uint64 deposit_extra_gas = 15
+      [(gogoproto.customtype) = "cosmossdk.io/store/types.Gas", (gogoproto.nullable) = false];
+
+  uint64 withdraw_extra_gas = 16
+      [(gogoproto.customtype) = "cosmossdk.io/store/types.Gas", (gogoproto.nullable) = false];
+
+  uint64 order_extra_gas = 17
+      [(gogoproto.customtype) = "cosmossdk.io/store/types.Gas", (gogoproto.nullable) = false];
+
+  uint32 max_num_active_pools_per_pair = 18;
+}

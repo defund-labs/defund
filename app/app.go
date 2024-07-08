@@ -73,8 +73,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
-	liquiditykeeper "defund/x/liquidity/keeper"
-
+	dexmodulekeeper "defund/x/dex/keeper"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"defund/docs"
@@ -145,8 +144,7 @@ type App struct {
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 
 	// Defund
-	LiquidityKeeper liquiditykeeper.Keeper
-
+	DexKeeper dexmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// simulation manager
@@ -280,6 +278,7 @@ func New(
 		&app.NFTKeeper,
 		&app.GroupKeeper,
 		&app.CircuitBreakerKeeper,
+		&app.DexKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {
 		panic(err)
