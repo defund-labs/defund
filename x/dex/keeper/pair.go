@@ -3,8 +3,8 @@ package keeper
 import (
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"defund/x/dex/types"
 )
@@ -43,7 +43,7 @@ func (k Keeper) CreatePair(ctx sdk.Context, msg *types.MsgCreatePair) (types.Pai
 
 	// Send the pair creation fee to the fee collector.
 	if err := k.bankKeeper.SendCoins(ctx, msg.GetCreator(), feeCollector, pairCreationFee); err != nil {
-		return types.Pair{}, sdkerrors.Wrap(err, "insufficient pair creation fee")
+		return types.Pair{}, errorsmod.Wrap(err, "insufficient pair creation fee")
 	}
 
 	id := k.getNextPairIdWithUpdate(ctx)

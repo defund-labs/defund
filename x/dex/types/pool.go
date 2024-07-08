@@ -78,7 +78,7 @@ func NewRangedPool(id, pairId uint64, creator sdk.AccAddress, minPrice, maxPrice
 	}
 }
 
-func (pool Pool) GetCreator() sdk.AccAddress {
+func (pool Pool) GetCreatorAcc() sdk.AccAddress {
 	if pool.Creator == "" {
 		return nil
 	}
@@ -89,7 +89,7 @@ func (pool Pool) GetCreator() sdk.AccAddress {
 	return addr
 }
 
-func (pool Pool) GetReserveAddress() sdk.AccAddress {
+func (pool Pool) GetReserveAddressAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pool.ReserveAddress)
 	if err != nil {
 		panic(err)

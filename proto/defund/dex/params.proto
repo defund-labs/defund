@@ -13,7 +13,6 @@ option go_package = "defund/x/dex/types";
 // Params defines the parameters for the liquidity module.
 message Params {
   option (amino.name) = "defund/x/dex/Params";
-  option (gogoproto.equal) = true;
 
   uint32 batch_size = 1;
 

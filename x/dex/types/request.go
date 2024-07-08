@@ -23,7 +23,7 @@ func NewDepositRequest(msg *MsgDeposit, pool Pool, id uint64, msgHeight int64) D
 	}
 }
 
-func (req DepositRequest) GetDepositor() sdk.AccAddress {
+func (req DepositRequest) GetDepositorAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(req.Depositor)
 	if err != nil {
 		panic(err)
@@ -90,7 +90,7 @@ func NewWithdrawRequest(msg *MsgWithdraw, id uint64, msgHeight int64) WithdrawRe
 	}
 }
 
-func (req WithdrawRequest) GetWithdrawer() sdk.AccAddress {
+func (req WithdrawRequest) GetWithdrawerAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(req.Withdrawer)
 	if err != nil {
 		panic(err)
@@ -211,7 +211,7 @@ func NewOrder(
 	}
 }
 
-func (order Order) GetOrderer() sdk.AccAddress {
+func (order Order) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(order.Orderer)
 	if err != nil {
 		panic(err)

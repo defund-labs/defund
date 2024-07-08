@@ -21,7 +21,7 @@ const (
 	AddressType20Bytes AddressType = 1
 )
 
-func (pair Pair) GetEscrowAddress() sdk.AccAddress {
+func (pair Pair) GetEscrowAddressAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pair.EscrowAddress)
 	if err != nil {
 		panic(err)

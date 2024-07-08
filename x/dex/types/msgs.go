@@ -79,7 +79,7 @@ func (msg MsgCreatePair) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCreatePair) GetCreator() sdk.AccAddress {
+func (msg MsgCreatePair) GetCreatorAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -137,7 +137,7 @@ func (msg MsgCreatePool) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCreatePool) GetCreator() sdk.AccAddress {
+func (msg MsgCreatePool) GetCreatorAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -204,7 +204,7 @@ func (msg MsgCreateRangedPool) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCreateRangedPool) GetCreator() sdk.AccAddress {
+func (msg MsgCreateRangedPool) GetCreatorAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -257,7 +257,7 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgDeposit) GetDepositor() sdk.AccAddress {
+func (msg MsgDeposit) GetDepositorAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -310,7 +310,7 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgWithdraw) GetWithdrawer() sdk.AccAddress {
+func (msg MsgWithdraw) GetWithdrawerAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		panic(err)
@@ -407,7 +407,7 @@ func (msg MsgLimitOrder) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgLimitOrder) GetOrderer() sdk.AccAddress {
+func (msg MsgLimitOrder) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)
@@ -489,7 +489,7 @@ func (msg MsgMarketOrder) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgMarketOrder) GetOrderer() sdk.AccAddress {
+func (msg MsgMarketOrder) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)
@@ -586,7 +586,7 @@ func (msg MsgMMOrder) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgMMOrder) GetOrderer() sdk.AccAddress {
+func (msg MsgMMOrder) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)
@@ -636,7 +636,7 @@ func (msg MsgCancelOrder) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCancelOrder) GetOrderer() sdk.AccAddress {
+func (msg MsgCancelOrder) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)
@@ -688,7 +688,7 @@ func (msg MsgCancelAllOrders) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCancelAllOrders) GetOrderer() sdk.AccAddress {
+func (msg MsgCancelAllOrders) GetOrdererAcc() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)

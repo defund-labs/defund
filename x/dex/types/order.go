@@ -52,7 +52,7 @@ func NewUserOrder(order Order) *UserOrder {
 	}
 	return &UserOrder{
 		BaseOrder:       amm.NewBaseOrder(dir, order.Price, amt, order.RemainingOfferCoin.Amount),
-		Orderer:         order.GetOrderer(),
+		Orderer:         order.GetOrdererAcc(),
 		OrderId:         order.Id,
 		BatchId:         order.BatchId,
 		OfferCoinDenom:  order.OfferCoin.Denom,
