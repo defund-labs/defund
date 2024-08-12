@@ -82,8 +82,8 @@ func TestPairEscrowAddress(t *testing.T) {
 		pairId   uint64
 		expected string
 	}{
-		{1, "cosmos17u9nx0h9cmhypp6cg9lf4q8ku9l3k8mz232su7m28m39lkz25dgqzkypxs"},
-		{2, "cosmos1dsm56ejte5wsvptgtlq8qy3qvw6vpgz8w3z77f7cyjkmayzq3fxsdtsn2d"},
+		{1, "cosmos1xutvc4z4z4gvqryesqk0f555gw7ggd7wtpzcrl0300g4vz5g4mtqvv554k"},
+		{2, "cosmos1anyy4u9ufk0xmac84nl5ae4rgyhryql4c68vxulmaxdrxs9aa3gqnya8q0"},
 	} {
 		t.Run("", func(t *testing.T) {
 			require.Equal(t, tc.expected, types.PairEscrowAddress(tc.pairId).String())

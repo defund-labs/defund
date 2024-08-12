@@ -64,7 +64,7 @@ func TestMsgCreatePair(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetCreator(), signers[0])
+				require.Equal(t, msg.GetCreatorAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -136,7 +136,7 @@ func TestMsgCreatePool(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetCreator(), signers[0])
+				require.Equal(t, msg.GetCreatorAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -245,7 +245,7 @@ func TestMsgCreateRangedPool(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetCreator(), signers[0])
+				require.Equal(t, msg.GetCreatorAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -312,7 +312,7 @@ func TestMsgDeposit(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetDepositor(), signers[0])
+				require.Equal(t, msg.GetDepositorAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -363,7 +363,7 @@ func TestMsgWithdraw(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetWithdrawer(), signers[0])
+				require.Equal(t, msg.GetWithdrawerAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -483,7 +483,7 @@ func TestMsgLimitOrder(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetOrderer(), signers[0])
+				require.Equal(t, msg.GetOrdererAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -587,7 +587,7 @@ func TestMsgMarketOrder(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetOrderer(), signers[0])
+				require.Equal(t, msg.GetOrdererAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -707,7 +707,7 @@ func TestMsgMMOrder(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetOrderer(), signers[0])
+				require.Equal(t, msg.GetOrdererAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -758,7 +758,7 @@ func TestMsgCancelOrder(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetOrderer(), signers[0])
+				require.Equal(t, msg.GetOrdererAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}
@@ -809,7 +809,7 @@ func TestMsgCancelAllOrders(t *testing.T) {
 				require.NoError(t, err)
 				signers := msg.GetSigners()
 				require.Len(t, signers, 1)
-				require.Equal(t, msg.GetOrderer(), signers[0])
+				require.Equal(t, msg.GetOrdererAcc(), signers[0])
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}

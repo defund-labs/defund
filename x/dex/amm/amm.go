@@ -1,17 +1,15 @@
 package amm
 
-import (
-	sdkmath "cosmossdk.io/math"
-)
+import "cosmossdk.io/math"
 
 // The minimum and maximum coin amount used in the amm package.
 var (
-	MinCoinAmount = sdkmath.NewInt(100)
-	MaxCoinAmount = sdkmath.NewIntWithDecimal(1, 40)
+	MinCoinAmount = math.NewInt(100)
+	MaxCoinAmount = math.NewIntWithDecimal(1, 40)
 )
 
 var (
-	MinPoolPrice               = sdkmath.LegacyNewDecWithPrec(1, 15) // 10^-15
-	MaxPoolPrice               = sdkmath.LegacyNewDecWithPrec(1, 20) // 10^20
-	MinRangedPoolPriceGapRatio = sdkmath.LegacyNewDecWithPrec(1, 3)  // 0.001, 0.1%
+	MinPoolPrice               = math.LegacyNewDecWithPrec(1, 15)            // 10^-15
+	MaxPoolPrice               = math.NewIntWithDecimal(1, 20).ToLegacyDec() // 10^20
+	MinRangedPoolPriceGapRatio = math.LegacyNewDecWithPrec(1, 3)             // 0.001, 0.1%
 )
