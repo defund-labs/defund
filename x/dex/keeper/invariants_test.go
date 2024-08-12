@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 
 	utils "defund/types"
 	"defund/x/dex/keeper"
@@ -102,22 +102,22 @@ func (s *KeeperTestSuite) TestNumMMOrdersInvariant() {
 	// Place random MM orders
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionBuy,
-		utils.ParseDec("0.99"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("0.99"), math.NewInt(1000000), time.Hour, true)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionBuy,
-		utils.ParseDec("0.98"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("0.98"), math.NewInt(1000000), time.Hour, true)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionBuy,
-		utils.ParseDec("0.97"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("0.97"), math.NewInt(1000000), time.Hour, true)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionSell,
-		utils.ParseDec("1.01"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("1.01"), math.NewInt(1000000), time.Hour, true)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionSell,
-		utils.ParseDec("1.02"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("1.02"), math.NewInt(1000000), time.Hour, true)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionSell,
-		utils.ParseDec("1.03"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("1.03"), math.NewInt(1000000), time.Hour, true)
 
 	_, broken := keeper.NumMMOrdersInvariant(s.keeper)(s.ctx)
 	s.Require().False(broken)
@@ -129,7 +129,7 @@ func (s *KeeperTestSuite) TestNumMMOrdersInvariant() {
 	s.cancelOrder(orderer, pair.Id, 2)
 	s.mmOrder(
 		orderer, pair.Id, types.OrderDirectionSell,
-		utils.ParseDec("1.04"), sdk.NewInt(1000000), time.Hour, true)
+		utils.ParseDec("1.04"), math.NewInt(1000000), time.Hour, true)
 
 	_, broken = keeper.NumMMOrdersInvariant(s.keeper)(s.ctx)
 	s.Require().False(broken)

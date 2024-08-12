@@ -5,8 +5,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	utils "defund/types"
+	"defund/x/dex"
 	"defund/x/dex/types"
-	"defund/x/liquidity"
+
+	"cosmossdk.io/math"
 
 	_ "github.com/stretchr/testify/suite"
 )
@@ -23,7 +25,7 @@ func (s *KeeperTestSuite) TestCreatePool() {
 	pool, found := s.keeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 	s.Require().Equal(types.PoolCoinDenom(pool.Id), pool.PoolCoinDenom)
-	s.Require().True(pool.GetReserveAddress().Equals(types.PoolReserveAddress(pool.Id)))
+	s.Require().True(pool.GetReserveAddressAcc().Equals(types.PoolReserveAddress(pool.Id)))
 	s.Require().False(pool.Disabled)
 }
 
@@ -64,10 +66,10 @@ func (s *KeeperTestSuite) TestCreateRangedPool() {
 				s.Require().False(pool.Disabled)
 				s.Require().True(coinsEq(
 					utils.ParseCoins("906867denom1,1000000denom2"),
-					s.app.BankKeeper.GetAllBalances(ctx, pool.GetReserveAddress())))
+					s.app.BankKeeper.GetAllBalances(ctx, pool.GetReserveAddressAcc())))
 				s.Require().True(coinEq(
 					utils.ParseCoin("1000000000000pool1"),
-					s.app.BankKeeper.GetBalance(ctx, pool.GetCreator(), pool.PoolCoinDenom)))
+					s.app.BankKeeper.GetBalance(ctx, pool.GetCreatorAcc(), pool.PoolCoinDenom)))
 			},
 			"",
 		},
@@ -107,7 +109,7 @@ func (s *KeeperTestSuite) TestCreateRangedPool() {
 			"too small min price",
 			types.NewMsgCreateRangedPool(
 				poolCreator, pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"),
-				sdk.NewDecWithPrec(1, 15), utils.ParseDec("1.1"), utils.ParseDec("1.0")),
+				math.LegacyNewDecWithPrec(1, 15), utils.ParseDec("1.1"), utils.ParseDec("1.0")),
 			nil,
 			"min price must not be less than 0.000000000000100000: invalid request",
 		},
@@ -156,7 +158,7 @@ func (s *KeeperTestSuite) TestCreatePoolWithInsufficientDepositAmount() {
 	// This should fail.
 	poolCreator := s.addr(1)
 	minDepositAmount := s.keeper.GetMinInitialDepositAmount(s.ctx)
-	xCoin := sdk.NewCoin("denom1", minDepositAmount.Sub(sdk.OneInt()))
+	xCoin := sdk.NewCoin("denom1", minDepositAmount.Sub(math.OneInt()))
 	yCoin := sdk.NewCoin("denom2", minDepositAmount)
 	s.fundAddr(poolCreator, sdk.NewCoins(xCoin, yCoin).Add(s.keeper.GetPoolCreationFee(s.ctx)...))
 	_, err := s.keeper.CreatePool(s.ctx, types.NewMsgCreatePool(poolCreator, pair.Id, sdk.NewCoins(xCoin, yCoin)))
@@ -200,7 +202,7 @@ func (s *KeeperTestSuite) TestDisabledPool() {
 	// Create a pool.
 	pool := s.createPool(poolCreator, pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	// Send the pool's balances to somewhere else.
-	s.sendCoins(pool.GetReserveAddress(), s.addr(2), s.getBalances(pool.GetReserveAddress()))
+	s.sendCoins(pool.GetReserveAddressAcc(), s.addr(2), s.getBalances(pool.GetReserveAddressAcc()))
 
 	// By now, the pool is not marked as disabled automatically.
 	// When someone sends a deposit/withdraw request to the pool or
@@ -252,7 +254,7 @@ func (s *KeeperTestSuite) TestCreatePoolInitialPoolCoinSupply() {
 	pair = s.createPair(s.addr(0), "denom2", "denom3", true)
 
 	pool = s.createPool(poolCreator, pair.Id, utils.ParseCoins("2000000000000denom2,500000000000000denom3"), true)
-	s.Require().True(intEq(sdk.NewInt(100000000000000), s.getBalance(poolCreator, pool.PoolCoinDenom).Amount))
+	s.Require().True(intEq(math.NewInt(100000000000000), s.getBalance(poolCreator, pool.PoolCoinDenom).Amount))
 }
 
 func (s *KeeperTestSuite) TestPoolIndexes() {
@@ -260,7 +262,7 @@ func (s *KeeperTestSuite) TestPoolIndexes() {
 
 	pool := s.createPool(s.addr(1), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
-	pool2, found := s.keeper.GetPoolByReserveAddress(s.ctx, pool.GetReserveAddress())
+	pool2, found := s.keeper.GetPoolByReserveAddress(s.ctx, pool.GetReserveAddressAcc())
 	s.Require().True(found)
 	s.Require().Equal(pool.Id, pool2.Id)
 
@@ -297,13 +299,13 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
 	s.Require().True(coinEq(utils.ParseCoin("10000denom1"), s.getBalance(depositor, "denom1")))
 	s.Require().True(coinEq(utils.ParseCoin("0denom2"), s.getBalance(depositor, "denom2")))
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	pair = s.createPair(s.addr(0), "denom2", "denom1", true)
 	pool = s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000000denom2,1000000000000000denom1"), true)
@@ -312,7 +314,7 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -328,13 +330,13 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
 	s.Require().True(coinEq(utils.ParseCoin("10000denom1"), s.getBalance(depositor, "denom1")))
 	s.Require().True(coinEq(utils.ParseCoin("0denom2"), s.getBalance(depositor, "denom2")))
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	pair = s.createPair(s.addr(0), "denom2", "denom1", true)
 	pool = s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000000denom2,1000000000000000denom1"), true)
@@ -343,7 +345,7 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -383,7 +385,7 @@ func (s *KeeperTestSuite) TestWithdrawRefund() {
 	s.nextBlock()
 
 	// Make the pool depleted.
-	s.sendCoins(pool.GetReserveAddress(), s.addr(2), s.getBalances(pool.GetReserveAddress()))
+	s.sendCoins(pool.GetReserveAddressAcc(), s.addr(2), s.getBalances(pool.GetReserveAddressAcc()))
 
 	poolCoin := s.getBalance(depositor, pool.PoolCoinDenom)
 	s.withdraw(depositor, pool.Id, poolCoin)
@@ -413,7 +415,7 @@ func (s *KeeperTestSuite) TestDepositToDisabledPool() {
 
 	// Create a disabled pool by sending the pool's balances to somewhere else.
 	pool := s.createPool(s.addr(1), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	poolReserveAddr := pool.GetReserveAddress()
+	poolReserveAddr := pool.GetReserveAddressAcc()
 	s.sendCoins(poolReserveAddr, s.addr(2), s.getBalances(poolReserveAddr))
 
 	// The depositor deposits coins but this will fail because the pool
@@ -427,7 +429,7 @@ func (s *KeeperTestSuite) TestDepositToDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the depositor.
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	// Now any deposits will result in an error.
 	_, err = s.keeper.Deposit(s.ctx, types.NewMsgDeposit(depositor, pool.Id, depositCoins))
@@ -440,7 +442,7 @@ func (s *KeeperTestSuite) TestWithdrawFromDisabledPool() {
 	// Create a disabled pool by sending the pool's balances to somewhere else.
 	poolCreator := s.addr(1)
 	pool := s.createPool(poolCreator, pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	poolReserveAddr := pool.GetReserveAddress()
+	poolReserveAddr := pool.GetReserveAddressAcc()
 	s.sendCoins(poolReserveAddr, s.addr(1), s.getBalances(poolReserveAddr))
 
 	// The pool creator tries to withdraw his coins, but this will fail.
@@ -451,7 +453,7 @@ func (s *KeeperTestSuite) TestWithdrawFromDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the withdrawer.
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	// Now any withdrawals will result in an error.
 	_, err = s.keeper.Withdraw(s.ctx, types.NewMsgWithdraw(poolCreator, pool.Id, s.getBalance(poolCreator, pool.PoolCoinDenom)))
@@ -491,12 +493,12 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow_ExternalFunds() {
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	externalFunds := utils.ParseCoins("10000000000000000000000000000000000000000000denom2")
 	s.fundAddr(s.addr(1), externalFunds)
-	s.sendCoins(s.addr(1), pool.GetReserveAddress(), externalFunds)
-	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.0000000001"), sdk.NewInt(1e18), 0, true)
+	s.sendCoins(s.addr(1), pool.GetReserveAddressAcc(), externalFunds)
+	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.0000000001"), math.NewInt(1e18), 0, true)
 	s.Require().NotPanics(func() {
-		liquidity.EndBlocker(s.ctx, s.keeper)
+		dex.EndBlocker(s.ctx, s.keeper)
 	})
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 }
 
 func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw() {
@@ -505,20 +507,20 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw() {
 		s.addr(1), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"),
 		utils.ParseDec("0.5"), utils.ParseDec("2.0"), utils.ParseDec("1.0"), true)
 	rx, ry := s.keeper.GetPoolBalances(s.ctx, pool)
-	ammPool := pool.AMMPool(rx.Amount, ry.Amount, sdk.Int{})
+	ammPool := pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("400000denom1,1000000denom2"), true)
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
-	ammPool = pool.AMMPool(rx.Amount, ry.Amount, sdk.Int{})
+	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	poolCoin := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 	s.withdraw(s.addr(2), pool.Id, poolCoin.SubAmount(poolCoin.Amount.QuoRaw(3))) // withdraw 2/3 pool coin
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
-	ammPool = pool.AMMPool(rx.Amount, ry.Amount, sdk.Int{})
+	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 }
 
@@ -529,8 +531,8 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side() {
 		utils.ParseDec("0.5"), utils.ParseDec("2.0"), utils.ParseDec("0.5"), true)
 
 	rx, ry := s.keeper.GetPoolBalances(s.ctx, pool)
-	s.Require().True(intEq(sdk.ZeroInt(), rx.Amount))
-	s.Require().True(intEq(sdk.NewInt(1000000), ry.Amount))
+	s.Require().True(intEq(math.ZeroInt(), rx.Amount))
+	s.Require().True(intEq(math.NewInt(1000000), ry.Amount))
 	ps := s.keeper.GetPoolCoinSupply(s.ctx, pool)
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("50000denom1"), true)
@@ -539,8 +541,8 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side() {
 	pc := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
-	s.Require().True(intEq(sdk.ZeroInt(), rx.Amount))
-	s.Require().True(intEq(sdk.NewInt(1050000), ry.Amount))
+	s.Require().True(intEq(math.ZeroInt(), rx.Amount))
+	s.Require().True(intEq(math.NewInt(1050000), ry.Amount))
 	s.Require().True(intEq(ps.QuoRaw(20), pc.Amount))
 
 	balanceBefore := s.getBalance(s.addr(2), "denom1")
@@ -548,13 +550,13 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side() {
 	s.nextBlock()
 	balanceAfter := s.getBalance(s.addr(2), "denom1")
 
-	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(sdk.NewInt(50000)).LTE(sdk.OneInt()))
+	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(math.NewInt(50000)).LTE(math.OneInt()))
 
 	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.nextBlock()
 
-	s.Require().True(intEq(sdk.ZeroInt(), s.getBalance(s.addr(3), "denom1").Amount))
-	s.Require().True(intEq(sdk.NewInt(1000000), s.getBalance(s.addr(3), "denom2").Amount))
+	s.Require().True(intEq(math.ZeroInt(), s.getBalance(s.addr(3), "denom1").Amount))
+	s.Require().True(intEq(math.NewInt(1000000), s.getBalance(s.addr(3), "denom2").Amount))
 }
 
 func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
@@ -564,8 +566,8 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
 		utils.ParseDec("0.5"), utils.ParseDec("2.0"), utils.ParseDec("2.0"), true)
 
 	rx, ry := s.keeper.GetPoolBalances(s.ctx, pool)
-	s.Require().True(intEq(sdk.NewInt(1000000), rx.Amount))
-	s.Require().True(intEq(sdk.ZeroInt(), ry.Amount))
+	s.Require().True(intEq(math.NewInt(1000000), rx.Amount))
+	s.Require().True(intEq(math.ZeroInt(), ry.Amount))
 	ps := s.keeper.GetPoolCoinSupply(s.ctx, pool)
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("50000denom2"), true)
@@ -574,8 +576,8 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
 	pc := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
-	s.Require().True(intEq(sdk.NewInt(1050000), rx.Amount))
-	s.Require().True(intEq(sdk.ZeroInt(), ry.Amount))
+	s.Require().True(intEq(math.NewInt(1050000), rx.Amount))
+	s.Require().True(intEq(math.ZeroInt(), ry.Amount))
 	s.Require().True(intEq(ps.QuoRaw(20), pc.Amount))
 
 	balanceBefore := s.getBalance(s.addr(2), "denom2")
@@ -583,13 +585,13 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
 	s.nextBlock()
 	balanceAfter := s.getBalance(s.addr(2), "denom2")
 
-	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(sdk.NewInt(50000)).LTE(sdk.OneInt()))
+	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(math.NewInt(50000)).LTE(math.OneInt()))
 
 	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.nextBlock()
 
-	s.Require().True(intEq(sdk.ZeroInt(), s.getBalance(s.addr(3), "denom2").Amount))
-	s.Require().True(intEq(sdk.NewInt(1000000), s.getBalance(s.addr(3), "denom1").Amount))
+	s.Require().True(intEq(math.ZeroInt(), s.getBalance(s.addr(3), "denom2").Amount))
+	s.Require().True(intEq(math.NewInt(1000000), s.getBalance(s.addr(3), "denom1").Amount))
 }
 
 func (s *KeeperTestSuite) TestMaxNumActivePoolsPerPair() {

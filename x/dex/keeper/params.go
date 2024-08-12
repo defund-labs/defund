@@ -3,6 +3,8 @@ package keeper
 import (
 	"time"
 
+	"cosmossdk.io/math"
+	store "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"defund/x/dex/types"
@@ -44,7 +46,7 @@ func (k Keeper) GetDustCollector(ctx sdk.Context) sdk.AccAddress {
 
 // GetMinInitialPoolCoinSupply returns the current minimum pool coin supply
 // parameter.
-func (k Keeper) GetMinInitialPoolCoinSupply(ctx sdk.Context) (i sdk.Int) {
+func (k Keeper) GetMinInitialPoolCoinSupply(ctx sdk.Context) (i math.Int) {
 	k.paramSpace.Get(ctx, types.KeyMinInitialPoolCoinSupply, &i)
 	return
 }
@@ -63,14 +65,14 @@ func (k Keeper) GetPoolCreationFee(ctx sdk.Context) (fee sdk.Coins) {
 
 // GetMinInitialDepositAmount returns the current minimum initial deposit
 // amount parameter.
-func (k Keeper) GetMinInitialDepositAmount(ctx sdk.Context) (amt sdk.Int) {
+func (k Keeper) GetMinInitialDepositAmount(ctx sdk.Context) (amt math.Int) {
 	k.paramSpace.Get(ctx, types.KeyMinInitialDepositAmount, &amt)
 	return
 }
 
 // GetMaxPriceLimitRatio returns the current maximum price limit ratio
 // parameter.
-func (k Keeper) GetMaxPriceLimitRatio(ctx sdk.Context) (ratio sdk.Dec) {
+func (k Keeper) GetMaxPriceLimitRatio(ctx sdk.Context) (ratio math.LegacyDec) {
 	k.paramSpace.Get(ctx, types.KeyMaxPriceLimitRatio, &ratio)
 	return
 }
@@ -97,25 +99,25 @@ func (k Keeper) GetMaxOrderLifespan(ctx sdk.Context) (maxLifespan time.Duration)
 }
 
 // GetWithdrawFeeRate returns the current withdraw fee rate parameter.
-func (k Keeper) GetWithdrawFeeRate(ctx sdk.Context) (feeRate sdk.Dec) {
+func (k Keeper) GetWithdrawFeeRate(ctx sdk.Context) (feeRate math.LegacyDec) {
 	k.paramSpace.Get(ctx, types.KeyWithdrawFeeRate, &feeRate)
 	return
 }
 
 // GetDepositExtraGas returns the current deposit extra gas parameter.
-func (k Keeper) GetDepositExtraGas(ctx sdk.Context) (gas sdk.Gas) {
+func (k Keeper) GetDepositExtraGas(ctx sdk.Context) (gas store.Gas) {
 	k.paramSpace.Get(ctx, types.KeyDepositExtraGas, &gas)
 	return
 }
 
 // GetWithdrawExtraGas returns the current withdraw extra gas parameter.
-func (k Keeper) GetWithdrawExtraGas(ctx sdk.Context) (gas sdk.Gas) {
+func (k Keeper) GetWithdrawExtraGas(ctx sdk.Context) (gas store.Gas) {
 	k.paramSpace.Get(ctx, types.KeyWithdrawExtraGas, &gas)
 	return
 }
 
 // GetOrderExtraGas returns the current order extra gas parameter.
-func (k Keeper) GetOrderExtraGas(ctx sdk.Context) (gas sdk.Gas) {
+func (k Keeper) GetOrderExtraGas(ctx sdk.Context) (gas store.Gas) {
 	k.paramSpace.Get(ctx, types.KeyOrderExtraGas, &gas)
 	return
 }

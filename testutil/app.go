@@ -1,8 +1,7 @@
-package keeper
+package testutil
 
 import (
 	"defund/app"
-	"defund/x/dex/keeper"
 	"defund/x/dex/types"
 	"testing"
 
@@ -17,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDexKeeper(t testing.TB) (keeper.Keeper, sdk.Context, *app.App) {
+func TestApp(t testing.TB) (*app.App, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -33,12 +32,7 @@ func TestDexKeeper(t testing.TB) (keeper.Keeper, sdk.Context, *app.App) {
 		simtestutil.EmptyAppOptions{},
 	)
 
-	k := app.DexKeeper
-
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
 
-	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
-
-	return k, ctx, app
+	return app, ctx
 }

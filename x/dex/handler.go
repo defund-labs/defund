@@ -1,4 +1,4 @@
-package liquidity
+package dex
 
 import (
 	errorsmod "cosmossdk.io/errors"

@@ -95,7 +95,7 @@ func RemainingOfferCoinEscrowInvariant(k Keeper) sdk.Invariant {
 				}
 				return false, nil
 			})
-			balances := k.bankKeeper.SpendableCoins(ctx, pair.GetEscrowAddress())
+			balances := k.bankKeeper.SpendableCoins(ctx, pair.GetEscrowAddressAcc())
 			if !balances.IsAllGTE(remainingOfferCoins) {
 				count++
 				msg += fmt.Sprintf("\tpair %d has %s, which is smaller than %s\n", pair.Id, balances, remainingOfferCoins)

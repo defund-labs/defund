@@ -6,19 +6,19 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	math "cosmossdk.io/math"
 
 	chain "defund/app"
+	"defund/testutil/keeper"
 	utils "defund/types"
+	"defund/x/dex"
 	"defund/x/dex/amm"
 	"defund/x/dex/types"
-	"defund/x/liquidity"
 )
 
 func BenchmarkMatching(b *testing.B) {
-	app := chain.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	keeper := app.LiquidityKeeper
+	keeper, ctx, app := keeper.TestDexKeeper(b)
 
 	for i := 0; i < 2; i++ {
 		require.NoError(b, chain.FundAccount(
@@ -45,14 +45,14 @@ func BenchmarkMatching(b *testing.B) {
 		utils.ParseDec("0.9"), utils.ParseDec("1.2"), utils.ParseDec("0.98")))
 	require.NoError(b, err)
 
-	amt := sdk.NewInt(50_000000)
+	amt := math.NewInt(50_000000)
 	price := utils.ParseDec("1.05")
 	_, err = keeper.LimitOrder(ctx, types.NewMsgLimitOrder(
 		utils.TestAddress(1), pair.Id, types.OrderDirectionSell,
 		sdk.NewCoin("denom1", amt), "denom2", price, amt, 0))
 	require.NoError(b, err)
 
-	amt = sdk.NewInt(100_000000)
+	amt = math.NewInt(100_000000)
 	price = utils.ParseDec("0.97")
 	_, err = keeper.LimitOrder(ctx, types.NewMsgLimitOrder(
 		utils.TestAddress(1), pair.Id, types.OrderDirectionBuy,
@@ -63,6 +63,6 @@ func BenchmarkMatching(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		cacheCtx, _ := ctx.CacheContext()
-		liquidity.EndBlocker(cacheCtx, keeper)
+		dex.EndBlocker(cacheCtx, keeper)
 	}
 }

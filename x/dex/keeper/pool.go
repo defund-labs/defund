@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -38,7 +40,7 @@ func (k Keeper) getNextWithdrawRequestIdWithUpdate(ctx sdk.Context, pool types.P
 
 // GetPoolBalances returns the balances of the pool.
 func (k Keeper) GetPoolBalances(ctx sdk.Context, pool types.Pool) (rx sdk.Coin, ry sdk.Coin) {
-	reserveAddr := pool.GetReserveAddress()
+	reserveAddr := pool.GetReserveAddressAcc()
 	pair, _ := k.GetPair(ctx, pool.PairId)
 	spendable := k.bankKeeper.SpendableCoins(ctx, reserveAddr)
 	rx = sdk.NewCoin(pair.QuoteCoinDenom, spendable.AmountOf(pair.QuoteCoinDenom))
@@ -49,7 +51,7 @@ func (k Keeper) GetPoolBalances(ctx sdk.Context, pool types.Pool) (rx sdk.Coin, 
 // getPoolBalances returns the balances of the pool.
 // It is used internally when caller already has types.Pair instance.
 func (k Keeper) getPoolBalances(ctx sdk.Context, pool types.Pool, pair types.Pair) (rx sdk.Coin, ry sdk.Coin) {
-	reserveAddr := pool.GetReserveAddress()
+	reserveAddr := pool.GetReserveAddressAcc()
 	spendable := k.bankKeeper.SpendableCoins(ctx, reserveAddr)
 	rx = sdk.NewCoin(pair.QuoteCoinDenom, spendable.AmountOf(pair.QuoteCoinDenom))
 	ry = sdk.NewCoin(pair.BaseCoinDenom, spendable.AmountOf(pair.BaseCoinDenom))
@@ -57,7 +59,7 @@ func (k Keeper) getPoolBalances(ctx sdk.Context, pool types.Pool, pair types.Pai
 }
 
 // GetPoolCoinSupply returns total pool coin supply of the pool.
-func (k Keeper) GetPoolCoinSupply(ctx sdk.Context, pool types.Pool) sdk.Int {
+func (k Keeper) GetPoolCoinSupply(ctx sdk.Context, pool types.Pool) math.Int {
 	return k.bankKeeper.GetSupply(ctx, pool.PoolCoinDenom).Amount
 }
 
@@ -71,17 +73,17 @@ func (k Keeper) MarkPoolAsDisabled(ctx sdk.Context, pool types.Pool) {
 func (k Keeper) ValidateMsgCreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	pair, found := k.GetPair(ctx, msg.PairId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
 	}
 
 	minInitDepositAmt := k.GetMinInitialDepositAmount(ctx)
 	for _, coin := range msg.DepositCoins {
 		if coin.Denom != pair.BaseCoinDenom && coin.Denom != pair.QuoteCoinDenom {
-			return sdkerrors.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
+			return errorsmod.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
 		}
 		minDepositCoin := sdk.NewCoin(coin.Denom, minInitDepositAmt)
 		if coin.IsLT(minDepositCoin) {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrInsufficientDepositAmount, "%s is smaller than %s", coin, minDepositCoin)
 		}
 	}
@@ -121,31 +123,31 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 	x, y := msg.DepositCoins.AmountOf(pair.QuoteCoinDenom), msg.DepositCoins.AmountOf(pair.BaseCoinDenom)
 	ammPool, err := amm.CreateBasicPool(x, y)
 	if err != nil {
-		return types.Pool{}, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return types.Pool{}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	// Create and save the new pool object.
 	poolId := k.getNextPoolIdWithUpdate(ctx)
-	pool := types.NewBasicPool(poolId, pair.Id, msg.GetCreator())
+	pool := types.NewBasicPool(poolId, pair.Id, msg.GetCreatorAcc())
 	k.SetPool(ctx, pool)
 	k.SetPoolByReserveIndex(ctx, pool)
 	k.SetPoolsByPairIndex(ctx, pool)
 
 	// Send deposit coins to the pool's reserve account.
-	creator := msg.GetCreator()
-	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), msg.DepositCoins); err != nil {
+	creator := msg.GetCreatorAcc()
+	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddressAcc(), msg.DepositCoins); err != nil {
 		return types.Pool{}, err
 	}
 
 	// Send the pool creation fee to the fee collector.
 	if err := k.bankKeeper.SendCoins(ctx, creator, k.GetFeeCollector(ctx), k.GetPoolCreationFee(ctx)); err != nil {
-		return types.Pool{}, sdkerrors.Wrap(err, "insufficient pool creation fee")
+		return types.Pool{}, errorsmod.Wrap(err, "insufficient pool creation fee")
 	}
 
 	// Mint and send pool coin to the creator.
 	// Minting pool coin amount is calculated based on two coins' amount.
 	// Minimum minting amount is params.MinInitialPoolCoinSupply.
-	ps := sdk.MaxInt(ammPool.PoolCoinSupply(), k.GetMinInitialPoolCoinSupply(ctx))
+	ps := math.MaxInt(ammPool.PoolCoinSupply(), k.GetMinInitialPoolCoinSupply(ctx))
 	poolCoin := sdk.NewCoin(pool.PoolCoinDenom, ps)
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(poolCoin)); err != nil {
 		return types.Pool{}, err
@@ -173,28 +175,28 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 func (k Keeper) ValidateMsgCreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool) error {
 	tickPrec := k.GetTickPrecision(ctx)
 	if !amm.PriceToDownTick(msg.MinPrice, int(tickPrec)).Equal(msg.MinPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "min price is not on ticks")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "min price is not on ticks")
 	}
 	if !amm.PriceToDownTick(msg.MaxPrice, int(tickPrec)).Equal(msg.MaxPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max price is not on ticks")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "max price is not on ticks")
 	}
 	if !amm.PriceToDownTick(msg.InitialPrice, int(tickPrec)).Equal(msg.InitialPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "initial price is not on ticks")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "initial price is not on ticks")
 	}
 
 	lowestTick := amm.LowestTick(int(tickPrec))
 	if msg.MinPrice.LT(lowestTick) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min price must not be less than %s", lowestTick)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "min price must not be less than %s", lowestTick)
 	}
 
 	pair, found := k.GetPair(ctx, msg.PairId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
 	}
 
 	for _, coin := range msg.DepositCoins {
 		if coin.Denom != pair.BaseCoinDenom && coin.Denom != pair.QuoteCoinDenom {
-			return sdkerrors.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
+			return errorsmod.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
 		}
 	}
 
@@ -223,7 +225,7 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 	x, y := msg.DepositCoins.AmountOf(pair.QuoteCoinDenom), msg.DepositCoins.AmountOf(pair.BaseCoinDenom)
 	ammPool, err := amm.CreateRangedPool(x, y, msg.MinPrice, msg.MaxPrice, msg.InitialPrice)
 	if err != nil {
-		return types.Pool{}, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return types.Pool{}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	ax, ay := ammPool.Balances()
 
@@ -234,16 +236,16 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 
 	// Create and save the new pool object.
 	poolId := k.getNextPoolIdWithUpdate(ctx)
-	pool := types.NewRangedPool(poolId, pair.Id, msg.GetCreator(), msg.MinPrice, msg.MaxPrice)
+	pool := types.NewRangedPool(poolId, pair.Id, msg.GetCreatorAcc(), msg.MinPrice, msg.MaxPrice)
 	k.SetPool(ctx, pool)
 	k.SetPoolByReserveIndex(ctx, pool)
 	k.SetPoolsByPairIndex(ctx, pool)
 
 	// Send deposit coins to the pool's reserve account.
-	creator := msg.GetCreator()
+	creator := msg.GetCreatorAcc()
 	depositCoins := sdk.NewCoins(
 		sdk.NewCoin(pair.QuoteCoinDenom, ax), sdk.NewCoin(pair.BaseCoinDenom, ay))
-	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
+	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddressAcc(), depositCoins); err != nil {
 		return types.Pool{}, err
 	}
 
@@ -251,12 +253,12 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 	feeCollector := k.GetFeeCollector(ctx)
 	poolCreationFee := k.GetPoolCreationFee(ctx)
 	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollector, poolCreationFee); err != nil {
-		return types.Pool{}, sdkerrors.Wrap(err, "insufficient pool creation fee")
+		return types.Pool{}, errorsmod.Wrap(err, "insufficient pool creation fee")
 	}
 
 	// Mint and send pool coin to the creator.
 	// Minimum minting amount is params.MinInitialPoolCoinSupply.
-	ps := sdk.MaxInt(ammPool.PoolCoinSupply(), k.GetMinInitialPoolCoinSupply(ctx))
+	ps := math.MaxInt(ammPool.PoolCoinSupply(), k.GetMinInitialPoolCoinSupply(ctx))
 	poolCoin := sdk.NewCoin(pool.PoolCoinDenom, ps)
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(poolCoin)); err != nil {
 		return types.Pool{}, err
@@ -284,20 +286,20 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 func (k Keeper) ValidateMsgDeposit(ctx sdk.Context, msg *types.MsgDeposit) error {
 	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", msg.PoolId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", msg.PoolId)
 	}
 	if pool.Disabled {
 		return types.ErrDisabledPool
 	}
 	if pool.Type == types.PoolTypeBasic && len(msg.DepositCoins) != 2 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "wrong number of deposit coins: %d", len(msg.DepositCoins))
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "wrong number of deposit coins: %d", len(msg.DepositCoins))
 	}
 
 	pair, _ := k.GetPair(ctx, pool.PairId)
 
 	for _, coin := range msg.DepositCoins {
 		if coin.Denom != pair.BaseCoinDenom && coin.Denom != pair.QuoteCoinDenom {
-			return sdkerrors.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
+			return errorsmod.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
 		}
 	}
 
@@ -318,7 +320,7 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 		return types.DepositRequest{}, err
 	}
 
-	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositor(), types.GlobalEscrowAddress, msg.DepositCoins); err != nil {
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositorAcc(), types.GlobalEscrowAddress, msg.DepositCoins); err != nil {
 		return types.DepositRequest{}, err
 	}
 
@@ -347,7 +349,7 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 func (k Keeper) ValidateMsgWithdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
 	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", msg.PoolId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", msg.PoolId)
 	}
 	if pool.Disabled {
 		return types.ErrDisabledPool
@@ -367,7 +369,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) (types.Withdra
 	}
 
 	pool, _ := k.GetPool(ctx, msg.PoolId)
-	if err := k.bankKeeper.SendCoins(ctx, msg.GetWithdrawer(), types.GlobalEscrowAddress, sdk.NewCoins(msg.PoolCoin)); err != nil {
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetWithdrawerAcc(), types.GlobalEscrowAddress, sdk.NewCoins(msg.PoolCoin)); err != nil {
 		return types.WithdrawRequest{}, err
 	}
 
@@ -431,8 +433,8 @@ func (k Keeper) ExecuteDepositRequest(ctx sdk.Context, req types.DepositRequest)
 
 	acceptedCoins := sdk.NewCoins(sdk.NewCoin(pair.QuoteCoinDenom, ax), sdk.NewCoin(pair.BaseCoinDenom, ay))
 	bulkOp := types.NewBulkSendCoinsOperation()
-	bulkOp.QueueSendCoins(types.GlobalEscrowAddress, pool.GetReserveAddress(), acceptedCoins)
-	bulkOp.QueueSendCoins(k.accountKeeper.GetModuleAddress(types.ModuleName), req.GetDepositor(), mintingCoins)
+	bulkOp.QueueSendCoins(types.GlobalEscrowAddress, pool.GetReserveAddressAcc(), acceptedCoins)
+	bulkOp.QueueSendCoins(k.accountKeeper.GetModuleAddress(types.ModuleName), req.GetDepositorAcc(), mintingCoins)
 	if err := bulkOp.Run(ctx, k.bankKeeper); err != nil {
 		return err
 	}
@@ -451,9 +453,9 @@ func (k Keeper) FinishDepositRequest(ctx sdk.Context, req types.DepositRequest, 
 		return nil
 	}
 
-	refundingCoins := req.DepositCoins.Sub(req.AcceptedCoins)
+	refundingCoins := req.DepositCoins.Sub(req.AcceptedCoins...)
 	if !refundingCoins.IsZero() {
-		if err := k.bankKeeper.SendCoins(ctx, types.GlobalEscrowAddress, req.GetDepositor(), refundingCoins); err != nil {
+		if err := k.bankKeeper.SendCoins(ctx, types.GlobalEscrowAddress, req.GetDepositorAcc(), refundingCoins); err != nil {
 			return err
 		}
 	}
@@ -512,7 +514,7 @@ func (k Keeper) ExecuteWithdrawRequest(ctx sdk.Context, req types.WithdrawReques
 
 	bulkOp := types.NewBulkSendCoinsOperation()
 	bulkOp.QueueSendCoins(types.GlobalEscrowAddress, k.accountKeeper.GetModuleAddress(types.ModuleName), burningCoins)
-	bulkOp.QueueSendCoins(pool.GetReserveAddress(), req.GetWithdrawer(), withdrawnCoins)
+	bulkOp.QueueSendCoins(pool.GetReserveAddressAcc(), req.GetWithdrawerAcc(), withdrawnCoins)
 	if err := bulkOp.Run(ctx, k.bankKeeper); err != nil {
 		return err
 	}
@@ -542,7 +544,7 @@ func (k Keeper) FinishWithdrawRequest(ctx sdk.Context, req types.WithdrawRequest
 	var refundingCoins sdk.Coins
 	if status == types.RequestStatusFailed {
 		refundingCoins = sdk.NewCoins(req.PoolCoin)
-		if err := k.bankKeeper.SendCoins(ctx, types.GlobalEscrowAddress, req.GetWithdrawer(), refundingCoins); err != nil {
+		if err := k.bankKeeper.SendCoins(ctx, types.GlobalEscrowAddress, req.GetWithdrawerAcc(), refundingCoins); err != nil {
 			return err
 		}
 	}

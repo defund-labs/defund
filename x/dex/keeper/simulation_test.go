@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/rand"
 
+	math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -33,15 +34,15 @@ func (s *KeeperTestSuite) TestSimulation1() {
 				totalBalancesBefore = totalBalancesBefore.Add(s.getBalances(s.addr(j))...)
 			}
 			for _, pool := range pools {
-				totalBalancesBefore = totalBalancesBefore.Add(s.getBalances(pool.GetReserveAddress())...)
+				totalBalancesBefore = totalBalancesBefore.Add(s.getBalances(pool.GetReserveAddressAcc())...)
 				totalBalancesBefore = totalBalancesBefore.Sub(
-					sdk.NewCoins(sdk.NewCoin(pool.PoolCoinDenom, totalBalancesBefore.AmountOf(pool.PoolCoinDenom))))
+					sdk.NewCoins(sdk.NewCoin(pool.PoolCoinDenom, totalBalancesBefore.AmountOf(pool.PoolCoinDenom)))...)
 			}
 			totalBalancesBefore = totalBalancesBefore.Add(s.getBalances(dustCollector)...)
 
 			for j := 0; j < numOrders; j++ {
 				orderer := s.addr(r.Intn(numUsers))
-				var price sdk.Dec
+				var price math.LegacyDec
 				if pair.LastPrice == nil {
 					price = utils.RandomDec(r, utils.ParseDec("0.1"), utils.ParseDec("10.0"))
 				} else {
@@ -54,14 +55,14 @@ func (s *KeeperTestSuite) TestSimulation1() {
 					// Buy
 					amt := utils.RandomInt(
 						r,
-						sdk.NewInt(1000),
-						s.getBalance(orderer, "denom2").Amount.ToDec().QuoTruncate(price).TruncateInt())
+						math.NewInt(1000),
+						s.getBalance(orderer, "denom2").Amount.ToLegacyDec().QuoTruncate(price).TruncateInt())
 					s.buyLimitOrder(orderer, pair.Id, price, amt, 0, false)
 				} else {
 					// Sell
 					amt := utils.RandomInt(
 						r,
-						sdk.NewInt(1000),
+						math.NewInt(1000),
 						s.getBalance(orderer, "denom1").Amount)
 					s.sellLimitOrder(orderer, pair.Id, price, amt, 0, false)
 				}
@@ -78,7 +79,7 @@ func (s *KeeperTestSuite) TestSimulation1() {
 				pool := pools[r.Intn(len(pools))]
 				balance := s.getBalance(withdrawer, pool.PoolCoinDenom).Amount
 				msg := types.NewMsgWithdraw(
-					withdrawer, pool.Id, sdk.NewCoin(pool.PoolCoinDenom, utils.RandomInt(r, sdk.NewInt(1), balance)))
+					withdrawer, pool.Id, sdk.NewCoin(pool.PoolCoinDenom, utils.RandomInt(r, math.NewInt(1), balance)))
 				_, _ = s.keeper.Withdraw(s.ctx, msg)
 			}
 			s.nextBlock()
@@ -88,13 +89,13 @@ func (s *KeeperTestSuite) TestSimulation1() {
 				totalBalancesAfter = totalBalancesAfter.Add(s.getBalances(s.addr(j))...)
 			}
 			for _, pool := range pools {
-				totalBalancesAfter = totalBalancesAfter.Add(s.getBalances(pool.GetReserveAddress())...)
+				totalBalancesAfter = totalBalancesAfter.Add(s.getBalances(pool.GetReserveAddressAcc())...)
 				totalBalancesAfter = totalBalancesAfter.Sub(
-					sdk.NewCoins(sdk.NewCoin(pool.PoolCoinDenom, totalBalancesAfter.AmountOf(pool.PoolCoinDenom))))
+					sdk.NewCoins(sdk.NewCoin(pool.PoolCoinDenom, totalBalancesAfter.AmountOf(pool.PoolCoinDenom)))...)
 			}
 			totalBalancesAfter = totalBalancesAfter.Add(s.getBalances(dustCollector)...)
 
-			s.Require().True(coinsEq(sdk.Coins{}, s.getBalances(pair.GetEscrowAddress())))
+			s.Require().True(coinsEq(sdk.Coins{}, s.getBalances(pair.GetEscrowAddressAcc())))
 			s.Require().True(coinsEq(totalBalancesBefore, totalBalancesAfter))
 		}
 	}
@@ -136,12 +137,12 @@ func (s *KeeperTestSuite) TestSimulation1() {
 	// Add a ranged pool with price in range [10^-14, 2-(10^-4)].
 	s.createRangedPool(
 		s.addr(10000), pair.Id, utils.ParseCoins("1000000000denom1,1000000000denom2"),
-		sdk.NewDecWithPrec(1, 14), sdk.NewDec(2).Sub(sdk.NewDecWithPrec(1, 4)), utils.ParseDec("1.0"), true)
+		math.LegacyNewDecWithPrec(1, 14), math.LegacyNewDec(2).Sub(math.LegacyNewDecWithPrec(1, 4)), utils.ParseDec("1.0"), true)
 	fuzz()
 
 	// Add a ranged pool with price in range [10^-8, 10^20].
 	s.createRangedPool(
 		s.addr(10000), pair.Id, utils.ParseCoins("1000000000denom1,1000000000denom2"),
-		sdk.NewDecWithPrec(1, 8), sdk.NewIntWithDecimal(1, 20).ToDec(), utils.ParseDec("1.0"), true)
+		math.LegacyNewDecWithPrec(1, 8), math.NewIntWithDecimal(1, 20).ToLegacyDec(), utils.ParseDec("1.0"), true)
 	fuzz()
 }

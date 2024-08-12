@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -13,18 +15,18 @@ import (
 	"defund/x/dex/types"
 )
 
-func (k Keeper) PriceLimits(ctx sdk.Context, lastPrice sdk.Dec) (lowest, highest sdk.Dec) {
+func (k Keeper) PriceLimits(ctx sdk.Context, lastPrice math.LegacyDec) (lowest, highest math.LegacyDec) {
 	return types.PriceLimits(lastPrice, k.GetMaxPriceLimitRatio(ctx), int(k.GetTickPrecision(ctx)))
 }
 
 // placeOrder validates an order and place the order.
 func (k Keeper) placeOrder(
 	ctx sdk.Context, typ types.OrderType, ordererAddr sdk.AccAddress, pairId uint64, direction types.OrderDirection,
-	offerCoin sdk.Coin, demandCoinDenom string, price *sdk.Dec, amount sdk.Int,
+	offerCoin sdk.Coin, demandCoinDenom string, price *math.LegacyDec, amount math.Int,
 	orderLifespan time.Duration) (order types.Order, err error) {
 	spendable := k.bankKeeper.SpendableCoins(ctx, ordererAddr)
 	if spendableAmt := spendable.AmountOf(offerCoin.Denom); spendableAmt.LT(offerCoin.Amount) {
-		return types.Order{}, sdkerrors.Wrapf(
+		return types.Order{}, errorsmod.Wrapf(
 			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
 			sdk.NewCoin(offerCoin.Denom, spendableAmt), offerCoin)
 	}
@@ -32,18 +34,18 @@ func (k Keeper) placeOrder(
 	maxOrderLifespan := k.GetMaxOrderLifespan(ctx)
 	if orderLifespan > maxOrderLifespan {
 		return types.Order{},
-			sdkerrors.Wrapf(types.ErrTooLongOrderLifespan, "%s is longer than %s", orderLifespan, maxOrderLifespan)
+			errorsmod.Wrapf(types.ErrTooLongOrderLifespan, "%s is longer than %s", orderLifespan, maxOrderLifespan)
 	}
 
 	pair, found := k.GetPair(ctx, pairId)
 	if !found {
-		return types.Order{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", pairId)
+		return types.Order{}, errorsmod.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", pairId)
 	}
 
 	tickPrec := k.GetTickPrecision(ctx)
 	switch typ {
 	case types.OrderTypeLimit, types.OrderTypeMM:
-		var upperPriceLimit, lowerPriceLimit sdk.Dec
+		var upperPriceLimit, lowerPriceLimit math.LegacyDec
 		if pair.LastPrice != nil {
 			lowerPriceLimit, upperPriceLimit = k.PriceLimits(ctx, *pair.LastPrice)
 		} else {
@@ -52,9 +54,9 @@ func (k Keeper) placeOrder(
 		}
 		switch {
 		case price.GT(upperPriceLimit):
-			return types.Order{}, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "%s is higher than %s", *price, upperPriceLimit)
+			return types.Order{}, errorsmod.Wrapf(types.ErrPriceOutOfRange, "%s is higher than %s", *price, upperPriceLimit)
 		case price.LT(lowerPriceLimit):
-			return types.Order{}, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "%s is lower than %s", *price, lowerPriceLimit)
+			return types.Order{}, errorsmod.Wrapf(types.ErrPriceOutOfRange, "%s is lower than %s", *price, lowerPriceLimit)
 		}
 	case types.OrderTypeMarket:
 		if pair.LastPrice == nil {
@@ -66,47 +68,47 @@ func (k Keeper) placeOrder(
 
 	var (
 		resultOfferCoin sdk.Coin
-		resultPrice     sdk.Dec
+		resultPrice     math.LegacyDec
 	)
 	switch direction {
 	case types.OrderDirectionBuy:
 		if offerCoin.Denom != pair.QuoteCoinDenom || demandCoinDenom != pair.BaseCoinDenom {
 			return types.Order{},
-				sdkerrors.Wrapf(types.ErrWrongPair, "denom pair (%s, %s) != (%s, %s)",
+				errorsmod.Wrapf(types.ErrWrongPair, "denom pair (%s, %s) != (%s, %s)",
 					demandCoinDenom, offerCoin.Denom, pair.BaseCoinDenom, pair.QuoteCoinDenom)
 		}
 		switch typ {
 		case types.OrderTypeMarket:
 			resultPrice = amm.PriceToDownTick(
 				pair.LastPrice.Mul(
-					sdk.OneDec().Add(k.GetMaxPriceLimitRatio(ctx))),
+					math.LegacyOneDec().Add(k.GetMaxPriceLimitRatio(ctx))),
 				int(tickPrec))
 		default:
 			resultPrice = amm.PriceToDownTick(*price, int(tickPrec))
 		}
 		resultOfferCoin = sdk.NewCoin(offerCoin.Denom, amm.OfferCoinAmount(amm.Buy, resultPrice, amount))
 		if offerCoin.IsLT(resultOfferCoin) {
-			return types.Order{}, sdkerrors.Wrapf(
+			return types.Order{}, errorsmod.Wrapf(
 				types.ErrInsufficientOfferCoin, "%s is smaller than %s", offerCoin, resultOfferCoin)
 		}
 	case types.OrderDirectionSell:
 		if offerCoin.Denom != pair.BaseCoinDenom || demandCoinDenom != pair.QuoteCoinDenom {
 			return types.Order{},
-				sdkerrors.Wrapf(types.ErrWrongPair, "denom pair (%s, %s) != (%s, %s)",
+				errorsmod.Wrapf(types.ErrWrongPair, "denom pair (%s, %s) != (%s, %s)",
 					offerCoin.Denom, demandCoinDenom, pair.BaseCoinDenom, pair.QuoteCoinDenom)
 		}
 		switch typ {
 		case types.OrderTypeMarket:
 			resultPrice = amm.PriceToUpTick(
 				pair.LastPrice.Mul(
-					sdk.OneDec().Sub(k.GetMaxPriceLimitRatio(ctx))),
+					math.LegacyOneDec().Sub(k.GetMaxPriceLimitRatio(ctx))),
 				int(tickPrec))
 		default:
 			resultPrice = amm.PriceToUpTick(*price, int(tickPrec))
 		}
 		resultOfferCoin = sdk.NewCoin(offerCoin.Denom, amount)
 		if offerCoin.Amount.LT(amount) {
-			return types.Order{}, sdkerrors.Wrapf(
+			return types.Order{}, errorsmod.Wrapf(
 				types.ErrInsufficientOfferCoin, "%s is smaller than %s",
 				offerCoin, sdk.NewCoin(offerCoin.Denom, amount))
 		}
@@ -116,7 +118,7 @@ func (k Keeper) placeOrder(
 	}
 
 	refundedCoin := offerCoin.Sub(resultOfferCoin)
-	if err := k.bankKeeper.SendCoins(ctx, ordererAddr, pair.GetEscrowAddress(), sdk.NewCoins(resultOfferCoin)); err != nil {
+	if err := k.bankKeeper.SendCoins(ctx, ordererAddr, pair.GetEscrowAddressAcc(), sdk.NewCoins(resultOfferCoin)); err != nil {
 		return types.Order{}, err
 	}
 
@@ -161,20 +163,20 @@ func (k Keeper) placeOrder(
 // LimitOrder handles types.MsgLimitOrder and stores types.Order.
 func (k Keeper) LimitOrder(ctx sdk.Context, msg *types.MsgLimitOrder) (types.Order, error) {
 	return k.placeOrder(
-		ctx, types.OrderTypeLimit, msg.GetOrderer(), msg.PairId, msg.Direction,
+		ctx, types.OrderTypeLimit, msg.GetOrdererAcc(), msg.PairId, msg.Direction,
 		msg.OfferCoin, msg.DemandCoinDenom, &msg.Price, msg.Amount, msg.OrderLifespan)
 }
 
 // MarketOrder handles types.MsgMarketOrder and stores types.Order.
 func (k Keeper) MarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (types.Order, error) {
 	return k.placeOrder(
-		ctx, types.OrderTypeMarket, msg.GetOrderer(), msg.PairId, msg.Direction,
+		ctx, types.OrderTypeMarket, msg.GetOrdererAcc(), msg.PairId, msg.Direction,
 		msg.OfferCoin, msg.DemandCoinDenom, nil, msg.Amount, msg.OrderLifespan)
 }
 
 // MMOrder handles types.MsgMMOrder and stores types.Order.
 func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (types.Order, error) {
-	ordererAddr := msg.GetOrderer()
+	ordererAddr := msg.GetOrdererAcc()
 	numMMOrders := k.GetNumMMOrders(ctx, ordererAddr, msg.PairId)
 	if numMMOrders >= k.GetMaxNumMarketMakingOrdersPerPair(ctx) {
 		return types.Order{}, types.ErrMaxNumMMOrdersExceeded
@@ -197,10 +199,10 @@ func (k Keeper) ValidateMsgCancelOrder(ctx sdk.Context, msg *types.MsgCancelOrde
 	order, found = k.GetOrder(ctx, msg.PairId, msg.OrderId)
 	if !found {
 		return types.Order{},
-			sdkerrors.Wrapf(sdkerrors.ErrNotFound, "order %d not found in pair %d", msg.OrderId, msg.PairId)
+			errorsmod.Wrapf(sdkerrors.ErrNotFound, "order %d not found in pair %d", msg.OrderId, msg.PairId)
 	}
 	if msg.Orderer != order.Orderer {
-		return types.Order{}, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "mismatching orderer")
+		return types.Order{}, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "mismatching orderer")
 	}
 	if order.Status == types.OrderStatusCanceled {
 		return types.Order{}, types.ErrAlreadyCanceled
@@ -243,7 +245,7 @@ func (k Keeper) CancelAllOrders(ctx sdk.Context, msg *types.MsgCancelAllOrders) 
 	for _, pairId := range msg.PairIds {
 		pair, found := k.GetPair(ctx, pairId)
 		if !found { // check if the pair exists
-			return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", pairId)
+			return errorsmod.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", pairId)
 		}
 		pairIdSet[pairId] = struct{}{} // add pair id to the set
 		pairIds = append(pairIds, strconv.FormatUint(pairId, 10))
@@ -251,7 +253,7 @@ func (k Keeper) CancelAllOrders(ctx sdk.Context, msg *types.MsgCancelAllOrders) 
 	}
 
 	var canceledOrderIds []string
-	if err := k.IterateOrdersByOrderer(ctx, msg.GetOrderer(), func(order types.Order) (stop bool, err error) {
+	if err := k.IterateOrdersByOrderer(ctx, msg.GetOrdererAcc(), func(order types.Order) (stop bool, err error) {
 		_, ok := pairIdSet[order.PairId] // is the pair included in the pair set?
 		if len(pairIdSet) == 0 || ok {   // pair ids not specified(cancel all), or the pair is in the set
 			pair, ok := orderPairCache[order.PairId]
@@ -321,7 +323,7 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 		ps := k.GetPoolCoinSupply(ctx, pool)
 		ammPool := types.NewPoolOrderer(
 			pool.AMMPool(rx.Amount, ry.Amount, ps),
-			pool.Id, pool.GetReserveAddress(), pair.BaseCoinDenom, pair.QuoteCoinDenom)
+			pool.Id, pool.GetReserveAddressAcc(), pair.BaseCoinDenom, pair.QuoteCoinDenom)
 		if ammPool.IsDepleted() {
 			k.MarkPoolAsDisabled(ctx, pool)
 			return false, nil
@@ -345,7 +347,7 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 	return nil
 }
 
-func (k Keeper) Match(ctx sdk.Context, ob *amm.OrderBook, pools []*types.PoolOrderer, lastPrice *sdk.Dec) (matchPrice sdk.Dec, quoteCoinDiff sdk.Int, matched bool) {
+func (k Keeper) Match(ctx sdk.Context, ob *amm.OrderBook, pools []*types.PoolOrderer, lastPrice *math.LegacyDec) (matchPrice math.LegacyDec, quoteCoinDiff math.Int, matched bool) {
 	tickPrec := int(k.GetTickPrecision(ctx))
 	if lastPrice == nil {
 		ov := amm.MultipleOrderViews{ob.MakeView()}
@@ -355,7 +357,7 @@ func (k Keeper) Match(ctx sdk.Context, ob *amm.OrderBook, pools []*types.PoolOrd
 		var found bool
 		matchPrice, found = amm.FindMatchPrice(ov, tickPrec)
 		if !found {
-			return sdk.Dec{}, sdk.Int{}, false
+			return math.LegacyDec{}, math.Int{}, false
 		}
 		for _, pool := range pools {
 			buyAmt := pool.BuyAmountOver(matchPrice, true)
@@ -379,7 +381,7 @@ func (k Keeper) Match(ctx sdk.Context, ob *amm.OrderBook, pools []*types.PoolOrd
 	return
 }
 
-func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.Order, quoteCoinDiff sdk.Int) error {
+func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.Order, quoteCoinDiff math.Int) error {
 	bulkOp := types.NewBulkSendCoinsOperation()
 	for _, order := range orders { // TODO: need optimization to filter matched orders only
 		order, ok := order.(*types.PoolOrder)
@@ -390,7 +392,7 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 			continue
 		}
 		paidCoin := sdk.NewCoin(order.OfferCoinDenom, order.PaidOfferCoinAmount)
-		bulkOp.QueueSendCoins(order.ReserveAddress, pair.GetEscrowAddress(), sdk.NewCoins(paidCoin))
+		bulkOp.QueueSendCoins(order.ReserveAddress, pair.GetEscrowAddressAcc(), sdk.NewCoins(paidCoin))
 	}
 	if err := bulkOp.Run(ctx, k.bankKeeper); err != nil {
 		return err
@@ -401,7 +403,7 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 		OrderDirection types.OrderDirection
 		PaidCoin       sdk.Coin
 		ReceivedCoin   sdk.Coin
-		MatchedAmount  sdk.Int
+		MatchedAmount  math.Int
 	}
 	poolMatchResultById := map[uint64]*PoolMatchResult{}
 	var poolMatchResults []*PoolMatchResult
@@ -430,7 +432,7 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 				o.SetStatus(types.OrderStatusPartiallyMatched)
 				k.SetOrder(ctx, o)
 			}
-			bulkOp.QueueSendCoins(pair.GetEscrowAddress(), order.Orderer, sdk.NewCoins(receivedCoin))
+			bulkOp.QueueSendCoins(pair.GetEscrowAddressAcc(), order.Orderer, sdk.NewCoins(receivedCoin))
 
 			ctx.EventManager().EmitEvents(sdk.Events{
 				sdk.NewEvent(
@@ -448,16 +450,16 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 			paidCoin := sdk.NewCoin(order.OfferCoinDenom, order.PaidOfferCoinAmount)
 			receivedCoin := sdk.NewCoin(order.DemandCoinDenom, order.ReceivedDemandCoinAmount)
 
-			bulkOp.QueueSendCoins(pair.GetEscrowAddress(), order.ReserveAddress, sdk.NewCoins(receivedCoin))
+			bulkOp.QueueSendCoins(pair.GetEscrowAddressAcc(), order.ReserveAddress, sdk.NewCoins(receivedCoin))
 
 			r, ok := poolMatchResultById[order.PoolId]
 			if !ok {
 				r = &PoolMatchResult{
 					PoolId:         order.PoolId,
 					OrderDirection: types.OrderDirectionFromAMM(order.Direction),
-					PaidCoin:       sdk.NewCoin(paidCoin.Denom, sdk.ZeroInt()),
-					ReceivedCoin:   sdk.NewCoin(receivedCoin.Denom, sdk.ZeroInt()),
-					MatchedAmount:  sdk.ZeroInt(),
+					PaidCoin:       sdk.NewCoin(paidCoin.Denom, math.ZeroInt()),
+					ReceivedCoin:   sdk.NewCoin(receivedCoin.Denom, math.ZeroInt()),
+					MatchedAmount:  math.ZeroInt(),
 				}
 				poolMatchResultById[order.PoolId] = r
 				poolMatchResults = append(poolMatchResults, r)
@@ -473,7 +475,7 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 			panic(fmt.Errorf("invalid order type: %T", order))
 		}
 	}
-	bulkOp.QueueSendCoins(pair.GetEscrowAddress(), k.GetDustCollector(ctx), sdk.NewCoins(sdk.NewCoin(pair.QuoteCoinDenom, quoteCoinDiff)))
+	bulkOp.QueueSendCoins(pair.GetEscrowAddressAcc(), k.GetDustCollector(ctx), sdk.NewCoins(sdk.NewCoin(pair.QuoteCoinDenom, quoteCoinDiff)))
 	if err := bulkOp.Run(ctx, k.bankKeeper); err != nil {
 		return err
 	}
@@ -500,7 +502,7 @@ func (k Keeper) FinishOrder(ctx sdk.Context, order types.Order, status types.Ord
 
 	if order.RemainingOfferCoin.IsPositive() {
 		pair, _ := k.GetPair(ctx, order.PairId)
-		if err := k.bankKeeper.SendCoins(ctx, pair.GetEscrowAddress(), order.GetOrderer(), sdk.NewCoins(order.RemainingOfferCoin)); err != nil {
+		if err := k.bankKeeper.SendCoins(ctx, pair.GetEscrowAddressAcc(), order.GetOrdererAcc(), sdk.NewCoins(order.RemainingOfferCoin)); err != nil {
 			return err
 		}
 	}
@@ -508,7 +510,7 @@ func (k Keeper) FinishOrder(ctx sdk.Context, order types.Order, status types.Ord
 	order.SetStatus(status)
 	k.SetOrder(ctx, order)
 	if order.Type == types.OrderTypeMM {
-		ordererAddr := order.GetOrderer()
+		ordererAddr := order.GetOrdererAcc()
 		numMMOrders := k.GetNumMMOrders(ctx, ordererAddr, order.PairId)
 		if numMMOrders <= 1 {
 			k.DeleteNumMMOrders(ctx, ordererAddr, order.PairId)

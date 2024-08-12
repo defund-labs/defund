@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/core/store"
+	storetypes "cosmossdk.io/store/types"
 
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +22,7 @@ type Keeper struct {
 
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	storeKey      storetypes.StoreKey
 }
 
 // NewKeeper creates a new liquidity Keeper instance.

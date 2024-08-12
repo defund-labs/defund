@@ -3,11 +3,12 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	utils "defund/types"
+	"defund/x/dex"
 	"defund/x/dex/types"
-	"defund/x/liquidity"
 )
 
 func (s *KeeperTestSuite) TestDefaultGenesis() {
@@ -88,8 +89,8 @@ func (s *KeeperTestSuite) TestIndexesAfterImport() {
 
 	s.deposit(s.addr(4), pool1.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.deposit(s.addr(5), pool2.Id, utils.ParseCoins("1000000denom2,1000000denom3"), true)
-	liquidity.EndBlocker(s.ctx, s.keeper)
-	liquidity.BeginBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	depositReq1 := s.deposit(s.addr(4), pool1.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	depositReq2 := s.deposit(s.addr(5), pool2.Id, utils.ParseCoins("1000000denom2,1000000denom3"), true)
@@ -97,10 +98,10 @@ func (s *KeeperTestSuite) TestIndexesAfterImport() {
 	withdrawReq1 := s.withdraw(s.addr(4), pool1.Id, utils.ParseCoin("1000000pool1"))
 	withdrawReq2 := s.withdraw(s.addr(5), pool2.Id, utils.ParseCoin("1000000pool2"))
 
-	order1 := s.limitOrder(s.addr(6), pair1.Id, types.OrderDirectionBuy, utils.ParseDec("1.0"), sdk.NewInt(10000), time.Minute, true)
-	order2 := s.limitOrder(s.addr(7), pair2.Id, types.OrderDirectionSell, utils.ParseDec("1.0"), sdk.NewInt(10000), time.Minute, true)
+	order1 := s.limitOrder(s.addr(6), pair1.Id, types.OrderDirectionBuy, utils.ParseDec("1.0"), math.NewInt(10000), time.Minute, true)
+	order2 := s.limitOrder(s.addr(7), pair2.Id, types.OrderDirectionSell, utils.ParseDec("1.0"), math.NewInt(10000), time.Minute, true)
 
-	liquidity.EndBlocker(s.ctx, s.keeper)
+	dex.EndBlocker(s.ctx, s.keeper)
 
 	genState := s.keeper.ExportGenesis(s.ctx)
 	s.SetupTest()
@@ -131,7 +132,7 @@ func (s *KeeperTestSuite) TestIndexesAfterImport() {
 	s.Require().Len(pools, 1)
 	s.Require().Equal(pool2.Id, pools[0].Id)
 
-	pool, found := s.keeper.GetPoolByReserveAddress(s.ctx, pool1.GetReserveAddress())
+	pool, found := s.keeper.GetPoolByReserveAddress(s.ctx, pool1.GetReserveAddressAcc())
 	s.Require().True(found)
 	s.Require().Equal(pool1.Id, pool.Id)
 

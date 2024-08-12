@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -559,7 +560,7 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 				return false, nil
 			}
 			rx, ry := k.getPoolBalances(ctx, pool, pair)
-			ammPool := pool.AMMPool(rx.Amount, ry.Amount, sdk.Int{})
+			ammPool := pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 			ob.AddOrder(amm.PoolOrders(ammPool, amm.DefaultOrderer, lowestPrice, highestPrice, int(tickPrec))...)
 			return false, nil
 		})
