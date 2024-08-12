@@ -39,7 +39,7 @@ import (
 )
 
 // registerIBCModules register IBC keepers and non dependency inject modules.
-func (app *App) registerIBCModules(appOpts servertypes.AppOptions) error {
+func (app *App) registerIBCModules(_appOpts servertypes.AppOptions) error {
 	// set up non depinject support modules store keys
 	if err := app.RegisterStores(
 		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),

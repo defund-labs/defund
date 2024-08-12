@@ -16,23 +16,16 @@ import (
 	"defund/x/dex/types"
 )
 
-// Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper.
-type Querier struct {
-	Keeper
-}
-
-var _ types.QueryServer = Querier{}
-
 // Params queries the parameters of the liquidity module.
-func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	var params types.Params
-	k.Keeper.paramSpace.GetParamSet(ctx, &params)
+	k.paramSpace.GetParamSet(ctx, &params)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
 // Pairs queries all pairs.
-func (k Querier) Pairs(c context.Context, req *types.QueryPairsRequest) (*types.QueryPairsResponse, error) {
+func (k Keeper) Pairs(c context.Context, req *types.QueryPairsRequest) (*types.QueryPairsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -94,7 +87,7 @@ func (k Querier) Pairs(c context.Context, req *types.QueryPairsRequest) (*types.
 }
 
 // Pair queries the specific pair.
-func (k Querier) Pair(c context.Context, req *types.QueryPairRequest) (*types.QueryPairResponse, error) {
+func (k Keeper) Pair(c context.Context, req *types.QueryPairRequest) (*types.QueryPairResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -114,7 +107,7 @@ func (k Querier) Pair(c context.Context, req *types.QueryPairRequest) (*types.Qu
 }
 
 // Pools queries all pools.
-func (k Querier) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.QueryPoolsResponse, error) {
+func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.QueryPoolsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -191,7 +184,7 @@ func (k Querier) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.
 }
 
 // Pool queries the specific pool.
-func (k Querier) Pool(c context.Context, req *types.QueryPoolRequest) (*types.QueryPoolResponse, error) {
+func (k Keeper) Pool(c context.Context, req *types.QueryPoolRequest) (*types.QueryPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -215,7 +208,7 @@ func (k Querier) Pool(c context.Context, req *types.QueryPoolRequest) (*types.Qu
 }
 
 // PoolByReserveAddress queries the specific pool by the reserve account address.
-func (k Querier) PoolByReserveAddress(c context.Context, req *types.QueryPoolByReserveAddressRequest) (*types.QueryPoolResponse, error) {
+func (k Keeper) PoolByReserveAddress(c context.Context, req *types.QueryPoolByReserveAddressRequest) (*types.QueryPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -242,7 +235,7 @@ func (k Querier) PoolByReserveAddress(c context.Context, req *types.QueryPoolByR
 }
 
 // PoolByPoolCoinDenom queries the specific pool by the pool coin denomination.
-func (k Querier) PoolByPoolCoinDenom(c context.Context, req *types.QueryPoolByPoolCoinDenomRequest) (*types.QueryPoolResponse, error) {
+func (k Keeper) PoolByPoolCoinDenom(c context.Context, req *types.QueryPoolByPoolCoinDenomRequest) (*types.QueryPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -268,7 +261,7 @@ func (k Querier) PoolByPoolCoinDenom(c context.Context, req *types.QueryPoolByPo
 }
 
 // DepositRequests queries all deposit requests.
-func (k Querier) DepositRequests(c context.Context, req *types.QueryDepositRequestsRequest) (*types.QueryDepositRequestsResponse, error) {
+func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositRequestsRequest) (*types.QueryDepositRequestsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -307,7 +300,7 @@ func (k Querier) DepositRequests(c context.Context, req *types.QueryDepositReque
 }
 
 // DepositRequest queries the specific deposit request.
-func (k Querier) DepositRequest(c context.Context, req *types.QueryDepositRequestRequest) (*types.QueryDepositRequestResponse, error) {
+func (k Keeper) DepositRequest(c context.Context, req *types.QueryDepositRequestRequest) (*types.QueryDepositRequestResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -331,7 +324,7 @@ func (k Querier) DepositRequest(c context.Context, req *types.QueryDepositReques
 }
 
 // WithdrawRequests queries all withdraw requests.
-func (k Querier) WithdrawRequests(c context.Context, req *types.QueryWithdrawRequestsRequest) (*types.QueryWithdrawRequestsResponse, error) {
+func (k Keeper) WithdrawRequests(c context.Context, req *types.QueryWithdrawRequestsRequest) (*types.QueryWithdrawRequestsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -370,7 +363,7 @@ func (k Querier) WithdrawRequests(c context.Context, req *types.QueryWithdrawReq
 }
 
 // WithdrawRequest queries the specific withdraw request.
-func (k Querier) WithdrawRequest(c context.Context, req *types.QueryWithdrawRequestRequest) (*types.QueryWithdrawRequestResponse, error) {
+func (k Keeper) WithdrawRequest(c context.Context, req *types.QueryWithdrawRequestRequest) (*types.QueryWithdrawRequestResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -394,7 +387,7 @@ func (k Querier) WithdrawRequest(c context.Context, req *types.QueryWithdrawRequ
 }
 
 // Orders queries all orders.
-func (k Querier) Orders(c context.Context, req *types.QueryOrdersRequest) (*types.QueryOrdersResponse, error) {
+func (k Keeper) Orders(c context.Context, req *types.QueryOrdersRequest) (*types.QueryOrdersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -433,7 +426,7 @@ func (k Querier) Orders(c context.Context, req *types.QueryOrdersRequest) (*type
 }
 
 // Order queries the specific order.
-func (k Querier) Order(c context.Context, req *types.QueryOrderRequest) (*types.QueryOrderResponse, error) {
+func (k Keeper) Order(c context.Context, req *types.QueryOrderRequest) (*types.QueryOrderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -457,7 +450,7 @@ func (k Querier) Order(c context.Context, req *types.QueryOrderRequest) (*types.
 }
 
 // OrdersByOrderer returns orders made by an orderer.
-func (k Querier) OrdersByOrderer(c context.Context, req *types.QueryOrdersByOrdererRequest) (*types.QueryOrdersResponse, error) {
+func (k Keeper) OrdersByOrderer(c context.Context, req *types.QueryOrdersByOrdererRequest) (*types.QueryOrdersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -495,7 +488,7 @@ func (k Querier) OrdersByOrderer(c context.Context, req *types.QueryOrdersByOrde
 }
 
 // OrderBooks queries virtual order books from user orders and pools.
-func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest) (*types.QueryOrderBooksResponse, error) {
+func (k Keeper) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest) (*types.QueryOrderBooksResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -587,7 +580,7 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 }
 
 // NumMMOrders queries the number of market making orders by an orderer in a pair.
-func (k Querier) NumMMOrders(c context.Context, req *types.QueryNumMMOrdersRequest) (*types.QueryNumMMOrdersResponse, error) {
+func (k Keeper) NumMMOrders(c context.Context, req *types.QueryNumMMOrdersRequest) (*types.QueryNumMMOrdersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}

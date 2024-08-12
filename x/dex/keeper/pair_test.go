@@ -13,7 +13,7 @@ func (s *KeeperTestSuite) TestPairIndexes() {
 	s.Require().True(found)
 	s.Require().Equal(pair.Id, pair2.Id)
 
-	resp, err := s.querier.Pairs(sdk.WrapSDKContext(s.ctx), &types.QueryPairsRequest{
+	resp, err := s.keeper.Pairs(sdk.WrapSDKContext(s.ctx), &types.QueryPairsRequest{
 		Denoms: []string{"denom2"},
 	})
 	s.Require().NoError(err)

@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	utils "defund/types"
-	"defund/x/dex"
 	"defund/x/dex/types"
 
 	"cosmossdk.io/math"
@@ -299,13 +298,12 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
 	s.Require().True(coinEq(utils.ParseCoin("10000denom1"), s.getBalance(depositor, "denom1")))
 	s.Require().True(coinEq(utils.ParseCoin("0denom2"), s.getBalance(depositor, "denom2")))
-	dex.BeginBlocker(s.ctx, s.keeper)
 
 	pair = s.createPair(s.addr(0), "denom2", "denom1", true)
 	pool = s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000000denom2,1000000000000000denom1"), true)
@@ -314,7 +312,7 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -330,13 +328,12 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
 	s.Require().True(coinEq(utils.ParseCoin("10000denom1"), s.getBalance(depositor, "denom1")))
 	s.Require().True(coinEq(utils.ParseCoin("0denom2"), s.getBalance(depositor, "denom2")))
-	dex.BeginBlocker(s.ctx, s.keeper)
 
 	pair = s.createPair(s.addr(0), "denom2", "denom1", true)
 	pool = s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000000denom2,1000000000000000denom1"), true)
@@ -345,7 +342,7 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	req, _ = s.keeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -429,7 +426,7 @@ func (s *KeeperTestSuite) TestDepositToDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the depositor.
-	dex.BeginBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	// Now any deposits will result in an error.
 	_, err = s.keeper.Deposit(s.ctx, types.NewMsgDeposit(depositor, pool.Id, depositCoins))
@@ -453,7 +450,7 @@ func (s *KeeperTestSuite) TestWithdrawFromDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the withdrawer.
-	dex.BeginBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	// Now any withdrawals will result in an error.
 	_, err = s.keeper.Withdraw(s.ctx, types.NewMsgWithdraw(poolCreator, pool.Id, s.getBalance(poolCreator, pool.PoolCoinDenom)))
@@ -496,9 +493,8 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow_ExternalFunds() {
 	s.sendCoins(s.addr(1), pool.GetReserveAddressAcc(), externalFunds)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.0000000001"), math.NewInt(1e18), 0, true)
 	s.Require().NotPanics(func() {
-		dex.EndBlocker(s.ctx, s.keeper)
+		s.nextBlock()
 	})
-	dex.BeginBlocker(s.ctx, s.keeper)
 }
 
 func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw() {
@@ -511,14 +507,14 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw() {
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("400000denom1,1000000denom2"), true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
 	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	poolCoin := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 	s.withdraw(s.addr(2), pool.Id, poolCoin.SubAmount(poolCoin.Amount.QuoRaw(3))) // withdraw 2/3 pool coin
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	rx, ry = s.keeper.GetPoolBalances(s.ctx, pool)
 	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))

@@ -11,7 +11,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	utils "defund/types"
-	"defund/x/dex"
 	"defund/x/dex/amm"
 	"defund/x/dex/types"
 
@@ -299,7 +298,7 @@ func (s *KeeperTestSuite) TestSingleOrderNoMatch() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
 	// Execute matching
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -308,7 +307,7 @@ func (s *KeeperTestSuite) TestSingleOrderNoMatch() {
 	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(10 * time.Second))
 	// Expire the order, here BeginBlocker is not called to check
 	// the request's changed status
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	order, _ = s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
@@ -321,7 +320,7 @@ func (s *KeeperTestSuite) TestTwoOrderExactMatch() {
 
 	req1 := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
 	req2 := s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	req1, _ = s.keeper.GetOrder(s.ctx, req1.PairId, req1.Id)
 	s.Require().Equal(types.OrderStatusCompleted, req1.Status)
@@ -363,7 +362,7 @@ func (s *KeeperTestSuite) TestMatchWithLowPricePool() {
 	// Create a pool with very low price.
 	s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100000000000000000denom1,1000000denom2"), true)
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000000000000010000"), math.NewInt(100000000000000000), 10*time.Second, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusNotMatched, order.Status)
@@ -498,8 +497,7 @@ func (s *KeeperTestSuite) TestCancelAllOrdersGasUsage() {
 	s.sellLimitOrder(orderer, pair.Id, utils.ParseDec("1.1"), math.NewInt(10000), time.Minute, true)
 
 	// New batch begins, now the orderer can cancel his/her order.
-	dex.EndBlocker(s.ctx, s.keeper)
-	dex.BeginBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	s.ctx = s.ctx.WithGasMeter(store.NewInfiniteGasMeter()) // to record gas consumption
 	s.cancelAllOrders(orderer, nil)                         // cancel all orders in all pairs
@@ -631,11 +629,10 @@ func (s *KeeperTestSuite) TestInsufficientRemainingOfferCoin() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.5"), math.NewInt(10000), time.Minute, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.5"), math.NewInt(1001), 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
-	dex.BeginBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.5"), math.NewInt(8999), 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
@@ -649,7 +646,7 @@ func (s *KeeperTestSuite) TestNegativeOpenAmount() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.82"), math.NewInt(648744), 0, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.82"), math.NewInt(648745), 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -734,15 +731,14 @@ func (s *KeeperTestSuite) TestExpireSmallOrders() {
 	// floor(10000*0.000018) demand coin, which is zero.
 	// So the order must have been expired after matching.
 	order := s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.000018"), math.NewInt(10010000), time.Minute, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
-	dex.BeginBlocker(s.ctx, s.keeper) // Delete outdated states.
 
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000019"), math.NewInt(100000000), time.Minute, true)
 	s.sellLimitOrder(s.addr(3), pair.Id, utils.ParseDec("0.000019"), math.NewInt(100000000), time.Minute, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 }
 
 func (s *KeeperTestSuite) TestPoolOrderOverflow() {
@@ -752,7 +748,7 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow() {
 
 	s.sellLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000000000000010000"), math.NewInt(1e17), 0, true)
 	s.Require().NotPanics(func() {
-		dex.EndBlocker(s.ctx, s.keeper)
+		s.nextBlock()
 	})
 }
 
@@ -767,13 +763,12 @@ func (s *KeeperTestSuite) TestRangeddex() {
 	s.createPool(s.addr(1), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
 	order := s.buyLimitOrder(s.addr(2), pair.Id, orderPrice, orderAmt, 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, _ = s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid := order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received := order.ReceivedCoin.Amount
 	s.Require().True(received.LT(orderAmt))
 	s.Require().True(paid.ToLegacyDec().QuoInt(received).LTE(orderPrice))
-	dex.BeginBlocker(s.ctx, s.keeper)
 
 	pair = s.createPair(s.addr(0), "denom3", "denom4", true)
 	pair.LastPrice = utils.ParseDecP("1.0")
@@ -783,7 +778,7 @@ func (s *KeeperTestSuite) TestRangeddex() {
 		s.addr(1), pair.Id, utils.ParseCoins("1000000denom3,1000000denom4"),
 		utils.ParseDec("0.8"), utils.ParseDec("1.3"), utils.ParseDec("1.0"), true)
 	order = s.buyLimitOrder(s.addr(2), pair.Id, orderPrice, orderAmt, 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, _ = s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid = order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received = order.ReceivedCoin.Amount
@@ -808,7 +803,7 @@ func (s *KeeperTestSuite) TestOneSidedRangedPool() {
 	orderPrice := utils.ParseDec("1.1")
 	orderAmt := math.NewInt(100000)
 	order := s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.1"), math.NewInt(100000), 0, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 	order, _ = s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid := order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received := order.ReceivedCoin.Amount
@@ -979,7 +974,7 @@ func (s *KeeperTestSuite) TestOrderBooks_edgecase1() {
 		s.addr(0), pair.Id, utils.ParseCoins("223122824634denom2,26528571912denom1"),
 		utils.ParseDec("1.25"), utils.ParseDec("1.45"), utils.ParseDec("1.4199"), true)
 
-	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
+	resp, err := s.keeper.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
 		PairIds:  []uint64{pair.Id},
 		NumTicks: 10,
 	})
@@ -1038,9 +1033,7 @@ func (s *KeeperTestSuite) TestPoolPreserveK() {
 			}
 		}
 
-		dex.EndBlocker(s.ctx, s.keeper)
-		s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(3 * time.Second))
-		dex.BeginBlocker(s.ctx, s.keeper)
+		s.nextBlock()
 
 		for _, pool := range pools {
 			rx, ry := s.keeper.GetPoolBalances(s.ctx, pool)

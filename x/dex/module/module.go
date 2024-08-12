@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	// this line is used by starport scaffolding # 1
@@ -180,6 +181,7 @@ type ModuleInputs struct {
 	Config       *modulev1.Module
 	Logger       log.Logger
 
+	ParamSpace    paramstypes.Subspace
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
 }
@@ -202,6 +204,9 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.StoreService,
 		in.Logger,
 		authority.String(),
+		in.ParamSpace,
+		in.AccountKeeper,
+		in.BankKeeper,
 	)
 	m := NewAppModule(
 		in.Cdc,

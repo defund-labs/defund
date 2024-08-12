@@ -40,6 +40,7 @@ var (
 	OrderKeyPrefix                = []byte{0xb2}
 	OrderIndexKeyPrefix           = []byte{0xb3}
 	NumMMOrdersKeyPrefix          = []byte{0xb7}
+	ParamsKey = []byte("p_dex")
 )
 
 // GetPairKey returns the store key to retrieve pair object from the pair id.

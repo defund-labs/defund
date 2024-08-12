@@ -7,14 +7,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	utils "defund/types"
-	"defund/x/dex"
 	"defund/x/dex/types"
 
 	_ "github.com/stretchr/testify/suite"
 )
 
 func (s *KeeperTestSuite) TestGRPCParams() {
-	resp, err := s.querier.Params(sdk.WrapSDKContext(s.ctx), &types.QueryParamsRequest{})
+	resp, err := s.keeper.Params(sdk.WrapSDKContext(s.ctx), &types.QueryParamsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(s.keeper.GetParams(s.ctx), resp.Params)
 }
@@ -86,7 +85,7 @@ func (s *KeeperTestSuite) TestGRPCPairs() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Pairs(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Pairs(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -137,7 +136,7 @@ func (s *KeeperTestSuite) TestGRPCPair() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Pair(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Pair(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -224,7 +223,7 @@ func (s *KeeperTestSuite) TestGRPCPools() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Pools(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Pools(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -329,7 +328,7 @@ func (s *KeeperTestSuite) TestGRPCPool() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Pool(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Pool(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -390,7 +389,7 @@ func (s *KeeperTestSuite) TestGRPCPoolByReserveAddress() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.PoolByReserveAddress(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.PoolByReserveAddress(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -451,7 +450,7 @@ func (s *KeeperTestSuite) TestGRPCPoolByPoolCoinDenom() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.PoolByPoolCoinDenom(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.PoolByPoolCoinDenom(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -472,7 +471,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequests() {
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -514,7 +513,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequests() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.DepositRequests(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.DepositRequests(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -532,7 +531,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequest() {
 
 	depositor := s.addr(1)
 	req := s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -580,7 +579,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequest() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.DepositRequest(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.DepositRequest(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -601,7 +600,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequests() {
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 1000))
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 2500))
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 6000))
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -643,7 +642,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequests() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.WithdrawRequests(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.WithdrawRequests(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -660,7 +659,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequest() {
 	pool := s.createPool(creator, pair.Id, utils.ParseCoins("5000000denom1,5000000denom2"), true)
 
 	req := s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 50000))
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -706,7 +705,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequest() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.WithdrawRequest(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.WithdrawRequest(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -726,7 +725,7 @@ func (s *KeeperTestSuite) TestGRPCOrders() {
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(700000), time.Hour, true)
 	s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -758,7 +757,7 @@ func (s *KeeperTestSuite) TestGRPCOrders() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Orders(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Orders(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -774,7 +773,7 @@ func (s *KeeperTestSuite) TestGRPCOrder() {
 	pair := s.createPair(creator, "denom1", "denom2", true)
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -820,7 +819,7 @@ func (s *KeeperTestSuite) TestGRPCOrder() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.Order(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.Order(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -838,7 +837,7 @@ func (s *KeeperTestSuite) TestGRPCOrdersByOrderer() {
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
 	order2 := s.buyLimitOrder(s.addr(1), pair2.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -896,7 +895,7 @@ func (s *KeeperTestSuite) TestGRPCOrdersByOrderer() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.OrdersByOrderer(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.OrdersByOrderer(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -1001,7 +1000,7 @@ func (s *KeeperTestSuite) TestGRPCOrderBooks() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.OrderBooks(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -1017,7 +1016,7 @@ func (s *KeeperTestSuite) TestEmptyOrderBook() {
 	pair.LastPrice = utils.ParseDecP("1.0") // manually set last price
 	s.keeper.SetPair(s.ctx, pair)
 
-	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
+	resp, err := s.keeper.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
 		PairIds:  []uint64{pair.Id},
 		NumTicks: 20,
 	})
@@ -1033,7 +1032,7 @@ func (s *KeeperTestSuite) TestBuyOrdersOnlyOrderBook() {
 
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("987.65"), math.NewInt(1000), time.Minute, true)
 
-	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
+	resp, err := s.keeper.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
 		PairIds:  []uint64{pair.Id},
 		NumTicks: 20,
 	})
@@ -1065,7 +1064,7 @@ func (s *KeeperTestSuite) TestSellOrdersOnlyOrderBook() {
 
 	s.sellLimitOrder(s.addr(1), pair.Id, utils.ParseDec("987.65"), math.NewInt(1000), time.Minute, true)
 
-	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
+	resp, err := s.keeper.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
 		PairIds:  []uint64{pair.Id},
 		NumTicks: 20,
 	})
@@ -1101,7 +1100,7 @@ func (s *KeeperTestSuite) TestGRPCQueryNumMMOrders() {
 		s.addr(1), pair.Id, types.OrderDirectionSell,
 		utils.ParseDec("1.1"), math.NewInt(1_000000), time.Hour, true)
 
-	dex.EndBlocker(s.ctx, s.keeper)
+	s.nextBlock()
 
 	for _, tc := range []struct {
 		name      string
@@ -1134,7 +1133,7 @@ func (s *KeeperTestSuite) TestGRPCQueryNumMMOrders() {
 		},
 	} {
 		s.Run(tc.name, func() {
-			resp, err := s.querier.NumMMOrders(sdk.WrapSDKContext(s.ctx), tc.req)
+			resp, err := s.keeper.NumMMOrders(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {

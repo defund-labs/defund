@@ -7,6 +7,7 @@ import (
 	"defund/testutil/nullify"
 	dex "defund/x/dex/module"
 	"defund/x/dex/types"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.DexKeeper(t)
+	k, ctx, _ := keepertest.TestDexKeeper(t)
 	dex.InitGenesis(ctx, k, genesisState)
 	got := dex.ExportGenesis(ctx, k)
 	require.NotNil(t, got)

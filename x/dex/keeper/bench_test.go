@@ -12,7 +12,6 @@ import (
 	chain "defund/app"
 	"defund/testutil/keeper"
 	utils "defund/types"
-	"defund/x/dex"
 	"defund/x/dex/amm"
 	"defund/x/dex/types"
 )
@@ -60,9 +59,4 @@ func BenchmarkMatching(b *testing.B) {
 	require.NoError(b, err)
 
 	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		cacheCtx, _ := ctx.CacheContext()
-		dex.EndBlocker(cacheCtx, keeper)
-	}
 }

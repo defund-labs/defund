@@ -25,7 +25,6 @@ type KeeperTestSuite struct {
 	app       *chain.App
 	ctx       sdk.Context
 	keeper    keeper.Keeper
-	querier   keeper.Querier
 	msgServer types.MsgServer
 }
 
@@ -43,7 +42,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	}
 	s.app.BeginBlocker(s.ctx.WithBlockHeader(hdr))
 	s.keeper = s.app.DexKeeper
-	s.querier = keeper.Querier{Keeper: s.keeper}
 	s.msgServer = keeper.NewMsgServerImpl(s.keeper)
 }
 
