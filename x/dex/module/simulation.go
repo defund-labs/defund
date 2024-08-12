@@ -32,11 +32,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	for i, acc := range simState.Accounts {
 		accs[i] = acc.Address.String()
 	}
-	dexGenesis := types.GenesisState{
+	fooGenesis := types.GenesisState{
 		Params: types.DefaultParams(),
 		// this line is used by starport scaffolding # simapp/module/genesisState
 	}
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&dexGenesis)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&fooGenesis)
 }
 
 // RegisterStoreDecoder registers a decoder.
