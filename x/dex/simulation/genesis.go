@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -33,19 +33,19 @@ func GenTickPrecision(r *rand.Rand) uint32 {
 	return uint32(2 + r.Int31n(4))
 }
 
-func GenMaxPriceRatio(r *rand.Rand) sdk.Dec {
+func GenMaxPriceRatio(r *rand.Rand) math.LegacyDec {
 	return utils.RandomDec(r, utils.ParseDec("0.1"), utils.ParseDec("0.2"))
 }
 
-func GenWithdrawFeeRate(r *rand.Rand) sdk.Dec {
-	return simtypes.RandomDecAmount(r, sdk.NewDecWithPrec(1, 2))
+func GenWithdrawFeeRate(r *rand.Rand) math.LegacyDec {
+	return simtypes.RandomDecAmount(r, math.LegacyNewDecWithPrec(1, 2))
 }
 
 func GenMaxOrderLifespan(r *rand.Rand) time.Duration {
 	return time.Duration(r.Int63n(int64(72 * time.Hour)))
 }
 
-// RandomizedGenState generates a random GenesisState for liquidity.
+// RandomizedGenState generates a random GenesisState for dex.
 func RandomizedGenState(simState *module.SimulationState) {
 	genesis := types.DefaultGenesis()
 
@@ -75,6 +75,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	bz, _ := json.MarshalIndent(genesis, "", " ")
-	fmt.Printf("Selected randomly generated liquidity parameters:\n%s\n", bz)
+	fmt.Printf("Selected randomly generated dex parameters:\n%s\n", bz)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesis)
 }

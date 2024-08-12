@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
@@ -16,8 +17,8 @@ import (
 )
 
 func TestDecodeLiquidityStore(t *testing.T) {
-	cdc := chain.MakeTestEncodingConfig().Marshaler
-	dec := simulation.NewDecodeStore(cdc)
+	cdc := chain.MakeEncodingConfig()
+	dec := simulation.NewDecodeStore(cdc.Marshaler)
 
 	pair := types.NewPair(1, "denom1", "denom2")
 	pool := types.NewBasicPool(1, 1, utils.TestAddress(0))
@@ -47,8 +48,8 @@ func TestDecodeLiquidityStore(t *testing.T) {
 		RemainingOfferCoin: sdk.NewInt64Coin("denom1", 500000),
 		ReceivedCoin:       sdk.NewInt64Coin("denom2", 500000),
 		Price:              utils.ParseDec("1.0"),
-		Amount:             sdk.NewInt(1000000),
-		OpenAmount:         sdk.NewInt(500000),
+		Amount:             math.NewInt(1000000),
+		OpenAmount:         math.NewInt(500000),
 		BatchId:            1,
 		ExpireAt:           utils.ParseTime("2022-02-01T00:00:00Z"),
 		Status:             types.OrderStatusPartiallyMatched,
@@ -56,11 +57,11 @@ func TestDecodeLiquidityStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: types.PairKeyPrefix, Value: cdc.MustMarshal(&pair)},
-			{Key: types.PoolKeyPrefix, Value: cdc.MustMarshal(&pool)},
-			{Key: types.DepositRequestKeyPrefix, Value: cdc.MustMarshal(&depositReq)},
-			{Key: types.WithdrawRequestKeyPrefix, Value: cdc.MustMarshal(&withdrawReq)},
-			{Key: types.OrderKeyPrefix, Value: cdc.MustMarshal(&order)},
+			{Key: types.PairKeyPrefix, Value: cdc.Marshaler.MustMarshal(&pair)},
+			{Key: types.PoolKeyPrefix, Value: cdc.Marshaler.MustMarshal(&pool)},
+			{Key: types.DepositRequestKeyPrefix, Value: cdc.Marshaler.MustMarshal(&depositReq)},
+			{Key: types.WithdrawRequestKeyPrefix, Value: cdc.Marshaler.MustMarshal(&withdrawReq)},
+			{Key: types.OrderKeyPrefix, Value: cdc.Marshaler.MustMarshal(&order)},
 			{Key: []byte{0x99}, Value: []byte{0x99}},
 		},
 	}
