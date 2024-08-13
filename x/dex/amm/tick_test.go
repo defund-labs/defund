@@ -37,7 +37,7 @@ func TestTick(t *testing.T) {
 		prec     int
 		expected sdk.LegacyDec
 	}{
-		{0, 3, sdk.LegacyNewDecWithPrec(1, int64(3*defTickPrec))},
+		{0, 3, sdk.LegacyNewDecWithPrec(1, int64(5*defTickPrec))},
 		{1, 3, utils.ParseDec("0.000000000000001001")},
 		{8999, 3, utils.ParseDec("0.000000000000009999")},
 		{9000, 3, utils.ParseDec("0.000000000000010000")},

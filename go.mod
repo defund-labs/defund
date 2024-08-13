@@ -46,8 +46,6 @@ require (
 	google.golang.org/protobuf v1.34.2
 )
 
-require github.com/btcsuite/btcd v0.22.1 // indirect
-
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.33.0-20240221180331-f05a6f4403ce.1 // indirect
 	cloud.google.com/go v0.112.1 // indirect

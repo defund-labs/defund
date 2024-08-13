@@ -29,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -152,6 +153,9 @@ type App struct {
 }
 
 func init() {
+	sdkConfig := sdk.GetConfig()
+	sdkConfig.SetBech32PrefixForAccount(AccountAddressPrefix, AccountAddressPrefix+"pub")
+	sdkConfig.Seal()
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -179,9 +183,6 @@ func AppConfig() depinject.Config {
 		appConfig,
 		// Loads the app config from a YAML file.
 		// appconfig.LoadYAML(AppConfigYAML),
-		depinject.Supply(
-			ModuleBasic,
-		),
 	)
 }
 
