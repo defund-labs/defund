@@ -13,7 +13,6 @@ import (
 
 	chain "defund/app"
 	"defund/testutil"
-	utils "defund/types"
 	"defund/x/dex/amm"
 	"defund/x/dex/keeper"
 	"defund/x/dex/types"
@@ -36,11 +35,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	app, ctx := testutil.TestApp(s.T())
 	s.app = app
 	s.ctx = ctx
-	hdr := cmtproto.Header{
-		Height: 1,
-		Time:   utils.ParseTime("2022-01-01T00:00:00Z"),
-	}
-	s.app.BeginBlocker(s.ctx.WithBlockHeader(hdr))
+	// Initialize params
+	s.app.DexKeeper.SetParams(ctx, types.DefaultParams())
 	s.keeper = s.app.DexKeeper
 	s.msgServer = keeper.NewMsgServerImpl(s.keeper)
 }
