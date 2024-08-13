@@ -14,6 +14,8 @@ option go_package = "defund/x/dex/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+  
   // CreatePair defines a method for creating a pair
   rpc CreatePair(MsgCreatePair) returns (MsgCreatePairResponse);
 
