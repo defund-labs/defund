@@ -9,6 +9,7 @@ import (
 
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -41,7 +42,7 @@ func (k Keeper) Pairs(c context.Context, req *types.QueryPairsRequest) (*types.Q
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	var keyPrefix []byte
 	var pairGetter func(key, value []byte) types.Pair
@@ -122,7 +123,7 @@ func (k Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	var keyPrefix []byte
 	var poolGetter func(key, value []byte) types.Pool
@@ -271,7 +272,7 @@ func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositReques
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	drsStore := prefix.NewStore(store, types.DepositRequestKeyPrefix)
 
 	var drs []types.DepositRequest
@@ -334,7 +335,7 @@ func (k Keeper) WithdrawRequests(c context.Context, req *types.QueryWithdrawRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	drsStore := prefix.NewStore(store, types.WithdrawRequestKeyPrefix)
 
 	var wrs []types.WithdrawRequest
@@ -397,7 +398,7 @@ func (k Keeper) Orders(c context.Context, req *types.QueryOrdersRequest) (*types
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	drsStore := prefix.NewStore(store, types.OrderKeyPrefix)
 
 	var orders []types.Order
@@ -461,7 +462,7 @@ func (k Keeper) OrdersByOrderer(c context.Context, req *types.QueryOrdersByOrder
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	keyPrefix := types.GetOrderIndexKeyPrefix(orderer)
 	orderStore := prefix.NewStore(store, keyPrefix)
