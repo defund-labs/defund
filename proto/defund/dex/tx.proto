@@ -49,6 +49,8 @@ service Msg {
 
 // MsgCreatePair defines an SDK message for creating a pair.
 message MsgCreatePair {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // creator specifies the bech32-encoded address that is the pair creator.
   string creator = 1;
 
@@ -63,6 +65,8 @@ message MsgCreatePairResponse {}
 
 // MsgCreatePool defines an SDK message for creating a pool.
 message MsgCreatePool {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // creator specifies the bech32-encoded address that is the pool creator
   string creator = 1;
 
@@ -79,6 +83,8 @@ message MsgCreatePoolResponse {}
 
 // MsgCreateRangedPool defines an SDK message for creating a ranged pool.
 message MsgCreateRangedPool {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // creator specifies the bech32-encoded address that is the pool creator
   string creator = 1;
 
@@ -104,6 +110,8 @@ message MsgCreateRangedPoolResponse {}
 
 // MsgDeposit defines an SDK message for depositing coins to the pool
 message MsgDeposit {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // depositor specifies the bech32-encoded address that makes a deposit to the pool
   string depositor = 1;
 
@@ -120,6 +128,8 @@ message MsgDepositResponse {}
 
 // MsgWithdraw defines an SDK message for withdrawing pool coin from the pool
 message MsgWithdraw {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // withdrawer specifies the bech32-encoded address that withdraws pool coin from the pool
   string withdrawer = 1;
 
@@ -135,6 +145,8 @@ message MsgWithdrawResponse {}
 
 // MsgLimitOrder defines an SDK message for making a limit order
 message MsgLimitOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // orderer specifies the bech32-encoded address that makes an order
   string orderer = 1;
 
@@ -165,6 +177,8 @@ message MsgLimitOrderResponse {}
 
 // MsgMarketOrder defines an SDK message for making a market order
 message MsgMarketOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // orderer specifies the bech32-encoded address that makes an order
   string orderer = 1;
 
@@ -192,6 +206,8 @@ message MsgMarketOrderResponse {}
 
 // MsgMMOrder defines an SDK message for making a MM(market making) order.
 message MsgMMOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // orderer specifies the bech32-encoded address that makes an order
   string orderer = 1;
 
@@ -222,6 +238,8 @@ message MsgMMOrderResponse {}
 
 // MsgCancelOrder defines an SDK message for cancelling an order
 message MsgCancelOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // orderer specifies the bech32-encoded address that makes an order
   string orderer = 1;
 
@@ -237,6 +255,8 @@ message MsgCancelOrderResponse {}
 
 // MsgCancelAllOrders defines an SDK message for cancelling all orders
 message MsgCancelAllOrders {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // orderer specifies the bech32-encoded address that makes an order
   string orderer = 1;
 
