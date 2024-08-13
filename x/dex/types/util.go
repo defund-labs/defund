@@ -49,16 +49,11 @@ func (op *BulkSendCoinsOperation) QueueSendCoins(fromAddr, toAddr sdk.AccAddress
 // Run runs BankKeeper.InputOutputCoins once for queued operations.
 func (op *BulkSendCoinsOperation) Run(ctx sdk.Context, bankKeeper BankKeeper) error {
 	if len(op.txs) > 0 {
-		var (
-			inputs  []banktypes.Input
-			outputs []banktypes.Output
-		)
 		for _, tx := range op.txs {
-			inputs = append(inputs, banktypes.NewInput(tx.from, tx.amt))
-			outputs = append(outputs, banktypes.NewOutput(tx.to, tx.amt))
-		}
-		for _, inp := range inputs {
-			if err := bankKeeper.InputOutputCoins(ctx, inp, outputs); err != nil {
+			input := banktypes.NewInput(tx.from, tx.amt)
+			outputs := []banktypes.Output{banktypes.NewOutput(tx.to, tx.amt)}
+			err := bankKeeper.InputOutputCoins(ctx, input, outputs)
+			if err != nil {
 				return err
 			}
 		}

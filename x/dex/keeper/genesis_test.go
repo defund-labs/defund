@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	utils "defund/types"
+	dex "defund/x/dex/module"
 	"defund/x/dex/types"
 )
 
@@ -88,7 +89,8 @@ func (s *KeeperTestSuite) TestIndexesAfterImport() {
 
 	s.deposit(s.addr(4), pool1.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.deposit(s.addr(5), pool2.Id, utils.ParseCoins("1000000denom2,1000000denom3"), true)
-	s.nextBlock()
+	dex.EndBlocker(s.ctx, s.keeper)
+	dex.BeginBlocker(s.ctx, s.keeper)
 
 	depositReq1 := s.deposit(s.addr(4), pool1.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	depositReq2 := s.deposit(s.addr(5), pool2.Id, utils.ParseCoins("1000000denom2,1000000denom3"), true)
@@ -99,7 +101,7 @@ func (s *KeeperTestSuite) TestIndexesAfterImport() {
 	order1 := s.limitOrder(s.addr(6), pair1.Id, types.OrderDirectionBuy, utils.ParseDec("1.0"), math.NewInt(10000), time.Minute, true)
 	order2 := s.limitOrder(s.addr(7), pair2.Id, types.OrderDirectionSell, utils.ParseDec("1.0"), math.NewInt(10000), time.Minute, true)
 
-	s.nextBlock()
+	dex.EndBlocker(s.ctx, s.keeper)
 
 	genState := s.keeper.ExportGenesis(s.ctx)
 	s.SetupTest()

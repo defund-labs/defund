@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	chain "defund/app"
@@ -59,13 +58,30 @@ func (s *KeeperTestSuite) sendCoins(fromAddr, toAddr sdk.AccAddress, amt sdk.Coi
 
 func (s *KeeperTestSuite) nextBlock() {
 	s.T().Helper()
-	s.app.EndBlocker(s.ctx)
-	s.app.Commit()
-	hdr := cmtproto.Header{
-		Height: s.app.LastBlockHeight() + 1,
-		Time:   s.ctx.BlockTime().Add(5 * time.Second),
+
+	// End the current block
+	s.app.EndBlocker(s.ctx.WithBlockHeight(s.ctx.BlockHeight()))
+
+	// Increment the block height
+	newHeight := s.ctx.BlockHeight() + 1
+	newTime := s.ctx.BlockTime().Add(5 * time.Second)
+
+	// Create a new header
+	header := cmtproto.Header{
+		Height:  newHeight,
+		Time:    newTime,
+		ChainID: s.ctx.ChainID(),
 	}
-	s.app.BeginBlocker(s.ctx.WithBlockHeader(hdr))
+
+	// Begin a new block
+	s.app.BeginBlocker(s.ctx.WithBlockHeader(header))
+
+	// Update the context
+	s.ctx = s.ctx.
+		WithBlockHeight(newHeight).
+		WithBlockTime(newTime).
+		WithChainID(s.ctx.ChainID()).
+		WithBlockHeader(header)
 }
 
 // Below are useful helpers to write test code easily.

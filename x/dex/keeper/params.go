@@ -21,7 +21,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }
 
-
 // GetBatchSize returns the current batch size parameter.
 func (k Keeper) GetBatchSize(ctx sdk.Context) (batchSize uint32) {
 	k.paramSpace.Get(ctx, types.KeyBatchSize, &batchSize)

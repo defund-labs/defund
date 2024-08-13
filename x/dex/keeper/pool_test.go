@@ -102,7 +102,7 @@ func (s *KeeperTestSuite) TestCreateRangedPool() {
 				poolCreatorWithNoFee, pair.Id, validDepositCoins,
 				utils.ParseDec("0.9"), utils.ParseDec("1.1"), utils.ParseDec("1.0")),
 			nil,
-			"insufficient pool creation fee: 0stake is smaller than 1000000stake: insufficient funds",
+			"insufficient pool creation fee: spendable balance 0stake is smaller than 1000000stake: insufficient funds",
 		},
 		{
 			"too small min price",
