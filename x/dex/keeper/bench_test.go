@@ -10,14 +10,15 @@ import (
 	math "cosmossdk.io/math"
 
 	chain "defund/app"
-	"defund/testutil/keeper"
+	"defund/testutil"
 	utils "defund/types"
 	"defund/x/dex/amm"
 	"defund/x/dex/types"
 )
 
 func BenchmarkMatching(b *testing.B) {
-	keeper, ctx, app := keeper.TestDexKeeper(b)
+	app, ctx := testutil.TestApp(b)
+	keeper := app.DexKeeper
 
 	for i := 0; i < 2; i++ {
 		require.NoError(b, chain.FundAccount(

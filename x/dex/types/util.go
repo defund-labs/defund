@@ -57,7 +57,11 @@ func (op *BulkSendCoinsOperation) Run(ctx sdk.Context, bankKeeper BankKeeper) er
 			inputs = append(inputs, banktypes.NewInput(tx.from, tx.amt))
 			outputs = append(outputs, banktypes.NewOutput(tx.to, tx.amt))
 		}
-		return bankKeeper.InputOutputCoins(ctx, inputs, outputs)
+		for _, inp := range inputs {
+			if err := bankKeeper.InputOutputCoins(ctx, inp, outputs); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

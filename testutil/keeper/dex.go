@@ -27,7 +27,7 @@ func TestDexKeeper(t testing.TB) (keeper.Keeper, sdk.Context, *app.App) {
 
 	app := app.New(
 		log.NewNopLogger(),
-		dbm.NewMemDB(),
+		db,
 		nil,
 		true,
 		simtestutil.EmptyAppOptions{},

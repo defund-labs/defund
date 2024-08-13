@@ -2,7 +2,7 @@ package testutil
 
 import (
 	"defund/app"
-	"defund/x/dex/types"
+	dextypes "defund/x/dex/types"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -17,11 +17,11 @@ import (
 )
 
 func TestApp(t testing.TB) (*app.App, sdk.Context) {
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	dexStoreKey := storetypes.NewKVStoreKey(dextypes.StoreKey)
 
 	db := dbm.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(dexStoreKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	app := app.New(
