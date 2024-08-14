@@ -27,4 +27,5 @@ var (
 	ErrTooManyPools              = sdkerrors.Register(ModuleName, 19, "too many pools in the pair")
 	ErrPriceNotOnTicks           = sdkerrors.Register(ModuleName, 20, "price is not on ticks")
 	ErrMaxNumMMOrdersExceeded    = sdkerrors.Register(ModuleName, 21, "number of MM orders exceeded the limit")
+	ErrInvalidSigner             = sdkerrors.Register(ModuleName, 1100, "expected gov account as only signer for proposal message")
 )
