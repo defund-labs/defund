@@ -21,13 +21,13 @@ func (s *KeeperTestSuite) TestSimulation1() {
 		s.fundAddr(s.addr(i), utils.ParseCoins("1000000000000000denom1,1000000000000000denom2"))
 	}
 
-	dustCollector := s.keeper.GetDustCollector(s.ctx)
+	dustCollector := s.app.DexKeeper.GetDustCollector(s.ctx)
 
 	const numBlocks, numOrders, numDeposits, numWithdraws = 10, 10, 2, 2
 	fuzz := func() {
 		for i := 0; i < numBlocks; i++ {
-			pair, _ = s.keeper.GetPair(s.ctx, pair.Id)
-			pools := s.keeper.GetAllPools(s.ctx)
+			pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
+			pools := s.app.DexKeeper.GetAllPools(s.ctx)
 
 			totalBalancesBefore := sdk.Coins{}
 			for j := 0; j < numUsers; j++ {
@@ -72,7 +72,7 @@ func (s *KeeperTestSuite) TestSimulation1() {
 				pool := pools[r.Intn(len(pools))]
 				balances := s.getBalances(depositor)
 				msg := types.NewMsgDeposit(depositor, pool.Id, simtypes.RandSubsetCoins(r, balances))
-				_, _ = s.keeper.Deposit(s.ctx, msg)
+				_, _ = s.app.DexKeeper.Deposit(s.ctx, msg)
 			}
 			for j := 0; j < numWithdraws; j++ {
 				withdrawer := s.addr(r.Intn(numUsers))
@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestSimulation1() {
 				balance := s.getBalance(withdrawer, pool.PoolCoinDenom).Amount
 				msg := types.NewMsgWithdraw(
 					withdrawer, pool.Id, sdk.NewCoin(pool.PoolCoinDenom, utils.RandomInt(r, math.NewInt(1), balance)))
-				_, _ = s.keeper.Withdraw(s.ctx, msg)
+				_, _ = s.app.DexKeeper.Withdraw(s.ctx, msg)
 			}
 			s.nextBlock()
 

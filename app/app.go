@@ -154,7 +154,10 @@ type App struct {
 
 func init() {
 	sdkConfig := sdk.GetConfig()
-	sdkConfig.SetBech32PrefixForAccount(AccountAddressPrefix, AccountAddressPrefix+"pub")
+	valoper := sdk.PrefixValidator + sdk.PrefixOperator
+	valoperpub := sdk.PrefixValidator + sdk.PrefixOperator + sdk.PrefixPublic
+	sdkConfig.SetBech32PrefixForAccount(AccountAddressPrefix, AccountAddressPrefix+sdk.PrefixPublic)
+	sdkConfig.SetBech32PrefixForValidator(AccountAddressPrefix+valoper, AccountAddressPrefix+valoperpub)
 	sdkConfig.Seal()
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {

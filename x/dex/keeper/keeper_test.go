@@ -8,11 +8,12 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
+	defundtypes "defund/types"
+
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	chain "defund/app"
-	"defund/testutil"
+	"defund/app"
 	"defund/x/dex/amm"
 	"defund/x/dex/keeper"
 	"defund/x/dex/types"
@@ -21,9 +22,8 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app       *chain.App
+	app       *app.App
 	ctx       sdk.Context
-	keeper    keeper.Keeper
 	msgServer types.MsgServer
 }
 
@@ -32,13 +32,16 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app, ctx := testutil.TestApp(s.T())
+	app := app.InitTestApp(true)
 	s.app = app
-	s.ctx = ctx
+	hdr := cmtproto.Header{
+		Height: 1,
+		Time:   defundtypes.ParseTime("2022-01-01T00:00:00Z"),
+	}
+	s.ctx = app.BaseApp.NewContext(true).WithBlockHeader(hdr)
 	// Initialize params
-	s.app.DexKeeper.SetParams(ctx, types.DefaultParams())
-	s.keeper = s.app.DexKeeper
-	s.msgServer = keeper.NewMsgServerImpl(s.keeper)
+	s.app.DexKeeper.SetParams(s.ctx, types.DefaultParams())
+	s.msgServer = keeper.NewMsgServerImpl(s.app.DexKeeper)
 }
 
 // Below are just shortcuts to frequently-used functions.
@@ -58,30 +61,15 @@ func (s *KeeperTestSuite) sendCoins(fromAddr, toAddr sdk.AccAddress, amt sdk.Coi
 
 func (s *KeeperTestSuite) nextBlock() {
 	s.T().Helper()
-
-	// End the current block
-	s.app.EndBlocker(s.ctx.WithBlockHeight(s.ctx.BlockHeight()))
-
-	// Increment the block height
-	newHeight := s.ctx.BlockHeight() + 1
-	newTime := s.ctx.BlockTime().Add(5 * time.Second)
-
-	// Create a new header
-	header := cmtproto.Header{
-		Height:  newHeight,
-		Time:    newTime,
-		ChainID: s.ctx.ChainID(),
+	s.app.ModuleManager.EndBlock(s.ctx)
+	s.app.Commit()
+	hdr := cmtproto.Header{
+		Height: s.app.LastBlockHeight() + 1,
+		Time:   s.ctx.BlockTime().Add(5 * time.Second),
 	}
-
-	// Begin a new block
-	s.app.BeginBlocker(s.ctx.WithBlockHeader(header))
-
-	// Update the context
-	s.ctx = s.ctx.
-		WithBlockHeight(newHeight).
-		WithBlockTime(newTime).
-		WithChainID(s.ctx.ChainID()).
-		WithBlockHeader(header)
+	s.ctx = s.app.BaseApp.NewContext(true).WithBlockHeader(hdr)
+	s.app.ModuleManager.BeginBlock(s.ctx)
+	s.app.BeginBlocker(s.ctx)
 }
 
 // Below are useful helpers to write test code easily.
@@ -102,11 +90,11 @@ func (s *KeeperTestSuite) fundAddr(addr sdk.AccAddress, amt sdk.Coins) {
 func (s *KeeperTestSuite) createPair(creator sdk.AccAddress, baseCoinDenom, quoteCoinDenom string, fund bool) types.Pair {
 	s.T().Helper()
 	if fund {
-		s.fundAddr(creator, s.keeper.GetPairCreationFee(s.ctx))
+		s.fundAddr(creator, s.app.DexKeeper.GetPairCreationFee(s.ctx))
 	}
 	msg := types.NewMsgCreatePair(creator, baseCoinDenom, quoteCoinDenom)
 	s.Require().NoError(msg.ValidateBasic())
-	pair, err := s.keeper.CreatePair(s.ctx, msg)
+	pair, err := s.app.DexKeeper.CreatePair(s.ctx, msg)
 	s.Require().NoError(err)
 	return pair
 }
@@ -114,11 +102,11 @@ func (s *KeeperTestSuite) createPair(creator sdk.AccAddress, baseCoinDenom, quot
 func (s *KeeperTestSuite) createPool(creator sdk.AccAddress, pairId uint64, depositCoins sdk.Coins, fund bool) types.Pool {
 	s.T().Helper()
 	if fund {
-		s.fundAddr(creator, depositCoins.Add(s.keeper.GetPoolCreationFee(s.ctx)...))
+		s.fundAddr(creator, depositCoins.Add(s.app.DexKeeper.GetPoolCreationFee(s.ctx)...))
 	}
 	msg := types.NewMsgCreatePool(creator, pairId, depositCoins)
 	s.Require().NoError(msg.ValidateBasic())
-	pool, err := s.keeper.CreatePool(s.ctx, msg)
+	pool, err := s.app.DexKeeper.CreatePool(s.ctx, msg)
 	s.Require().NoError(err)
 	return pool
 }
@@ -126,11 +114,11 @@ func (s *KeeperTestSuite) createPool(creator sdk.AccAddress, pairId uint64, depo
 func (s *KeeperTestSuite) createRangedPool(creator sdk.AccAddress, pairId uint64, depositCoins sdk.Coins, minPrice, maxPrice, initialPrice math.LegacyDec, fund bool) types.Pool {
 	s.T().Helper()
 	if fund {
-		s.fundAddr(creator, depositCoins.Add(s.keeper.GetPoolCreationFee(s.ctx)...))
+		s.fundAddr(creator, depositCoins.Add(s.app.DexKeeper.GetPoolCreationFee(s.ctx)...))
 	}
 	msg := types.NewMsgCreateRangedPool(creator, pairId, depositCoins, minPrice, maxPrice, initialPrice)
 	s.Require().NoError(msg.ValidateBasic())
-	pool, err := s.keeper.CreateRangedPool(s.ctx, msg)
+	pool, err := s.app.DexKeeper.CreateRangedPool(s.ctx, msg)
 	s.Require().NoError(err)
 	return pool
 }
@@ -140,14 +128,14 @@ func (s *KeeperTestSuite) deposit(depositor sdk.AccAddress, poolId uint64, depos
 	if fund {
 		s.fundAddr(depositor, depositCoins)
 	}
-	req, err := s.keeper.Deposit(s.ctx, types.NewMsgDeposit(depositor, poolId, depositCoins))
+	req, err := s.app.DexKeeper.Deposit(s.ctx, types.NewMsgDeposit(depositor, poolId, depositCoins))
 	s.Require().NoError(err)
 	return req
 }
 
 func (s *KeeperTestSuite) withdraw(withdrawer sdk.AccAddress, poolId uint64, poolCoin sdk.Coin) types.WithdrawRequest {
 	s.T().Helper()
-	req, err := s.keeper.Withdraw(s.ctx, types.NewMsgWithdraw(withdrawer, poolId, poolCoin))
+	req, err := s.app.DexKeeper.Withdraw(s.ctx, types.NewMsgWithdraw(withdrawer, poolId, poolCoin))
 	s.Require().NoError(err)
 	return req
 }
@@ -156,7 +144,7 @@ func (s *KeeperTestSuite) limitOrder(
 	orderer sdk.AccAddress, pairId uint64, dir types.OrderDirection,
 	price math.LegacyDec, amt math.Int, orderLifespan time.Duration, fund bool) types.Order {
 	s.T().Helper()
-	pair, found := s.keeper.GetPair(s.ctx, pairId)
+	pair, found := s.app.DexKeeper.GetPair(s.ctx, pairId)
 	s.Require().True(found)
 	var ammDir amm.OrderDirection
 	var offerCoinDenom, demandCoinDenom string
@@ -176,7 +164,7 @@ func (s *KeeperTestSuite) limitOrder(
 		orderer, pairId, dir, offerCoin, demandCoinDenom,
 		price, amt, orderLifespan)
 	s.Require().NoError(msg.ValidateBasic())
-	req, err := s.keeper.LimitOrder(s.ctx, msg)
+	req, err := s.app.DexKeeper.LimitOrder(s.ctx, msg)
 	s.Require().NoError(err)
 	return req
 }
@@ -201,7 +189,7 @@ func (s *KeeperTestSuite) marketOrder(
 	orderer sdk.AccAddress, pairId uint64, dir types.OrderDirection,
 	amt math.Int, orderLifespan time.Duration, fund bool) types.Order {
 	s.T().Helper()
-	pair, found := s.keeper.GetPair(s.ctx, pairId)
+	pair, found := s.app.DexKeeper.GetPair(s.ctx, pairId)
 	s.Require().True(found)
 	s.Require().NotNil(pair.LastPrice)
 	lastPrice := *pair.LastPrice
@@ -209,7 +197,7 @@ func (s *KeeperTestSuite) marketOrder(
 	var demandCoinDenom string
 	switch dir {
 	case types.OrderDirectionBuy:
-		maxPrice := lastPrice.Mul(math.LegacyOneDec().Add(s.keeper.GetMaxPriceLimitRatio(s.ctx)))
+		maxPrice := lastPrice.Mul(math.LegacyOneDec().Add(s.app.DexKeeper.GetMaxPriceLimitRatio(s.ctx)))
 		offerCoin = sdk.NewCoin(pair.QuoteCoinDenom, amm.OfferCoinAmount(amm.Buy, maxPrice, amt))
 		demandCoinDenom = pair.BaseCoinDenom
 	case types.OrderDirectionSell:
@@ -223,7 +211,7 @@ func (s *KeeperTestSuite) marketOrder(
 		orderer, pairId, dir, offerCoin, demandCoinDenom,
 		amt, orderLifespan)
 	s.Require().NoError(msg.ValidateBasic())
-	req, err := s.keeper.MarketOrder(s.ctx, msg)
+	req, err := s.app.DexKeeper.MarketOrder(s.ctx, msg)
 	s.Require().NoError(err)
 	return req
 }
@@ -248,7 +236,7 @@ func (s *KeeperTestSuite) mmOrder(
 	orderer sdk.AccAddress, pairId uint64, dir types.OrderDirection,
 	price math.LegacyDec, amt math.Int, orderLifespan time.Duration, fund bool) types.Order {
 	s.T().Helper()
-	pair, found := s.keeper.GetPair(s.ctx, pairId)
+	pair, found := s.app.DexKeeper.GetPair(s.ctx, pairId)
 	s.Require().True(found)
 	var ammDir amm.OrderDirection
 	var offerCoinDenom, demandCoinDenom string
@@ -268,7 +256,7 @@ func (s *KeeperTestSuite) mmOrder(
 		orderer, pairId, dir, offerCoin, demandCoinDenom,
 		price, amt, orderLifespan)
 	s.Require().NoError(msg.ValidateBasic())
-	req, err := s.keeper.MMOrder(s.ctx, msg)
+	req, err := s.app.DexKeeper.MMOrder(s.ctx, msg)
 	s.Require().NoError(err)
 	return req
 }
@@ -276,13 +264,13 @@ func (s *KeeperTestSuite) mmOrder(
 // nolint
 func (s *KeeperTestSuite) cancelOrder(orderer sdk.AccAddress, pairId, orderId uint64) {
 	s.T().Helper()
-	err := s.keeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(orderer, pairId, orderId))
+	err := s.app.DexKeeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(orderer, pairId, orderId))
 	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) cancelAllOrders(orderer sdk.AccAddress, pairIds []uint64) {
 	s.T().Helper()
-	err := s.keeper.CancelAllOrders(s.ctx, types.NewMsgCancelAllOrders(orderer, pairIds))
+	err := s.app.DexKeeper.CancelAllOrders(s.ctx, types.NewMsgCancelAllOrders(orderer, pairIds))
 	s.Require().NoError(err)
 }
 
