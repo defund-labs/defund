@@ -341,7 +341,8 @@ func (s *KeeperTestSuite) TestPartialMatch() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(5000), 0, true)
-	s.nextBlock(false)
+	dex.EndBlocker(s.ctx, s.app.DexKeeper)
+	dex.BeginBlocker(s.ctx, s.app.DexKeeper)
 
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -351,7 +352,8 @@ func (s *KeeperTestSuite) TestPartialMatch() {
 	s.Require().True(intEq(math.NewInt(5000), order.OpenAmount))
 
 	s.sellMarketOrder(s.addr(3), pair.Id, math.NewInt(5000), 0, true)
-	s.nextBlock(false)
+	dex.EndBlocker(s.ctx, s.app.DexKeeper)
+	dex.BeginBlocker(s.ctx, s.app.DexKeeper)
 
 	// Now completely matched.
 	_, found = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
@@ -426,7 +428,8 @@ func (s *KeeperTestSuite) TestCancelOrder() {
 	err := s.app.DexKeeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(s.addr(1), order.PairId, order.Id))
 	s.Require().ErrorIs(err, types.ErrSameBatch)
 
-	s.nextBlock(false)
+	dex.EndBlocker(s.ctx, s.app.DexKeeper)
+	dex.BeginBlocker(s.ctx, s.app.DexKeeper)
 
 	// Now an order can be canceled
 	err = s.app.DexKeeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(s.addr(1), order.PairId, order.Id))
@@ -439,7 +442,8 @@ func (s *KeeperTestSuite) TestCancelOrder() {
 	// Coins are refunded
 	s.Require().True(coinsEq(utils.ParseCoins("10000denom2"), s.getBalances(s.addr(1))))
 
-	s.nextBlock(false)
+	dex.EndBlocker(s.ctx, s.app.DexKeeper)
+	dex.BeginBlocker(s.ctx, s.app.DexKeeper)
 
 	// Order is deleted
 	_, found = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
