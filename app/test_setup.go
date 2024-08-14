@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	dextypes "defund/x/dex/types"
+
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -131,6 +133,9 @@ func GenesisStateWithValSet(app *App) GenesisState {
 		[]banktypes.SendEnabled{},
 	)
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
+
+	dexGenesis := dextypes.DefaultGenesis()
+	genesisState[dextypes.ModuleName] = app.AppCodec().MustMarshalJSON(dexGenesis)
 
 	return genesisState
 }

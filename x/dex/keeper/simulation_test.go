@@ -82,7 +82,7 @@ func (s *KeeperTestSuite) TestSimulation1() {
 					withdrawer, pool.Id, sdk.NewCoin(pool.PoolCoinDenom, utils.RandomInt(r, math.NewInt(1), balance)))
 				_, _ = s.app.DexKeeper.Withdraw(s.ctx, msg)
 			}
-			s.nextBlock()
+			s.nextBlock(false)
 
 			totalBalancesAfter := sdk.Coins{}
 			for j := 0; j < numUsers; j++ {

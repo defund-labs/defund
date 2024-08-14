@@ -204,7 +204,7 @@ func (s *KeeperTestSuite) TestMarketOrder() {
 	// These two orders will be matched.
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), 0, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now users can make market orders.
 	// In this case, addr(3) user's order takes higher priority than addr(4) user's,
@@ -212,7 +212,7 @@ func (s *KeeperTestSuite) TestMarketOrder() {
 	s.buyMarketOrder(s.addr(3), pair.Id, math.NewInt(10000), 0, true)
 	s.buyLimitOrder(s.addr(4), pair.Id, utils.ParseDec("1.08"), math.NewInt(10000), 0, true)
 	s.sellLimitOrder(s.addr(5), pair.Id, utils.ParseDec("1.07"), math.NewInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Check the result.
 	s.Require().True(coinEq(utils.ParseCoin("10000denom1"), s.getBalance(s.addr(3), "denom1")))
@@ -299,7 +299,7 @@ func (s *KeeperTestSuite) TestSingleOrderNoMatch() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
 	// Execute matching
-	s.nextBlock()
+	s.nextBlock(false)
 
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -308,7 +308,7 @@ func (s *KeeperTestSuite) TestSingleOrderNoMatch() {
 	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(10 * time.Second))
 	// Expire the order, here BeginBlocker is not called to check
 	// the request's changed status
-	s.nextBlock()
+	s.nextBlock(false)
 
 	order, _ = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
@@ -321,7 +321,7 @@ func (s *KeeperTestSuite) TestTwoOrderExactMatch() {
 
 	req1 := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
 	req2 := s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	req1, _ = s.app.DexKeeper.GetOrder(s.ctx, req1.PairId, req1.Id)
 	s.Require().Equal(types.OrderStatusCompleted, req1.Status)
@@ -341,7 +341,7 @@ func (s *KeeperTestSuite) TestPartialMatch() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(5000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -351,7 +351,7 @@ func (s *KeeperTestSuite) TestPartialMatch() {
 	s.Require().True(intEq(math.NewInt(5000), order.OpenAmount))
 
 	s.sellMarketOrder(s.addr(3), pair.Id, math.NewInt(5000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now completely matched.
 	_, found = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
@@ -363,7 +363,7 @@ func (s *KeeperTestSuite) TestMatchWithLowPricePool() {
 	// Create a pool with very low price.
 	s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100000000000000000denom1,1000000denom2"), true)
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000000000000010000"), math.NewInt(100000000000000000), 10*time.Second, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusNotMatched, order.Status)
@@ -381,7 +381,7 @@ func (s *KeeperTestSuite) TestMMOrderNumberLimit() {
 			price, math.NewInt(1_000000), time.Hour, true)
 	}
 
-	s.nextBlock()
+	s.nextBlock(false)
 	// Cannot place an MM order anymore.
 	s.fundAddr(s.addr(1), utils.ParseCoins("1000000000denom1,1000000000denom2"))
 	_, err := s.app.DexKeeper.MMOrder(
@@ -394,14 +394,14 @@ func (s *KeeperTestSuite) TestMMOrderNumberLimit() {
 
 	// Complete one MM order.
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.9"), math.NewInt(1_000000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now it is possible to place one more MM order.
 	order := s.mmOrder(
 		s.addr(1), pair.Id, types.OrderDirectionBuy,
 		utils.ParseDec("1.1"), math.NewInt(1_000000), time.Hour, true)
 
-	s.nextBlock()
+	s.nextBlock(false)
 	_, err = s.app.DexKeeper.MMOrder(
 		s.ctx,
 		types.NewMsgMMOrder(
@@ -426,7 +426,7 @@ func (s *KeeperTestSuite) TestCancelOrder() {
 	err := s.app.DexKeeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(s.addr(1), order.PairId, order.Id))
 	s.Require().ErrorIs(err, types.ErrSameBatch)
 
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now an order can be canceled
 	err = s.app.DexKeeper.CancelOrder(s.ctx, types.NewMsgCancelOrder(s.addr(1), order.PairId, order.Id))
@@ -439,7 +439,7 @@ func (s *KeeperTestSuite) TestCancelOrder() {
 	// Coins are refunded
 	s.Require().True(coinsEq(utils.ParseCoins("10000denom2"), s.getBalances(s.addr(1))))
 
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Order is deleted
 	_, found = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
@@ -451,7 +451,7 @@ func (s *KeeperTestSuite) TestCancelAllOrders() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), time.Hour, true)
 	s.cancelAllOrders(s.addr(1), nil) // CancelAllOrders doesn't cancel orders within in same batch
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// The order is still alive.
 	_, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
@@ -467,14 +467,14 @@ func (s *KeeperTestSuite) TestCancelAllOrders() {
 	// The order won't be matched with this market order, since the order is
 	// already canceled.
 	s.sellLimitOrder(s.addr(3), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	s.Require().True(coinsEq(utils.ParseCoins("10000denom2"), s.getBalances(s.addr(1))))
 
 	pair2 := s.createPair(s.addr(0), "denom2", "denom3", true)
 	s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.5"), math.NewInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair2.Id, utils.ParseDec("1.0"), math.NewInt(10000), time.Hour, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	// CancelAllOrders can cancel orders in specific pairs.
 	s.cancelAllOrders(s.addr(2), []uint64{pair.Id})
 	// Coins from first two orders are refunded, but not from the last order.
@@ -498,7 +498,7 @@ func (s *KeeperTestSuite) TestCancelAllOrdersGasUsage() {
 	s.sellLimitOrder(orderer, pair.Id, utils.ParseDec("1.1"), math.NewInt(10000), time.Minute, true)
 
 	// New batch begins, now the orderer can cancel his/her order.
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.ctx = s.ctx.WithGasMeter(store.NewInfiniteGasMeter()) // to record gas consumption
 	s.cancelAllOrders(orderer, nil)                         // cancel all orders in all pairs
@@ -510,7 +510,7 @@ func (s *KeeperTestSuite) TestDustCollector() {
 
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.9005"), newInt(1000), 0, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.9005"), newInt(1000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(coinsEq(utils.ParseCoins("1000denom1"), s.getBalances(s.addr(1))))
 	s.Require().True(coinsEq(utils.ParseCoins("900denom2"), s.getBalances(s.addr(2))))
@@ -630,10 +630,10 @@ func (s *KeeperTestSuite) TestInsufficientRemainingOfferCoin() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.5"), math.NewInt(10000), time.Minute, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.5"), math.NewInt(1001), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.5"), math.NewInt(8999), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
@@ -647,7 +647,7 @@ func (s *KeeperTestSuite) TestNegativeOpenAmount() {
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.82"), math.NewInt(648744), 0, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.82"), math.NewInt(648745), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
@@ -732,14 +732,14 @@ func (s *KeeperTestSuite) TestExpireSmallOrders() {
 	// floor(10000*0.000018) demand coin, which is zero.
 	// So the order must have been expired after matching.
 	order := s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.000018"), math.NewInt(10010000), time.Minute, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, found := s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.OrderStatusExpired, order.Status)
 
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000019"), math.NewInt(100000000), time.Minute, true)
 	s.sellLimitOrder(s.addr(3), pair.Id, utils.ParseDec("0.000019"), math.NewInt(100000000), time.Minute, true)
-	s.nextBlock()
+	s.nextBlock(false)
 }
 
 func (s *KeeperTestSuite) TestPoolOrderOverflow() {
@@ -749,7 +749,7 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow() {
 
 	s.sellLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.000000000000010000"), math.NewInt(1e17), 0, true)
 	s.Require().NotPanics(func() {
-		s.nextBlock()
+		s.nextBlock(false)
 	})
 }
 
@@ -764,7 +764,7 @@ func (s *KeeperTestSuite) TestRangeddex() {
 	s.createPool(s.addr(1), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
 	order := s.buyLimitOrder(s.addr(2), pair.Id, orderPrice, orderAmt, 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, _ = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid := order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received := order.ReceivedCoin.Amount
@@ -779,7 +779,7 @@ func (s *KeeperTestSuite) TestRangeddex() {
 		s.addr(1), pair.Id, utils.ParseCoins("1000000denom3,1000000denom4"),
 		utils.ParseDec("0.8"), utils.ParseDec("1.3"), utils.ParseDec("1.0"), true)
 	order = s.buyLimitOrder(s.addr(2), pair.Id, orderPrice, orderAmt, 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, _ = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid = order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received = order.ReceivedCoin.Amount
@@ -804,7 +804,7 @@ func (s *KeeperTestSuite) TestOneSidedRangedPool() {
 	orderPrice := utils.ParseDec("1.1")
 	orderAmt := math.NewInt(100000)
 	order := s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.1"), math.NewInt(100000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	order, _ = s.app.DexKeeper.GetOrder(s.ctx, order.PairId, order.Id)
 	paid := order.OfferCoin.Sub(order.RemainingOfferCoin).Amount
 	received := order.ReceivedCoin.Amount
@@ -841,7 +841,7 @@ func (s *KeeperTestSuite) TestExhaustRangedPool() {
 		orderPrice := utils.RandomDec(r, poolPrice, poolPrice.Mul(math.LegacyNewDecWithPrec(105, 2)))
 		amt := utils.RandomInt(r, math.NewInt(5000), math.NewInt(15000))
 		s.buyLimitOrder(orderer, pair.Id, orderPrice, amt, 0, false)
-		s.nextBlock()
+		s.nextBlock(false)
 	}
 
 	// Sell
@@ -856,7 +856,7 @@ func (s *KeeperTestSuite) TestExhaustRangedPool() {
 		orderPrice := utils.RandomDec(r, poolPrice.Mul(math.LegacyNewDecWithPrec(95, 2)), poolPrice)
 		amt := utils.RandomInt(r, math.NewInt(5000), math.NewInt(15000))
 		s.sellLimitOrder(orderer, pair.Id, orderPrice, amt, 0, false)
-		s.nextBlock()
+		s.nextBlock(false)
 	}
 
 	// Buy again
@@ -870,7 +870,7 @@ func (s *KeeperTestSuite) TestExhaustRangedPool() {
 		orderPrice := utils.RandomDec(r, poolPrice, poolPrice.Mul(math.LegacyNewDecWithPrec(105, 2)))
 		amt := utils.RandomInt(r, math.NewInt(5000), math.NewInt(15000))
 		s.buyLimitOrder(orderer, pair.Id, orderPrice, amt, 0, false)
-		s.nextBlock()
+		s.nextBlock(false)
 	}
 
 	rx, ry := s.app.DexKeeper.GetPoolBalances(s.ctx, pool)
@@ -887,14 +887,14 @@ func (s *KeeperTestSuite) TestSwap_edgecase1() {
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.102"), math.NewInt(10000), 0, true)
 	s.sellLimitOrder(s.addr(3), pair.Id, utils.ParseDec("0.101"), math.NewInt(9995), 0, true)
 	s.buyLimitOrder(s.addr(4), pair.Id, utils.ParseDec("0.102"), math.NewInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 	pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
 	s.Require().True(decEq(utils.ParseDec("0.102"), *pair.LastPrice))
 
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.102"), math.NewInt(10000), 0, true)
 	s.sellLimitOrder(s.addr(3), pair.Id, utils.ParseDec("0.101"), math.NewInt(9995), 0, true)
 	s.buyLimitOrder(s.addr(4), pair.Id, utils.ParseDec("0.102"), math.NewInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 }
 
 func (s *KeeperTestSuite) TestSwap_edgecase2() {
@@ -911,17 +911,17 @@ func (s *KeeperTestSuite) TestSwap_edgecase2() {
 		utils.ParseDec("1.25"), utils.ParseDec("1.45"), utils.ParseDec("1.45"), true)
 
 	s.sellMarketOrder(s.addr(1), pair.Id, math.NewInt(4336_000000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
 	s.Require().True(decEq(utils.ParseDec("1.6484"), *pair.LastPrice))
 
-	s.nextBlock()
+	s.nextBlock(false)
 	pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
 	s.Require().True(decEq(utils.ParseDec("1.6484"), *pair.LastPrice))
 
 	s.sellMarketOrder(s.addr(1), pair.Id, math.NewInt(4450_000000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
 	s.Require().True(decEq(utils.ParseDec("1.6248"), *pair.LastPrice))
@@ -938,7 +938,7 @@ func (s *KeeperTestSuite) TestSwap_edgecase3() {
 		utils.ParseDec("0.92"), utils.ParseDec("1.08"), utils.ParseDec("0.99989"), true)
 
 	s.buyMarketOrder(s.addr(1), pair.Id, math.NewInt(30_000000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	pair, _ = s.app.DexKeeper.GetPair(s.ctx, pair.Id)
 	s.Require().True(decEq(utils.ParseDec("0.99992"), *pair.LastPrice))
@@ -959,7 +959,7 @@ func (s *KeeperTestSuite) TestSwap_edgecase4() {
 	s.sellLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.05"), math.NewInt(50_000000), 0, true)
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("0.97"), math.NewInt(100_000000), 0, true)
 
-	s.nextBlock()
+	s.nextBlock(false)
 }
 
 func (s *KeeperTestSuite) TestOrderBooks_edgecase1() {

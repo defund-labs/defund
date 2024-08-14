@@ -26,7 +26,7 @@ func (s *KeeperTestSuite) TestDepositCoinsEscrowInvariant() {
 
 	req = oldReq
 	s.app.DexKeeper.SetDepositRequest(s.ctx, req)
-	s.nextBlock()
+	s.nextBlock(false)
 	_, broken = keeper.DepositCoinsEscrowInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
 }
@@ -36,7 +36,7 @@ func (s *KeeperTestSuite) TestPoolCoinEscrowInvariant() {
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
 	s.deposit(s.addr(1), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	req := s.withdraw(s.addr(1), pool.Id, utils.ParseCoin("1000000pool1"))
 	_, broken := keeper.PoolCoinEscrowInvariant(s.app.DexKeeper)(s.ctx)
@@ -50,7 +50,7 @@ func (s *KeeperTestSuite) TestPoolCoinEscrowInvariant() {
 
 	req = oldReq
 	s.app.DexKeeper.SetWithdrawRequest(s.ctx, req)
-	s.nextBlock()
+	s.nextBlock(false)
 	_, broken = keeper.PoolCoinEscrowInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
 }
@@ -70,7 +70,7 @@ func (s *KeeperTestSuite) TestRemainingOfferCoinEscrowInvariant() {
 
 	order = oldOrder
 	s.app.DexKeeper.SetOrder(s.ctx, order)
-	s.nextBlock()
+	s.nextBlock(false)
 	_, broken = keeper.RemainingOfferCoinEscrowInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
 }
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestPoolStatusInvariant() {
 	s.Require().False(broken)
 
 	s.withdraw(s.addr(0), pool.Id, s.getBalance(s.addr(0), pool.PoolCoinDenom))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	_, broken = keeper.PoolStatusInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
@@ -122,7 +122,7 @@ func (s *KeeperTestSuite) TestNumMMOrdersInvariant() {
 	_, broken := keeper.NumMMOrdersInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
 
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Cancel some MM orders and place another order
 	s.cancelOrder(orderer, pair.Id, 1)
@@ -135,7 +135,7 @@ func (s *KeeperTestSuite) TestNumMMOrdersInvariant() {
 	s.Require().False(broken)
 
 	// After deleting canceled orders, the invariant must not be broken
-	s.nextBlock()
+	s.nextBlock(false)
 	_, broken = keeper.NumMMOrdersInvariant(s.app.DexKeeper)(s.ctx)
 	s.Require().False(broken)
 

@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -212,17 +214,18 @@ func (s *KeeperTestSuite) TestDisabledPool() {
 
 	// A depositor tries to deposit to the pool.
 	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now, the pool is disabled.
 	pool, _ = s.app.DexKeeper.GetPool(s.ctx, pool.Id)
+	fmt.Print(pool.Disabled)
 	s.Require().True(pool.Disabled)
 
 	// Here's the second example.
 	// This time, the pool creator withdraws all his coins.
 	pool = s.createPool(poolCreator, pair2.Id, utils.ParseCoins("1000000denom3,1000000denom4"), true)
 	s.withdraw(poolCreator, pool.Id, s.getBalance(poolCreator, pool.PoolCoinDenom))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// The pool is disabled again.
 	pool, _ = s.app.DexKeeper.GetPool(s.ctx, pool.Id)
@@ -236,7 +239,7 @@ func (s *KeeperTestSuite) TestCreatePoolAfterDisabled() {
 	poolCreator := s.addr(1)
 	pool := s.createPool(poolCreator, pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.withdraw(poolCreator, pool.Id, s.getBalance(poolCreator, pool.PoolCoinDenom))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now a new pool can be created with same denom pair because
 	// all pools with same denom pair are disabled.
@@ -275,14 +278,14 @@ func (s *KeeperTestSuite) TestDeposit() {
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
 	s.deposit(s.addr(1), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// The depositor now has the same pool coin as the pool creator.
 	expectedPoolCoin := s.getBalance(s.addr(0), pool.PoolCoinDenom)
 	s.Require().True(coinsEq(sdk.NewCoins(expectedPoolCoin), s.getBalances(s.addr(1))))
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("500000denom1,500000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// The next depositor has 1/2 pool coin of the pool creator.
 	expectedPoolCoin = sdk.NewCoin(pool.PoolCoinDenom, s.getBalance(s.addr(0), pool.PoolCoinDenom).Amount.QuoRaw(2))
@@ -298,7 +301,7 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	s.nextBlock()
+	s.nextBlock(false)
 	req, _ = s.app.DexKeeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
@@ -312,7 +315,7 @@ func (s *KeeperTestSuite) TestDepositRefund() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	s.nextBlock()
+	s.nextBlock(false)
 	req, _ = s.app.DexKeeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -328,7 +331,7 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins := utils.ParseCoins("20000denom1,15000denom2")
 	s.fundAddr(depositor, depositCoins)
 	req := s.deposit(depositor, pool.Id, depositCoins, false)
-	s.nextBlock()
+	s.nextBlock(false)
 	req, _ = s.app.DexKeeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusSucceeded, req.Status)
 
@@ -342,7 +345,7 @@ func (s *KeeperTestSuite) TestDepositRefundTooSmallMintedPoolCoin() {
 	depositCoins = utils.ParseCoins("1denom1,1denom2")
 	s.fundAddr(depositor, depositCoins)
 	req = s.deposit(depositor, pool.Id, depositCoins, false)
-	s.nextBlock()
+	s.nextBlock(false)
 	req, _ = s.app.DexKeeper.GetDepositRequest(s.ctx, req.PoolId, req.Id)
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
@@ -364,11 +367,11 @@ func (s *KeeperTestSuite) TestWithdraw() {
 	depositor := s.addr(1)
 	depositCoins := utils.ParseCoins("1000000denom1,1000000denom2")
 	s.deposit(depositor, pool.Id, depositCoins, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	poolCoin := s.getBalance(depositor, pool.PoolCoinDenom)
 	s.withdraw(depositor, pool.Id, poolCoin)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(coinsEq(depositCoins, s.getBalances(depositor)))
 }
@@ -379,14 +382,14 @@ func (s *KeeperTestSuite) TestWithdrawRefund() {
 
 	depositor := s.addr(1)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Make the pool depleted.
 	s.sendCoins(pool.GetReserveAddressAcc(), s.addr(2), s.getBalances(pool.GetReserveAddressAcc()))
 
 	poolCoin := s.getBalance(depositor, pool.PoolCoinDenom)
 	s.withdraw(depositor, pool.Id, poolCoin)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(coinsEq(sdk.NewCoins(poolCoin), s.getBalances(depositor)))
 }
@@ -397,12 +400,12 @@ func (s *KeeperTestSuite) TestWithdrawRefundTooSmallWithdrawCoins() {
 
 	depositor := s.addr(1)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 	poolCoin := s.getBalance(depositor, pool.PoolCoinDenom)
 
 	// Withdrawing too small amount of pool coin.
 	s.withdraw(depositor, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 100))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(coinsEq(sdk.NewCoins(poolCoin), s.getBalances(depositor)))
 }
@@ -426,7 +429,7 @@ func (s *KeeperTestSuite) TestDepositToDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the depositor.
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now any deposits will result in an error.
 	_, err = s.app.DexKeeper.Deposit(s.ctx, types.NewMsgDeposit(depositor, pool.Id, depositCoins))
@@ -450,7 +453,7 @@ func (s *KeeperTestSuite) TestWithdrawFromDisabledPool() {
 	s.Require().Equal(types.RequestStatusFailed, req.Status)
 
 	// Delete the previous request and refund coins to the withdrawer.
-	s.nextBlock()
+	s.nextBlock(false)
 
 	// Now any withdrawals will result in an error.
 	_, err = s.app.DexKeeper.Withdraw(s.ctx, types.NewMsgWithdraw(poolCreator, pool.Id, s.getBalance(poolCreator, pool.PoolCoinDenom)))
@@ -474,7 +477,7 @@ func (s *KeeperTestSuite) TestWithdrawRequestsByWithdrawer() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	s.deposit(s.addr(1), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 	req1 := s.withdraw(s.addr(1), pool.Id, utils.ParseCoin("10000pool1"))
 	req2 := s.withdraw(s.addr(1), pool.Id, utils.ParseCoin("10000pool1"))
 	reqs := s.app.DexKeeper.GetWithdrawRequestsByWithdrawer(s.ctx, s.addr(1))
@@ -493,7 +496,7 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow_ExternalFunds() {
 	s.sendCoins(s.addr(1), pool.GetReserveAddressAcc(), externalFunds)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("0.0000000001"), math.NewInt(1e18), 0, true)
 	s.Require().NotPanics(func() {
-		s.nextBlock()
+		s.nextBlock(false)
 	})
 }
 
@@ -507,14 +510,14 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw() {
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("400000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 	rx, ry = s.app.DexKeeper.GetPoolBalances(s.ctx, pool)
 	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
 
 	poolCoin := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 	s.withdraw(s.addr(2), pool.Id, poolCoin.SubAmount(poolCoin.Amount.QuoRaw(3))) // withdraw 2/3 pool coin
-	s.nextBlock()
+	s.nextBlock(false)
 	rx, ry = s.app.DexKeeper.GetPoolBalances(s.ctx, pool)
 	ammPool = pool.AMMPool(rx.Amount, ry.Amount, math.Int{})
 	s.Require().True(utils.DecApproxEqual(ammPool.Price(), utils.ParseDec("1.0")))
@@ -532,7 +535,7 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side() {
 	ps := s.app.DexKeeper.GetPoolCoinSupply(s.ctx, pool)
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("50000denom1"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	pc := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 
@@ -543,13 +546,13 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side() {
 
 	balanceBefore := s.getBalance(s.addr(2), "denom1")
 	s.withdraw(s.addr(2), pool.Id, sdk.NewCoin(pool.PoolCoinDenom, pc.Amount))
-	s.nextBlock()
+	s.nextBlock(false)
 	balanceAfter := s.getBalance(s.addr(2), "denom1")
 
 	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(math.NewInt(50000)).LTE(math.OneInt()))
 
 	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(intEq(math.ZeroInt(), s.getBalance(s.addr(3), "denom1").Amount))
 	s.Require().True(intEq(math.NewInt(1000000), s.getBalance(s.addr(3), "denom2").Amount))
@@ -567,7 +570,7 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
 	ps := s.app.DexKeeper.GetPoolCoinSupply(s.ctx, pool)
 
 	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("50000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	pc := s.getBalance(s.addr(2), pool.PoolCoinDenom)
 
@@ -578,13 +581,13 @@ func (s *KeeperTestSuite) TestRangedPoolDepositWithdraw_single_side2() {
 
 	balanceBefore := s.getBalance(s.addr(2), "denom2")
 	s.withdraw(s.addr(2), pool.Id, sdk.NewCoin(pool.PoolCoinDenom, pc.Amount))
-	s.nextBlock()
+	s.nextBlock(false)
 	balanceAfter := s.getBalance(s.addr(2), "denom2")
 
 	s.Require().True(balanceAfter.Sub(balanceBefore).Amount.Sub(math.NewInt(50000)).LTE(math.OneInt()))
 
 	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.Require().True(intEq(math.ZeroInt(), s.getBalance(s.addr(3), "denom2").Amount))
 	s.Require().True(intEq(math.NewInt(1000000), s.getBalance(s.addr(3), "denom1").Amount))
@@ -610,7 +613,7 @@ func (s *KeeperTestSuite) TestMaxNumActivePoolsPerPair() {
 		s.Require().ErrorIs(err, types.ErrTooManyPools)
 
 		s.withdraw(s.addr(0), pool1.Id, sdk.NewCoin(pool1.PoolCoinDenom, s.app.DexKeeper.GetPoolCoinSupply(s.ctx, pool1)))
-		s.nextBlock()
+		s.nextBlock(false)
 
 		s.createRangedPool(
 			s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"),
@@ -636,7 +639,7 @@ func (s *KeeperTestSuite) TestMaxNumActivePoolsPerPair() {
 		s.Require().ErrorIs(err, types.ErrTooManyPools)
 
 		s.withdraw(s.addr(0), pool1.Id, sdk.NewCoin(pool1.PoolCoinDenom, s.app.DexKeeper.GetPoolCoinSupply(s.ctx, pool1)))
-		s.nextBlock()
+		s.nextBlock(false)
 
 		s.createRangedPool(
 			s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"),

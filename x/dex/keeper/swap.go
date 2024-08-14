@@ -305,7 +305,9 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 				order.SetStatus(types.OrderStatusNotMatched)
 				k.SetOrder(ctx, order)
 			}
-		case types.OrderStatusCanceled:
+		case types.OrderStatusCanceled,
+			types.OrderStatusCompleted,
+			types.OrderStatusExpired:
 		default:
 			return false, fmt.Errorf("invalid order status: %s", order.Status)
 		}

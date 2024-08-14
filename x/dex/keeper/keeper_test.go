@@ -8,8 +8,6 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
-	defundtypes "defund/types"
-
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -36,9 +34,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.app = app
 	hdr := cmtproto.Header{
 		Height: 1,
-		Time:   defundtypes.ParseTime("2022-01-01T00:00:00Z"),
 	}
-	s.ctx = app.BaseApp.NewContext(true).WithBlockHeader(hdr)
+	s.ctx = s.app.BaseApp.NewContext(true).WithBlockHeader(hdr)
 	// Initialize params
 	s.app.DexKeeper.SetParams(s.ctx, types.DefaultParams())
 	s.msgServer = keeper.NewMsgServerImpl(s.app.DexKeeper)
@@ -59,16 +56,13 @@ func (s *KeeperTestSuite) sendCoins(fromAddr, toAddr sdk.AccAddress, amt sdk.Coi
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) nextBlock() {
+func (s *KeeperTestSuite) nextBlock(commit bool) {
 	s.T().Helper()
 	s.app.ModuleManager.EndBlock(s.ctx)
-	s.app.Commit()
-	hdr := cmtproto.Header{
-		Height: s.app.LastBlockHeight() + 1,
-		Time:   s.ctx.BlockTime().Add(5 * time.Second),
+	s.app.EndBlocker(s.ctx)
+	if commit {
+		s.app.Commit()
 	}
-	s.ctx = s.app.BaseApp.NewContext(true).WithBlockHeader(hdr)
-	s.app.ModuleManager.BeginBlock(s.ctx)
 	s.app.BeginBlocker(s.ctx)
 }
 

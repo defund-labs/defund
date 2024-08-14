@@ -26,15 +26,15 @@ func (s *KeeperTestSuite) TestImportExportGenesis() {
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 
 	s.deposit(s.addr(1), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	poolCoin := s.getBalance(s.addr(1), pool.PoolCoinDenom)
 	poolCoin.Amount = poolCoin.Amount.QuoRaw(2)
 	s.withdraw(s.addr(1), pool.Id, poolCoin)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(10000), 0, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	depositReq := s.deposit(s.addr(3), pool.Id, utils.ParseCoins("1000000denom1,1000000denom2"), true)
 	withdrawReq := s.withdraw(s.addr(1), pool.Id, poolCoin)

@@ -245,7 +245,7 @@ func (s *KeeperTestSuite) TestGRPCPool() {
 		creator, pair.Id, utils.ParseCoins("1000000denom1,1000000denom2"),
 		utils.ParseDec("0.5"), utils.ParseDec("2.0"), utils.ParseDec("1.0"), true)
 	s.withdraw(creator, disabledPool.Id, s.getBalance(creator, disabledPool.PoolCoinDenom))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -471,7 +471,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequests() {
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
 	s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -531,7 +531,7 @@ func (s *KeeperTestSuite) TestGRPCDepositRequest() {
 
 	depositor := s.addr(1)
 	req := s.deposit(depositor, pool.Id, utils.ParseCoins("250000denom1,250000denom2"), true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -600,7 +600,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequests() {
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 1000))
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 2500))
 	s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 6000))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -659,7 +659,7 @@ func (s *KeeperTestSuite) TestGRPCWithdrawRequest() {
 	pool := s.createPool(creator, pair.Id, utils.ParseCoins("5000000denom1,5000000denom2"), true)
 
 	req := s.withdraw(creator, pool.Id, sdk.NewInt64Coin(pool.PoolCoinDenom, 50000))
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -725,7 +725,7 @@ func (s *KeeperTestSuite) TestGRPCOrders() {
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(10000), time.Hour, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), newInt(700000), time.Hour, true)
 	s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -773,7 +773,7 @@ func (s *KeeperTestSuite) TestGRPCOrder() {
 	pair := s.createPair(creator, "denom1", "denom2", true)
 
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), 10*time.Second, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -837,7 +837,7 @@ func (s *KeeperTestSuite) TestGRPCOrdersByOrderer() {
 	order := s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
 	order2 := s.buyLimitOrder(s.addr(1), pair2.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
 	s.sellLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.0"), math.NewInt(1000000), time.Minute, true)
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
@@ -1100,7 +1100,7 @@ func (s *KeeperTestSuite) TestGRPCQueryNumMMOrders() {
 		s.addr(1), pair.Id, types.OrderDirectionSell,
 		utils.ParseDec("1.1"), math.NewInt(1_000000), time.Hour, true)
 
-	s.nextBlock()
+	s.nextBlock(false)
 
 	for _, tc := range []struct {
 		name      string
