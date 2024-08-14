@@ -29,7 +29,8 @@ import (
 
 // NewRootCmd creates a new root command for defundd. It is called once in the main function.
 func NewRootCmd() *cobra.Command {
-	initSDKConfig()
+	// NOTE: We do this within the app so we comment it out here
+	// initSDKConfig()
 
 	var (
 		txConfigOpts       tx.ConfigOptions
