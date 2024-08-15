@@ -9,3 +9,4 @@ release/
 *.ign
 entrypoint
 .idx
+rollkit.toml
