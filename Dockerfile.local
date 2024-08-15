@@ -54,8 +54,8 @@ COPY --from=base /app/rollkit.toml ./rollkit.toml
 
 # Copy the $HOME/.defund directory from the build stage.
 # This directory contains all your chain config.
+COPY --from=base /app/network/.defund /root/defund
 COPY --from=base /root/.defund /root/.defund
-COPY --from=base /app/network/config /root/.defund
 
 # Ensure the entrypoint script is executable
 RUN chmod +x ./entrypoint
