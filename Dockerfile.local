@@ -28,6 +28,9 @@ COPY . .
 # Build the chain
 RUN ignite chain build && ignite rollkit init
 
+# Initialize the rollkit.toml file
+RUN rollkit toml init
+
 # Run rollkit command to initialize the entrypoint executable
 RUN rollkit
 

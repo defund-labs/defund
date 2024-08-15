@@ -17,6 +17,7 @@ def run(plan):
         "start",
         "--rollkit.aggregator",
         "--rollkit.da_address {0}".format(da_address),
+        "--minimum-gas-prices 0.01stake",
     ]
     # Define the jsonrpc ports
     defund_ports = {
