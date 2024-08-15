@@ -17,6 +17,7 @@ def run(plan):
         "start",
         "--rollkit.aggregator",
         "--rollkit.da_address {0}".format(da_address),
+        "--rollkit.block_time 0.1ms",
         "--minimum-gas-prices 0.01stake",
     ]
     # Define the jsonrpc ports
