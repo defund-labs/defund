@@ -30,6 +30,13 @@
           "pub_key": null,
           "account_number": "1",
           "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "defund1w75l6kxs36dx4psa55w4jfp2l0wnpx28g57myz",
+          "pub_key": null,
+          "account_number": "2",
+          "sequence": "0"
         }
       ]
     },
@@ -63,16 +70,65 @@
               "amount": "10000"
             }
           ]
+        },
+        {
+          "address": "defund1w75l6kxs36dx4psa55w4jfp2l0wnpx28g57myz",
+          "coins": [
+            {
+              "denom": "stake",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "uosmo",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "uatom",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "uusdc",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "ueth",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "ubtc",
+              "amount": "1000000000000000"
+            }
+          ]
         }
       ],
       "supply": [
         {
           "denom": "stake",
-          "amount": "101000000"
+          "amount": "1000000201000000"
         },
         {
           "denom": "token",
           "amount": "10000"
+        },
+        {
+          "denom": "uosmo",
+          "amount": "1000000000000000"
+        },
+        {
+          "denom": "uatom",
+          "amount": "1000000000000000"
+        },
+        {
+          "denom": "uusdc",
+          "amount": "1000000000000000"
+        },
+        {
+          "denom": "ueth",
+          "amount": "1000000000000000"
+        },
+        {
+          "denom": "ubtc",
+          "amount": "1000000000000000"
         }
       ],
       "denom_metadata": [],

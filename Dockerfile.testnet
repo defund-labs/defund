@@ -1,0 +1,71 @@
+# Stage 1: Install ignite CLI and rollkit
+FROM golang as base
+
+# Install dependencies
+RUN apt update && \
+	apt-get install -y \
+	build-essential \
+	ca-certificates \
+	curl
+
+# Install rollkit
+ARG ROLLKIT_VERSION=v0.13.6
+RUN curl -sSL https://rollkit.dev/install.sh | sh -s $ROLLKIT_VERSION
+
+# Install ignite
+ARG IGNITE_VERSION=v28.4.0
+RUN curl https://get.ignite.com/cli@$IGNITE_VERSION! | bash
+
+# Set the working directory
+WORKDIR /app
+
+# Cache dependencies.
+COPY ./go.mod . 
+COPY ./go.sum . 
+RUN go mod download
+
+# Copy all files from the current directory to the container
+COPY . .
+
+# Build the chain
+RUN ignite chain build && ignite rollkit init
+
+# Initialize the rollkit.toml file
+RUN rollkit toml init
+
+# Run rollkit command to initialize the entrypoint executable
+RUN rollkit
+
+# Stage 2: Set up the runtime environment
+FROM debian:bookworm-slim
+
+# Install jq
+RUN apt update && \
+	apt-get install -y \
+	jq
+
+# Set the working directory
+WORKDIR /root
+
+# Copy over the rollkit binary from the build stage
+COPY --from=base /go/bin/rollkit /usr/bin
+
+# Copy the entrypoint and rollkit.toml files from the build stage
+COPY --from=base /app/entrypoint ./entrypoint
+COPY --from=base /app/rollkit.toml ./rollkit.toml
+
+# Copy the $HOME/.defund directory from the build stage.
+# This directory contains all your chain config.
+COPY --from=base /app/network/.defund /root/defund
+COPY --from=base /root/.defund /root/.defund
+
+# Ensure the entrypoint script is executable
+RUN chmod +x ./entrypoint
+
+# Define environment variables for runtime configuration
+ENV AUTH_TOKEN=""
+ENV DA_NAMESPACE=""
+ENV DA_BLOCK_HEIGHT=""
+
+# Keep the container running after it has been started
+ENTRYPOINT [ "rollkit", "start", "--rollkit.aggregator", "--rollkit.da_auth_token", "$AUTH_TOKEN", "--rollkit.da_namespace", "$DA_NAMESPACE", "--rollkit.da_start_height", "$DA_BLOCK_HEIGHT", '--minimum-gas-prices="0.02ibc/C3E53D20BC7A4CC993B17C7971F8ECD06A433C10B6A96F4C4C3714F0624C56DA,0.025stake"' ]

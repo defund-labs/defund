@@ -1,0 +1,60 @@
+# Stage 1: Build celestia-node from source using Ubuntu
+FROM ubuntu:22.04 as builder
+
+# Install necessary packages, including Go, Git, and build tools
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Go (version 1.23)
+RUN wget https://go.dev/dl/go1.23.0.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz \
+    && rm go1.23.0.linux-amd64.tar.gz
+
+# Set Go environment variables
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Set the working directory
+WORKDIR /app
+
+# Clone the celestia-node repository
+RUN git clone https://github.com/celestiaorg/celestia-node.git .
+
+# Checkout the desired version
+RUN git checkout v0.15.0
+
+# Build the celestia binary
+RUN make build
+
+# Build the cel-key utility
+RUN make cel-key
+
+# Stage 2: Set up the runtime environment using a minimal Alpine image
+FROM alpine:3.18
+
+# Install required packages
+RUN apk add --no-cache ca-certificates curl jq bash
+
+# Set the working directory
+WORKDIR /root
+
+# Copy the celestia binary and cel-key utility from the builder stage
+COPY --from=builder /app/build/celestia /usr/local/bin/celestia
+COPY --from=builder /app/build/cel-key /usr/local/bin/cel-key
+
+# Expose necessary ports
+EXPOSE 26658 9090 2121
+
+# Set environment variables
+ENV NODE_TYPE="light"
+ENV P2P_NETWORK="mocha"
+ENV RPC_URL="rpc-mocha.pops.one"
+
+# Initialize the node store
+RUN celestia light init --p2p.network "$P2P_NETWORK"
+
+# Entry point to start the light node
+CMD ["celestia", "light", "start", "--core.ip", "$RPC_URL", "--p2p.network", "$P2P_NETWORK"]

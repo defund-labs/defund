@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  celestia-light-node:
+    image: mysticlabss/celestia-light-node:latest
+    container_name: celestia-light-node
+    environment:
+      - NODE_TYPE=light
+      - P2P_NETWORK=mocha
+      - RPC_URL=rpc-mocha.pops.one
+    volumes:
+      - celestia-light-node-data:/root
+    ports:
+      - "26658:26658"
+      - "2121:2121"
+
+  defund:
+    image: mysticlabss/defund:prodv0.1.0
+    container_name: defund
+    environment:
+      - AUTH_TOKEN=
+      - DA_NAMESPACE=
+      - DA_BLOCK_HEIGHT=
+    volumes:
+      - defund-data:/app/network/.defund
+    ports:
+      - "26657:26657"
+      - "26656:26656"
+      - "1317:1317"
+
+volumes:
+  celestia-light-node-data:
+    driver: local
+  defund-data:
+    driver: local

@@ -20,7 +20,7 @@ query-gas-limit = "0"
   rpc-max-body-bytes = 1000000
   rpc-read-timeout = 10
   rpc-write-timeout = 0
-  swagger = false
+  swagger = true
 
 [grpc]
   address = "localhost:9090"
