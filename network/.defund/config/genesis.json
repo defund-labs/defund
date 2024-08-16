@@ -104,7 +104,7 @@
       "supply": [
         {
           "denom": "stake",
-          "amount": "1000000201000000"
+          "amount": "1000000101000000"
         },
         {
           "denom": "token",
