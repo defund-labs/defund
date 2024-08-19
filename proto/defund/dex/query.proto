@@ -15,80 +15,80 @@ option go_package = "defund/x/dex/types";
 service Query {
   // Params returns parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/params";
+    option (google.api.http).get = "/defund/dex/v1beta1/params";
   }
 
   // Pools returns all liquidity pools.
   rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools";
   }
 
   // Pool returns the specific liquidity pool.
   rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/{pool_id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/{pool_id}";
   }
 
   // PoolByReserveAddress returns all pools that correspond to the reserve account.
   rpc PoolByReserveAddress(QueryPoolByReserveAddressRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/reserve_address/{reserve_address}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/reserve_address/{reserve_address}";
   }
 
   // PoolByPoolCoinDenom returns all pools that correspond to the pool coin denom.
   rpc PoolByPoolCoinDenom(QueryPoolByPoolCoinDenomRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/pool_coin_denom/{pool_coin_denom}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/pool_coin_denom/{pool_coin_denom}";
   }
 
   // Pairs returns all liquidity pairs.
   rpc Pairs(QueryPairsRequest) returns (QueryPairsResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pairs";
+    option (google.api.http).get = "/defund/dex/v1beta1/pairs";
   }
 
   // Pair returns the specific pair.
   rpc Pair(QueryPairRequest) returns (QueryPairResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pairs/{pair_id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pairs/{pair_id}";
   }
 
   // DepositRequests returns all deposit requests.
   rpc DepositRequests(QueryDepositRequestsRequest) returns (QueryDepositRequestsResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/{pool_id}/deposit_requests";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/{pool_id}/deposit_requests";
   }
 
   // DepositRequest returns the specific deposit request.
   rpc DepositRequest(QueryDepositRequestRequest) returns (QueryDepositRequestResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/{pool_id}/deposit_requests/{id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/{pool_id}/deposit_requests/{id}";
   }
 
   // WithdrawRequests returns all withdraw requests.
   rpc WithdrawRequests(QueryWithdrawRequestsRequest) returns (QueryWithdrawRequestsResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/{pool_id}/withdraw_requests";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/{pool_id}/withdraw_requests";
   }
 
   // WithdrawRequest returns the specific withdraw request.
   rpc WithdrawRequest(QueryWithdrawRequestRequest) returns (QueryWithdrawRequestResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pools/{pool_id}/withdraw_requests/{id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pools/{pool_id}/withdraw_requests/{id}";
   }
 
   // Orders returns all orders within the pair.
   rpc Orders(QueryOrdersRequest) returns (QueryOrdersResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pairs/{pair_id}/orders";
+    option (google.api.http).get = "/defund/dex/v1beta1/pairs/{pair_id}/orders";
   }
 
   // Order returns the specific order.
   rpc Order(QueryOrderRequest) returns (QueryOrderResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/pairs/{pair_id}/orders/{id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/pairs/{pair_id}/orders/{id}";
   }
 
   // OrdersByOrderer returns orders made by an orderer.
   rpc OrdersByOrderer(QueryOrdersByOrdererRequest) returns (QueryOrdersResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/orders/{orderer}";
+    option (google.api.http).get = "/defund/dex/v1beta1/orders/{orderer}";
   }
 
   rpc OrderBooks(QueryOrderBooksRequest) returns (QueryOrderBooksResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/order_books";
+    option (google.api.http).get = "/defund/dex/v1beta1/order_books";
   }
 
   rpc NumMMOrders(QueryNumMMOrdersRequest) returns (QueryNumMMOrdersResponse) {
-    option (google.api.http).get = "/defund/liquidity/v1beta1/num_mm_orders/{orderer}/{pair_id}";
+    option (google.api.http).get = "/defund/dex/v1beta1/num_mm_orders/{orderer}/{pair_id}";
   }
 }
 

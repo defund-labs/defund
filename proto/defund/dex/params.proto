@@ -10,7 +10,7 @@ import "google/protobuf/duration.proto";
 
 option go_package = "defund/x/dex/types";
 
-// Params defines the parameters for the liquidity module.
+// Params defines the parameters for the dex module.
 message Params {
   option (amino.name) = "defund/x/dex/Params";
 

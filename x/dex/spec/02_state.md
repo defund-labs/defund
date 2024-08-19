@@ -2,11 +2,11 @@
 
 # State
 
-The `liquidity` module keeps track of the Pair, Pool, Requests states. 
+The `dex` module keeps track of the Pair, Pool, Requests states. 
 
 ## Pair
 
-Pair stores information about the coin pair in the liquidity module.
+Pair stores information about the coin pair in the dex module.
 A pair is the dyadic quotation of the relative value of a base coin unit against the unit of quote coin. 
 
 Pair type has the following structure.
@@ -173,10 +173,10 @@ type Order struct {
 
 # Parameter
 
-- ModuleName: `liquidity`
-- RouterKey: `liquidity`
-- StoreKey: `liquidity`
-- QuerierRoute: `liquidity`
+- ModuleName: `dex`
+- RouterKey: `dex`
+- StoreKey: `dex`
+- QuerierRoute: `dex`
 
 # Store
 

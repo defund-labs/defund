@@ -10,13 +10,13 @@ import (
 	"defund/x/dex/types"
 )
 
-// GetParams returns the parameters for the liquidity module.
+// GetParams returns the parameters for the dex module.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	k.paramSpace.GetParamSet(ctx, &params)
 	return
 }
 
-// SetParams sets the parameters for the liquidity module.
+// SetParams sets the parameters for the dex module.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }

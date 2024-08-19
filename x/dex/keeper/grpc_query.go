@@ -17,7 +17,7 @@ import (
 	"defund/x/dex/types"
 )
 
-// Params queries the parameters of the liquidity module.
+// Params queries the parameters of the dex module.
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	var params types.Params

@@ -13,7 +13,7 @@ import (
 	"defund/x/dex/types"
 )
 
-// Keeper of the liquidity store.
+// Keeper of the dex store.
 type Keeper struct {
 	cdc          codec.BinaryCodec
 	storeService store.KVStoreService
@@ -25,7 +25,7 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 }
 
-// NewKeeper creates a new liquidity Keeper instance.
+// NewKeeper creates a new dex Keeper instance.
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,

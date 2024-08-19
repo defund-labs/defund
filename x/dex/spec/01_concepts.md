@@ -2,10 +2,10 @@
 
 # Concepts
 
-## Liquidity Module
+## Dex Module
 
-The liquidity module is a module that can be used on any Cosmos SDK-based application.
-The liquidity module implements a decentralized exchange (DEX) that serves
+The dex module is a module that can be used on any Cosmos SDK-based application.
+The dex module implements a decentralized exchange (DEX) that serves
 liquidity providing and coin trading functions.
 Anyone can create a liquidity pool with a pair of coins,
 provide liquidity by depositing reserve coins into the liquidity pool,
@@ -52,7 +52,7 @@ that the product of those reserves remains unchanged (i.e. equal to a constant).
 
 ## Batch Execution
 
-The liquidity module uses a batch execution methodology.
+The dex module uses a batch execution methodology.
 Deposits and withdrawals are accumulated in a liquidity pool and
 swap orders are accumulated in a market pair
 for a pre-defined period that is one or more blocks in length.
@@ -61,22 +61,22 @@ The size of each batch is configured by using the `BatchSize` governance paramet
 
 ## Escrow Process
 
-The liquidity module uses a module account that acts as an escrow account.
+The dex module uses a module account that acts as an escrow account.
 The module account holds and releases the coin amount during batch execution.
 
 ## Refund
 
-The liquidity module has a refunding logic when deposits, withdrawals and orders
+The dex module has a refunding logic when deposits, withdrawals and orders
 were not successfully executed.
 
 ## Fees
 
-You set liquidity module fees for pair creation, pool creation, withdrawal and swap.
+You set dex module fees for pair creation, pool creation, withdrawal and swap.
 These fees can be updated by the governance proposal.
 
 ### PoolCreationFee
 
-The liquidity module pool creation fee set by the `PoolCreationFee` parameter
+The dex module pool creation fee set by the `PoolCreationFee` parameter
 is paid on pool creation.
 The purpose of this fee is to prevent users from creating useless pools and
 making limitless transactions.
@@ -84,7 +84,7 @@ The funds from this fee go to the `FeeCollectorAddress`.
 
 ### WithdrawalFeeRate
 
-The liquidity module has `WithdrawFeeRate` parameter that is paid upon withdrawal.
+The dex module has `WithdrawFeeRate` parameter that is paid upon withdrawal.
 The purpose of this fee is to prevent liquidity providers from getting out of the pool.
 
 ### SwapFeeRate

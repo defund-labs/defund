@@ -8,7 +8,7 @@ import (
 	"defund/x/dex/types"
 )
 
-// RegisterInvariants registers all liquidity module invariants.
+// RegisterInvariants registers all dex module invariants.
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "deposit-coins-escrow", DepositCoinsEscrowInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "pool-coin-escrow", PoolCoinEscrowInvariant(k))
@@ -17,7 +17,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "num-mm-orders", NumMMOrdersInvariant(k))
 }
 
-// AllInvariants returns a combined invariant of the liquidity module.
+// AllInvariants returns a combined invariant of the dex module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		for _, inv := range []func(Keeper) sdk.Invariant{
