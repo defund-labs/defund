@@ -27,9 +27,8 @@ DeFund Finance is built on a robust and scalable architecture that leverages the
 ### Prerequisites
 
 - Golang
-- Rust
-- Hermes IBC relayer
-- DeFund Golang relayer (https://github.com/defund-labs/relayer)
+- Kurtosis 1.0.0 (https://docs.kurtosis.com/install)
+- Hermes IBC relayer (https://hermes.informal.systems/quick-start/installation.html)
 
 ## Install
 
