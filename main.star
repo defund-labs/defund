@@ -25,6 +25,12 @@ def run(plan):
         "jsonrpc": PortSpec(
             number=26657, transport_protocol="TCP", application_protocol="http"
         ),
+        "rest": PortSpec(
+            number=1317, transport_protocol="TCP", application_protocol="http"
+        ),
+        "grpc": PortSpec(
+            number=9090, transport_protocol="TCP", application_protocol="http"
+        ),
     }
     # Start the defund chain
     defund = plan.add_service(

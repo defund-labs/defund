@@ -165,7 +165,7 @@
         "max_num_market_making_order_ticks": 10,
         "max_num_market_making_orders_per_pair": 15,
         "max_order_lifespan": "86400s",
-        "max_price_limit_ratio": "0.000100000000000000",
+        "max_price_limit_ratio": "0.050000000000000000",
         "min_initial_deposit_amount": "1000000",
         "min_initial_pool_coin_supply": "1000000000000",
         "order_extra_gas": "37000",
