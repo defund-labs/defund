@@ -1,51 +1,60 @@
-# defund
-**defund** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
+<p align="center">
+  <img src="https://github.com/defund-labs/defund/blob/d80730b57ed80a1f75c5d9990faa16efa7477e92/Defund-BrandAssets/Banners/DeFund-White.png" alt="DeFund Finance"/>
+</p>
 
-## Get started
+**DeFund Finance** is a sovereign rollup built on Celestia using Rollkit, designed to create a rich DeFi ecosystem that serves as a hub for all modular liquidity. By leveraging the Celestia DA (Data Availability) layer, DeFund Finance aims to provide a comprehensive suite of DeFi products and services tailored to the modular blockchain ecosystem.
 
-```
-ignite chain serve
-```
+## Key Features
 
-`serve` command installs dependencies, builds, initializes, and starts your blockchain in development.
+- **Spot Exchange**: DeFund Finance offers a state-of-the-art decentralized exchange that combines the best features of an orderbook and an automated market maker (AMM) model, providing deep liquidity, efficient price discovery, and minimal slippage for traders.
 
-### Configure
+- **Hedged Liquidity Pools**: DeFund Finance's Hedged Liquidity Pools are an innovative solution to the problem of impermanent loss faced by liquidity providers in traditional AMMs. These pools work in conjunction with the Spot Exchange, serving as the main source of liquidity for the exchange while minimizing impermanent loss through an automated hedging mechanism.
 
-Your blockchain in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
+- **Option Vaults**: Option Vaults bring the power of customizable risk management to the DeFi space. Users can mint customized options using a unique Dutch auction mechanism, providing a novel approach to hedging, yield generation, and market speculation.
 
-### Web Frontend
+- **Asset Abstraction**: DeFund Finance takes asset interoperability and accessibility to the next level through the integration of Calypso and the Cosmos extension for Metamask. These integrations enable users to perform any action with any asset using the most widely adopted wallet, MetaMask.
 
-Additionally, Ignite CLI offers both Vue and React options for frontend scaffolding:
+## Architecture
 
-For a Vue frontend, use: `ignite scaffold vue`
-For a React frontend, use: `ignite scaffold react`
-These commands can be run within your scaffolded blockchain project. 
+DeFund Finance is built on a robust and scalable architecture that leverages the power of Rollkit and Celestia to create a high-performance, secure, and flexible platform for decentralized finance.
 
+- **Rollkit + Celestia**: The combination of Rollkit and Celestia enables DeFund Finance to create a sovereign rollup that benefits from the security and scalability of Celestia's DA layer while maintaining the flexibility and customization offered by Rollkit.
 
-For more information see the [monorepo for Ignite front-end development](https://github.com/ignite/web).
+- **Asset Abstraction**: DeFund Finance integrates Calypso and the Cosmos Metamask Snap to enable seamless interoperability between different blockchain networks and assets. Users can perform any action with any token, regardless of its native blockchain, using the familiar Metamask wallet.
 
-## Release
-To release a new version of your blockchain, create and push a new tag with `v` prefix. A new draft release with the configured targets will be created.
+## Getting Started
 
-```
-git tag v0.1
-git push origin v0.1
-```
+### Prerequisites
 
-After a draft release is created, make your final changes from the release page and publish it.
+- Golang
+- Rust
+- Hermes IBC relayer
+- DeFund Golang relayer (https://github.com/defund-labs/relayer)
 
-### Install
-To install the latest version of your blockchain node's binary, execute the following command on your machine:
+## Install
+
+You will need Golang and Kurtosis 1.0.0 installed. 
 
 ```
-curl https://get.ignite.com/username/defund@latest! | sudo bash
+git clone https://github.com/defund-labs/defund
+
+cd defund
+
+# If you want the CLI installed
+make install
 ```
-`username/defund` should match the `username` and `repo_name` of the Github repository to which the source code was pushed. Learn more about [the install process](https://github.com/allinbits/starport-installer).
 
-## Learn more
+## Getting Started in Dev/Local Mode
 
-- [Ignite CLI](https://ignite.com/cli)
-- [Tutorials](https://docs.ignite.com/guide)
-- [Ignite CLI docs](https://docs.ignite.com)
-- [Cosmos SDK docs](https://docs.cosmos.network)
-- [Developer Chat](https://discord.gg/ignite)
+```bash
+# Make sure you have kurtosis 1.0.0 installed and running
+kurtosis run .
+```
+
+## Roadmap
+
+- [x] Hybrid DEX
+- [ ] Options + Option Vaults
+- [ ] Hedged Liquidity Pools
+- [ ] Rollkit Interoperability
+- [ ] Cross-VM outposts
