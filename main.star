@@ -37,7 +37,7 @@ def run(plan):
         name="defund",
         config=ServiceConfig(
             # Use the defund image we just built
-            image="mysticlabss/defund:v0.1.0",
+            image="mysticlabss/defund:v0.1.1",
             # Set the command to start the defund chain in the docker container
             cmd=["/bin/sh", "-c", " ".join(defund_start_cmd)],
             ports=defund_ports,

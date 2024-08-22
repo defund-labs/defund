@@ -23,7 +23,7 @@ query-gas-limit = "0"
   swagger = true
 
 [grpc]
-  address = "localhost:9090"
+  address = "0.0.0.0:9090"
   enable = true
   max-recv-msg-size = "10485760"
   max-send-msg-size = "2147483647"
