@@ -1,0 +1,5 @@
+DeFund color palette:
+
+White: #ffffff
+Black: #000000
+Light Blue: #6ce5e8
