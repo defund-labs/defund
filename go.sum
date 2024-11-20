@@ -1855,8 +1855,8 @@ github.com/rollkit/cosmos-sdk-starter v0.0.0-20240618160214-7e3bcbfee133 h1:I3Rq
 github.com/rollkit/cosmos-sdk-starter v0.0.0-20240618160214-7e3bcbfee133/go.mod h1:k9+TwYbu1RI2OrM0Dbyc+1/kwU2lfZlwdXJELUHxTMg=
 github.com/rollkit/go-da v0.9.0 h1:ECpS7RSLE84w61Y5a93RfaZrAZKeiyfjVwGxzjsW2cU=
 github.com/rollkit/go-da v0.9.0/go.mod h1:LQImomegjZ/dEQLKDJA7RdUnOLINSZJwI7q1CvFPWJw=
-github.com/rollkit/rollkit v0.13.9 h1:L82WCYajT+Zr0iXS7OcBxt5uU6oiilQWaGCYQitSAVw=
-github.com/rollkit/rollkit v0.13.9/go.mod h1:zBrgR3AIWVMqcdrZ1jB+J0K99GTfcLuZUfpdyW8ADg8=
+github.com/rollkit/rollkit v0.13.4 h1:KgGjxvx0XvsN62gleVlZZqf3l0oi3rUlC/cAMyeAgT8=
+github.com/rollkit/rollkit v0.13.4/go.mod h1:vbXNNR/jT9y3wbtJQ0nrS2XILNLCxtzv1vVgixNU/ys=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/cors v1.8.2/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
 github.com/rs/cors v1.11.0 h1:0B9GE/r9Bc2UxRMMtymBkHTenPkHDv0CW4Y98GBY+po=
